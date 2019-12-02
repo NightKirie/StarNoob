@@ -81,13 +81,13 @@ class Agent(base_agent.BaseAgent):
     return  [unit for unit in obs.observation.raw_units
              if unit.alliance == features.PlayerRelative.SELF
              and unit.x >= pos1x and unit.x < pos2x
-             and unit.y >= pos2y and unit.y < pos2y]
+             and unit.y >= pos1y and unit.y < pos2y]
 
   def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
     return  [unit for unit in obs.observation.raw_units
              if unit.alliance == features.PlayerRelative.ENEMY
              and unit.x >= pos1x and unit.x < pos2x
-             and unit.y >= pos2y and unit.y < pos2y]
+             and unit.y >= pos1y and unit.y < pos2y]
   
   def get_my_completed_units_by_type(self, obs, unit_type):
     return [unit for unit in obs.observation.raw_units
@@ -379,6 +379,10 @@ class SmartAgent(Agent):
     enemy_unit_at_3_2 = self.get_enemy_units_by_pos(obs, 21, 42, 42, 64)
     enemy_unit_at_3_3 = self.get_enemy_units_by_pos(obs, 42, 42, 64, 64)
 
+    #print(len(enemy_unit_at_3_3))
+    #print([enemy_unit_at_1_1, enemy_unit_at_2_2, enemy_unit_at_3_3])
+    #print([len(enemy_unit_at_1_1), len(enemy_unit_at_1_2), len(enemy_unit_at_1_3), len(enemy_unit_at_2_1), len(enemy_unit_at_2_2), len(enemy_unit_at_2_3), len(enemy_unit_at_3_1), len(enemy_unit_at_3_2), len(enemy_unit_at_3_3)])
+    
     marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
     
     #queued_marines = (completed_barrackses[0].order_length 
@@ -403,6 +407,7 @@ class SmartAgent(Agent):
     #    obs, units.Terran.Barracks)
     enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
     
+
     return (self.base_top_left,
             len(command_centers),
             len(scvs),
