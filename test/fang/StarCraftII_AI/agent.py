@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 17 19:52:14 2019
-
-@author: 方嘉祥
-"""
-
-
 import random
 import numpy as np
 import pandas as pd
@@ -16,11 +8,11 @@ from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
 DATA_FILE = 'AI_agent_data'
-KILL_UNIT_REWARD_RATE = 0.0002
-KILL_BUILDING_REWARD_RATE = 0.0004
-DEAD_UNIT_REWARD_RATE = 0.0001
-DEAD_BUILDING_REWARD_RATE = 0.0002
-MORE_MINERALS_USED_REWARD_RATE = 0.0001
+KILL_UNIT_REWARD_RATE = 0.00002
+KILL_BUILDING_REWARD_RATE = 0.00004
+DEAD_UNIT_REWARD_RATE = 0.00001 * 0
+DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
+MORE_MINERALS_USED_REWARD_RATE = 0.00001
 
 class QLearningTable:
   def __init__(self, actions, learning_rate=0.01, reward_decay=0.9):
@@ -66,8 +58,13 @@ class Agent(base_agent.BaseAgent):
              "train_marine", 
              "attack1_1",
              "attack1_2",
+             "attack1_3",
              "attack2_1",
              "attack2_2",
+             "attack2_3",
+             "attack3_1",
+             "attack3_2",
+             "attack3_3",
              )
 
   def get_my_units_by_type(self, obs, unit_type):
@@ -210,7 +207,7 @@ class Agent(base_agent.BaseAgent):
   def attack1_1(self, obs):
     marines = self.get_my_units_by_type(obs, units.Terran.Marine)
     if len(marines) > 0:
-      attack_xy = (19, 23) if self.base_top_left else (38, 44)
+      attack_xy = (11, 11)
       distances = self.get_distances(obs, marines, attack_xy)
       #marine = marines[np.argmax(distances)]
       x_offset = random.randint(-5, 5)
@@ -222,7 +219,19 @@ class Agent(base_agent.BaseAgent):
   def attack1_2(self, obs):
     marines = self.get_my_units_by_type(obs, units.Terran.Marine)
     if len(marines) > 0:
-      attack_xy = (45, 23) if self.base_top_left else (19, 44)
+      attack_xy = (32, 11)
+      distances = self.get_distances(obs, marines, attack_xy)
+      #marine = marines[np.argmax(distances)]
+      x_offset = random.randint(-5, 5)
+      y_offset = random.randint(-5, 5)
+      return actions.RAW_FUNCTIONS.Attack_pt(
+          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def attack1_3(self, obs):
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+    if len(marines) > 0:
+      attack_xy = (53, 11)
       distances = self.get_distances(obs, marines, attack_xy)
       #marine = marines[np.argmax(distances)]
       x_offset = random.randint(-5, 5)
@@ -234,7 +243,7 @@ class Agent(base_agent.BaseAgent):
   def attack2_1(self, obs):
     marines = self.get_my_units_by_type(obs, units.Terran.Marine)
     if len(marines) > 0:
-      attack_xy = (19, 44) if self.base_top_left else (45, 23)
+      attack_xy = (11, 32)
       distances = self.get_distances(obs, marines, attack_xy)
       #marine = marines[np.argmax(distances)]
       x_offset = random.randint(-5, 5)
@@ -246,7 +255,19 @@ class Agent(base_agent.BaseAgent):
   def attack2_2(self, obs):
     marines = self.get_my_units_by_type(obs, units.Terran.Marine)
     if len(marines) > 0:
-      attack_xy = (38, 44) if self.base_top_left else (19, 23)
+      attack_xy = (32, 32)
+      distances = self.get_distances(obs, marines, attack_xy)
+      #marine = marines[np.argmax(distances)]
+      x_offset = random.randint(-5, 5)
+      y_offset = random.randint(-5, 5)
+      return actions.RAW_FUNCTIONS.Attack_pt(
+          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def attack2_3(self, obs):
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+    if len(marines) > 0:
+      attack_xy = (53, 32)
       distances = self.get_distances(obs, marines, attack_xy)
       #marine = marines[np.argmax(distances)]
       x_offset = random.randint(-5, 5)
@@ -255,7 +276,41 @@ class Agent(base_agent.BaseAgent):
           "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
   
-  
+  def attack3_1(self, obs):
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+    if len(marines) > 0:
+      attack_xy = (11, 53)
+      distances = self.get_distances(obs, marines, attack_xy)
+      #marine = marines[np.argmax(distances)]
+      x_offset = random.randint(-5, 5)
+      y_offset = random.randint(-5, 5)
+      return actions.RAW_FUNCTIONS.Attack_pt(
+          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def attack3_2(self, obs):
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+    if len(marines) > 0:
+      attack_xy = (32, 53)
+      distances = self.get_distances(obs, marines, attack_xy)
+      #marine = marines[np.argmax(distances)]
+      x_offset = random.randint(-5, 5)
+      y_offset = random.randint(-5, 5)
+      return actions.RAW_FUNCTIONS.Attack_pt(
+          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def attack3_3(self, obs):
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+    if len(marines) > 0:
+      attack_xy = (53, 53)
+      distances = self.get_distances(obs, marines, attack_xy)
+      #marine = marines[np.argmax(distances)]
+      x_offset = random.randint(-5, 5)
+      y_offset = random.randint(-5, 5)
+      return actions.RAW_FUNCTIONS.Attack_pt(
+          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+    return actions.RAW_FUNCTIONS.no_op()
 
   def step(self, obs):
     super(Agent, self).step(obs)
@@ -304,15 +359,25 @@ class SmartAgent(Agent):
     completed_barrackses = self.get_my_completed_units_by_type(
         obs, units.Terran.Barracks)
 
-    my_unit_at_1_1 = self.get_my_units_by_pos(obs, 0, 0, 32, 32) if self.base_top_left else self.get_my_units_by_pos(obs, 32, 32, 64, 64)
-    my_unit_at_1_2 = self.get_my_units_by_pos(obs, 32, 0, 64, 32) if self.base_top_left else self.get_my_units_by_pos(obs, 0, 32, 32, 64)
-    my_unit_at_2_1 = self.get_my_units_by_pos(obs, 0, 32, 32, 64) if self.base_top_left else self.get_my_units_by_pos(obs, 32, 0, 64, 32)
-    my_unit_at_2_2 = self.get_my_units_by_pos(obs, 32, 32, 64, 64) if self.base_top_left else self.get_my_units_by_pos(obs, 0, 0, 32, 32)
-
-    enemy_unit_at_1_1 = self.get_enemy_units_by_pos(obs, 0, 0, 32, 32) if self.base_top_left else self.get_enemy_units_by_pos(obs, 32, 32, 64, 64)
-    enemy_unit_at_1_2 = self.get_enemy_units_by_pos(obs, 32, 0, 64, 32) if self.base_top_left else self.get_enemy_units_by_pos(obs, 0, 32, 32, 64)
-    enemy_unit_at_2_1 = self.get_enemy_units_by_pos(obs, 0, 32, 32, 64) if self.base_top_left else self.get_enemy_units_by_pos(obs, 32, 0, 64, 32)
-    enemy_unit_at_2_2 = self.get_enemy_units_by_pos(obs, 32, 32, 64, 64) if self.base_top_left else self.get_enemy_units_by_pos(obs, 0, 0, 32, 32)
+    my_unit_at_1_1 = self.get_my_units_by_pos(obs, 0, 0, 21, 21)
+    my_unit_at_1_2 = self.get_my_units_by_pos(obs, 21, 0, 42, 21)
+    my_unit_at_1_3 = self.get_my_units_by_pos(obs, 42, 0, 64, 21)
+    my_unit_at_2_1 = self.get_my_units_by_pos(obs, 0, 21, 21, 42)
+    my_unit_at_2_2 = self.get_my_units_by_pos(obs, 21, 21, 42, 42)
+    my_unit_at_2_3 = self.get_my_units_by_pos(obs, 42, 21, 64, 42)
+    my_unit_at_3_1 = self.get_my_units_by_pos(obs, 0, 42, 21, 64)
+    my_unit_at_3_2 = self.get_my_units_by_pos(obs, 21, 42, 42, 64)
+    my_unit_at_3_3 = self.get_my_units_by_pos(obs, 42, 42, 64, 64)
+    
+    enemy_unit_at_1_1 = self.get_enemy_units_by_pos(obs, 0, 0, 21, 21)
+    enemy_unit_at_1_2 = self.get_enemy_units_by_pos(obs, 21, 0, 42, 21)
+    enemy_unit_at_1_3 = self.get_enemy_units_by_pos(obs, 42, 0, 64, 21)
+    enemy_unit_at_2_1 = self.get_enemy_units_by_pos(obs, 0, 21, 21, 42)
+    enemy_unit_at_2_2 = self.get_enemy_units_by_pos(obs, 21, 21, 42, 42)
+    enemy_unit_at_2_3 = self.get_enemy_units_by_pos(obs, 42, 21, 64, 42)
+    enemy_unit_at_3_1 = self.get_enemy_units_by_pos(obs, 0, 42, 21, 64)
+    enemy_unit_at_3_2 = self.get_enemy_units_by_pos(obs, 21, 42, 42, 64)
+    enemy_unit_at_3_3 = self.get_enemy_units_by_pos(obs, 42, 42, 64, 64)
 
     marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
     
@@ -326,19 +391,20 @@ class SmartAgent(Agent):
     can_afford_marine = obs.observation.player.minerals >= 100
     
     enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
-    enemy_idle_scvs = [scv for scv in enemy_scvs if scv.order_length == 0]
+    #enemy_idle_scvs = [scv for scv in enemy_scvs if scv.order_length == 0]
     enemy_command_centers = self.get_enemy_units_by_type(
         obs, units.Terran.CommandCenter)
     enemy_supply_depots = self.get_enemy_units_by_type(
         obs, units.Terran.SupplyDepot)
-    enemy_completed_supply_depots = self.get_enemy_completed_units_by_type(
-        obs, units.Terran.SupplyDepot)
+    #enemy_completed_supply_depots = self.get_enemy_completed_units_by_type(
+    #    obs, units.Terran.SupplyDepot)
     enemy_barrackses = self.get_enemy_units_by_type(obs, units.Terran.Barracks)
-    enemy_completed_barrackses = self.get_enemy_completed_units_by_type(
-        obs, units.Terran.Barracks)
+    #enemy_completed_barrackses = self.get_enemy_completed_units_by_type(
+    #    obs, units.Terran.Barracks)
     enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
     
-    return (len(command_centers),
+    return (self.base_top_left,
+            len(command_centers),
             len(scvs),
             len(idle_scvs),
             len(supply_depots),
@@ -353,20 +419,31 @@ class SmartAgent(Agent):
             can_afford_marine,
             len(enemy_command_centers),
             len(enemy_scvs),
-            len(enemy_idle_scvs),
+            #len(enemy_idle_scvs),
             len(enemy_supply_depots),
             #len(enemy_completed_supply_depots),
             len(enemy_barrackses),
             #len(enemy_completed_barrackses),
             len(enemy_marines),
-            my_unit_at_1_1,
-            my_unit_at_1_2, 
-            my_unit_at_2_1,
-            my_unit_at_2_2,
-            enemy_unit_at_1_1,
-            enemy_unit_at_1_2,
-            enemy_unit_at_2_1,
-            enemy_unit_at_2_2)
+            len(my_unit_at_1_1),
+            len(my_unit_at_1_2), 
+            len(my_unit_at_1_3), 
+            len(my_unit_at_2_1),
+            len(my_unit_at_2_2),
+            len(my_unit_at_2_3),
+            len(my_unit_at_3_1),
+            len(my_unit_at_3_2),
+            len(my_unit_at_3_3),
+            len(enemy_unit_at_1_1),
+            len(enemy_unit_at_1_2),
+            len(enemy_unit_at_1_3),
+            len(enemy_unit_at_2_1),
+            len(enemy_unit_at_2_2),
+            len(enemy_unit_at_2_3),
+            len(enemy_unit_at_3_1),
+            len(enemy_unit_at_3_2),
+            len(enemy_unit_at_3_3)
+            )
     
   def step(self, obs):
       
@@ -425,7 +502,7 @@ def main(unused_argv):
     with sc2_env.SC2Env(
         map_name="Simple64",
         players=[sc2_env.Agent(sc2_env.Race.terran), 
-                 sc2_env.Bot(sc2_env.Race.protoss, 
+                 sc2_env.Bot(sc2_env.Race.terran, 
                                sc2_env.Difficulty.very_easy)],
                  #sc2_env.Agent(sc2_env.Race.terran)],
         agent_interface_format=features.AgentInterfaceFormat(
@@ -444,5 +521,4 @@ def main(unused_argv):
 
 if __name__ == "__main__":
   app.run(main)
-  
   
