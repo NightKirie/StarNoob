@@ -381,7 +381,7 @@ class SmartAgent(Agent):
 
     #print(len(enemy_unit_at_3_3))
     #print([enemy_unit_at_1_1, enemy_unit_at_2_2, enemy_unit_at_3_3])
-    #print([len(enemy_unit_at_1_1), len(enemy_unit_at_1_2), len(enemy_unit_at_1_3), len(enemy_unit_at_2_1), len(enemy_unit_at_2_2), len(enemy_unit_at_2_3), len(enemy_unit_at_3_1), len(enemy_unit_at_3_2), len(enemy_unit_at_3_3)])
+    print([len(enemy_unit_at_1_1), len(enemy_unit_at_1_2), len(enemy_unit_at_1_3), len(enemy_unit_at_2_1), len(enemy_unit_at_2_2), len(enemy_unit_at_2_3), len(enemy_unit_at_3_1), len(enemy_unit_at_3_2), len(enemy_unit_at_3_3)])
     
     marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
     
@@ -516,7 +516,7 @@ def main(unused_argv):
             raw_resolution=64,
         ),
         step_mul=48,
-        disable_fog=True,
+        #disable_fog=True,
     ) as env:
       #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
       run_loop.run_loop([agent1], env, max_episodes=1000)
