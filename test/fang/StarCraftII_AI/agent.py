@@ -18,6 +18,8 @@ from pysc2.env import sc2_env, run_loop
 DATA_FILE = 'AI_agent_data'
 KILL_UNIT_REWARD_RATE = 0.0002
 KILL_BUILDING_REWARD_RATE = 0.0004
+DEAD_UNIT_REWARD_RATE = 0.0001
+DEAD_BUILDING_REWARD_RATE = 0.0002
 MORE_MINERALS_USED_REWARD_RATE = 0.0001
 
 class QLearningTable:
@@ -77,6 +79,18 @@ class Agent(base_agent.BaseAgent):
     return [unit for unit in obs.observation.raw_units
             if unit.unit_type == unit_type 
             and unit.alliance == features.PlayerRelative.ENEMY]
+
+  def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
+    return  [unit for unit in obs.observation.raw_units
+             if unit.alliance == features.PlayerRelative.SELF
+             and unit.x >= pos1x and unit.x < pos2x
+             and unit.y >= pos2y and unit.y < pos2y]
+
+  def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
+    return  [unit for unit in obs.observation.raw_units
+             if unit.alliance == features.PlayerRelative.ENEMY
+             and unit.x >= pos1x and unit.x < pos2x
+             and unit.y >= pos2y and unit.y < pos2y]
   
   def get_my_completed_units_by_type(self, obs, unit_type):
     return [unit for unit in obs.observation.raw_units
@@ -273,6 +287,8 @@ class SmartAgent(Agent):
     self.base_top_left = None
     self.previous_state = None
     self.previous_action = None
+    self.previous_total_value_units_score = 0
+    self.previous_total_value_structures_score = 0
     self.previous_killed_value_units_score = 0
     self.previous_killed_value_structures_score = 0
     self.previous_total_spent_minerals = 0
@@ -287,7 +303,18 @@ class SmartAgent(Agent):
     barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
     completed_barrackses = self.get_my_completed_units_by_type(
         obs, units.Terran.Barracks)
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
+
+    my_unit_at_1_1 = self.get_my_units_by_pos(obs, 0, 0, 32, 32) if self.base_top_left else self.get_my_units_by_pos(obs, 32, 32, 64, 64)
+    my_unit_at_1_2 = self.get_my_units_by_pos(obs, 32, 0, 64, 32) if self.base_top_left else self.get_my_units_by_pos(obs, 0, 32, 32, 64)
+    my_unit_at_2_1 = self.get_my_units_by_pos(obs, 0, 32, 32, 64) if self.base_top_left else self.get_my_units_by_pos(obs, 32, 0, 64, 32)
+    my_unit_at_2_2 = self.get_my_units_by_pos(obs, 32, 32, 64, 64) if self.base_top_left else self.get_my_units_by_pos(obs, 0, 0, 32, 32)
+
+    enemy_unit_at_1_1 = self.get_enemy_units_by_pos(obs, 0, 0, 32, 32) if self.base_top_left else self.get_enemy_units_by_pos(obs, 32, 32, 64, 64)
+    enemy_unit_at_1_2 = self.get_enemy_units_by_pos(obs, 32, 0, 64, 32) if self.base_top_left else self.get_enemy_units_by_pos(obs, 0, 32, 32, 64)
+    enemy_unit_at_2_1 = self.get_enemy_units_by_pos(obs, 0, 32, 32, 64) if self.base_top_left else self.get_enemy_units_by_pos(obs, 32, 0, 64, 32)
+    enemy_unit_at_2_2 = self.get_enemy_units_by_pos(obs, 32, 32, 64, 64) if self.base_top_left else self.get_enemy_units_by_pos(obs, 0, 0, 32, 32)
+
+    marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
     
     #queued_marines = (completed_barrackses[0].order_length 
     #                  if len(completed_barrackses) > 0 else 0)
@@ -328,10 +355,18 @@ class SmartAgent(Agent):
             len(enemy_scvs),
             len(enemy_idle_scvs),
             len(enemy_supply_depots),
-            len(enemy_completed_supply_depots),
+            #len(enemy_completed_supply_depots),
             len(enemy_barrackses),
-            len(enemy_completed_barrackses),
-            len(enemy_marines))
+            #len(enemy_completed_barrackses),
+            len(enemy_marines),
+            my_unit_at_1_1,
+            my_unit_at_1_2, 
+            my_unit_at_2_1,
+            my_unit_at_2_2,
+            enemy_unit_at_1_1,
+            enemy_unit_at_1_2,
+            enemy_unit_at_2_1,
+            enemy_unit_at_2_2)
     
   def step(self, obs):
       
@@ -343,13 +378,23 @@ class SmartAgent(Agent):
     action = self.qtable.choose_action(state)
     #print(action)
 
+    total_value_units_score = obs.observation['score_cumulative'][3]
+    total_value_structures_score = obs.observation['score_cumulative'][4]
     killed_value_units_score = obs.observation['score_cumulative'][5]
     killed_value_structures_score = obs.observation['score_cumulative'][6]
+    self.previous_total_value_units = 0
+    self.previous_total_value_structures = 0
     #print(obs.observation['score_cumulative'][11])
     total_spent_minerals = obs.observation['score_cumulative'][11]
 
     if self.previous_action is not None:
       step_reward = 0
+      if total_value_units_score < self.previous_total_value_units_score:
+        step_reward -= DEAD_UNIT_REWARD_RATE * (self.previous_total_value_units_score - total_value_units_score)
+
+      if total_value_structures_score < self.previous_total_value_structures_score:
+        step_reward -= DEAD_BUILDING_REWARD_RATE * (self.previous_total_value_structures_score - total_value_structures_score)
+
       if killed_value_units_score > self.previous_killed_value_units_score:
           step_reward += KILL_UNIT_REWARD_RATE * (killed_value_units_score - self.previous_killed_value_units_score)
               
@@ -364,6 +409,8 @@ class SmartAgent(Agent):
                         obs.reward + step_reward,
                         'terminal' if obs.last() else state)
 
+    self.previous_total_value_units_score = total_value_units_score
+    self.previous_total_value_structures_score = total_value_structures_score
     self.previous_killed_unit_score = killed_value_units_score
     self.previous_killed_value_structures_score = killed_value_structures_score
     self.previous_total_spent_minerals = total_spent_minerals
