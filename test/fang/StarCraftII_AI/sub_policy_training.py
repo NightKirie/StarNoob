@@ -122,7 +122,7 @@ class Agent(base_agent.BaseAgent):
 class SubAgent_Training(Agent):
 
   def __init__(self):
-    print('in __init__')
+    #print('in __init__')
     super(SubAgent_Training, self).__init__()
     self.qtable = QLearningTable(self.actions)
     if os.path.isfile(DATA_FILE + '.gz'):
@@ -130,12 +130,12 @@ class SubAgent_Training(Agent):
     self.new_game()
     
   def reset(self):
-    print('in reset')
+    #print('in reset')
     super(SubAgent_Training, self).reset()
     self.new_game()
     
   def new_game(self):
-    print('in new game')
+    #print('in new game')
     self.base_top_left = None
     self.previous_state = None
     self.previous_action = None
@@ -211,3 +211,15 @@ class SubAgent_Training(Agent):
     self.previous_state = state
     self.previous_action = action
     return getattr(self, action)(obs)
+
+  def save_module(self):
+    self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
+    self.qtable.q_table.to_csv(DATA_FILE + '.csv')
+  
+  def set_top_left(self, obs):
+    if obs.first():
+      command_center = self.get_my_units_by_type(
+          obs, units.Terran.CommandCenter)[0]
+      self.base_top_left = (command_center.x < 32)
+
+
