@@ -4,7 +4,7 @@ import sys
 
 STARNOOB_LIB_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__FILE__)),
-                    '../../lib'))
+                    '../../lib')
 
 sys.path.append(STARNOOB_LIB_DIR)
 

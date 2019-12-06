@@ -41,38 +41,38 @@ flags.mark_flag_as_required("map")
 
 
 def run_thread(map_name, visualize):
-	with sc2_env.SC2Env(
-		map_name=map_name,
-		agent_race=FLAGS.agent_race,
-		bot_race=FLAGS.bot_race,
-		difficulty=FLAGS.difficulty,
-		step_mul=FLAGS.step_mul,
-		game_steps_per_episode=FLAGS.game_steps_per_episode,
-		screen_size_px=(FLAGS.screen_resolution, FLAGS.screen_resolution),
-		minimap_size_px=(FLAGS.minimap_resolution, FLAGS.minimap_resolution),
-		visualize=visualize) as env:
-		env = available_actions_printer.AvailableActionsPrinter(env)
-		agent = Agent()
-		# run_loop([agent], env, FLAGS.max_agent_steps)
-		agent.train(env, FLAGS.train)
-		if FLAGS.save_replay:
-			env.save_replay(Agent.__name__)
+    with sc2_env.SC2Env(
+        map_name=map_name,
+        agent_race=FLAGS.agent_race,
+        bot_race=FLAGS.bot_race,
+        difficulty=FLAGS.difficulty,
+        step_mul=FLAGS.step_mul,
+        game_steps_per_episode=FLAGS.game_steps_per_episode,
+        screen_size_px=(FLAGS.screen_resolution, FLAGS.screen_resolution),
+        minimap_size_px=(FLAGS.minimap_resolution, FLAGS.minimap_resolution),
+        visualize=visualize) as env:
+        env = available_actions_printer.AvailableActionsPrinter(env)
+        agent = Agent()
+        # run_loop([agent], env, FLAGS.max_agent_steps)
+        agent.train(env, FLAGS.train)
+        if FLAGS.save_replay:
+            env.save_replay(Agent.__name__)
 
 def main(unused_argv):
-	"""Run an agent."""
-	stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
-	stopwatch.sw.trace = FLAGS.trace
+    """Run an agent."""
+    stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
+    stopwatch.sw.trace = FLAGS.trace
 
-	maps.get(FLAGS.map)  # Assert the map exists.
-	run_thread(FLAGS.map, FLAGS.render)
+    maps.get(FLAGS.map)  # Assert the map exists.
+    run_thread(FLAGS.map, FLAGS.render)
 
-	if FLAGS.profile:
-		print(stopwatch.sw)
+    if FLAGS.profile:
+        print(stopwatch.sw)
 
 
 def entry_point():  # Needed so setup.py scripts work.
-  	app.run(main)
+      app.run(main)
 
 
 if __name__ == "__main__":
-  	app.run(main)
+      app.run(main)
