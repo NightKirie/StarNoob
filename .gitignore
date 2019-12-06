@@ -119,3 +119,6 @@ dmypy.json
 
 # tmp
 .*.swp
+
+# vscode temp file
+.vscode/
