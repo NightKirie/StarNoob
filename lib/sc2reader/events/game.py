@@ -40,6 +40,7 @@ class GameEvent(Event):
         #    self.name += str(self.control_group)
 
     def _str_prefix(self):
+        return ""
         if getattr(self, "pid", 16) == 16:
             player_name = "Global"
         elif self.player and not self.player.name:
@@ -53,7 +54,8 @@ class GameEvent(Event):
         return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
-        return self._str_prefix() + self.name
+        # return self._str_prefix() + self.name
+        return self.name
 
 
 class GameStartEvent(GameEvent):
@@ -254,7 +256,7 @@ class CommandEvent(GameEvent):
             )
 
         if self.ability_type in ("TargetPoint", "TargetUnit"):
-            string += "; Location: {0}".format(str(self.location))
+            string += "; Location: (%.2f, %.2f, %.2f)" % self.location
 
         return string
 
@@ -617,7 +619,7 @@ class CameraEvent(GameEvent):
         self.yaw = data["yaw"]
 
     def __str__(self):
-        return self._str_prefix() + "{0} at ({1}, {2})".format(
+        return self._str_prefix() + "{0} at ({1:.2f}, {2:.2f})".format(
             self.name, self.x, self.y
         )
 
