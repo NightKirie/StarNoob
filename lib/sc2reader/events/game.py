@@ -558,8 +558,6 @@ class ControlGroupEvent(GameEvent):
         #: The data for the mask
         self.mask_data = data["remove_mask"][1]
 
-        self.name += str(self.control_group)
-
 
 class SetControlGroupEvent(ControlGroupEvent):
     """
