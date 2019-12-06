@@ -109,7 +109,7 @@ def main():
 
 
     for event_list in event_list_list:
-        control_group_list = [0]*10
+        control_group_list = [[]]*10
         selected_units = []
         prev_str = ''
         for act in event_list:
