@@ -1,12 +1,12 @@
 from pysc2.agents.base_agent import BaseAgent
 
-from pytorch.utils.epsilon import Epsilon
+from StarNoob.lib.rl.epsilon_greedy import Epsilon
 import time
 import math
 import numpy as np
 import copy
 import os.path
-from pytorch.utils.replay_memory import ReplayMemory, Transition
+from StarNoob.lib.rl.replay_memory import ReplayMemory, Transition
 from collections import deque
 import matplotlib.pyplot as plt
 plt.ion()
@@ -39,14 +39,14 @@ _SELECT_POINT = actions.FUNCTIONS.select_point.id
 #    1st dim = select point
 #    2nd dim = move screen
 class DQNCNN(nn.Module):
-      def __init__(self, *args):
+    def __init__(self, *args):
         super(DQNCNN, self).__init__(*args)
         self.conv1 = nn.Conv2d(1, 24, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(24, 24, kernel_size=3, stride=1, padding=2, dilation=2)
         self.conv3 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=4, dilation=4)
         # self.conv4 = nn.Conv2d(24, 1, kernel_size=3, stride=1, padding=8, dilation=8)
 
-      def forward(self, x):
+    def forward(self, x):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         # x = F.relu(self.conv3(x))
@@ -55,7 +55,7 @@ class DQNCNN(nn.Module):
 
 
 class BaseRLAgent(BaseAgent):
-      def __init__(self):
+    def __init__(self):
         super(BaseRLAgent, self).__init__()
         self.training = False
         self.max_frames = 10000000
@@ -86,7 +86,7 @@ class BaseRLAgent(BaseAgent):
 
         self._screen_size = 28
 
-      def get_env_action(self, action, obs):
+    def get_env_action(self, action, obs):
         action = np.unravel_index(action, [1, self._screen_size, self._screen_size])
         target = [action[2], action[1]]
         command = _MOVE_SCREEN #action[0]   # removing unit selection out of the equation
@@ -103,12 +103,12 @@ class BaseRLAgent(BaseAgent):
 
     '''
     :param
-      s = obs.observation["screen"]
+        s = obs.observation["screen"]
     :returns
-      action = argmax action
+        action = argmax action
     '''
-     def get_action(self, s):
-           # greedy
+    def get_action(self, s):
+        # greedy
         if np.random.rand() > self._epsilon.value():
               # print("greedy action")
             s = Variable(torch.from_numpy(s).cuda())
@@ -123,20 +123,20 @@ class BaseRLAgent(BaseAgent):
             target = np.random.randint(0, self._screen_size, size=2)
             return action * self._screen_size*self._screen_size + target[0] * self._screen_size + target[1]
 
-      def select_friendly_action(self, obs):
+    def select_friendly_action(self, obs):
         player_relative = obs.observation["screen"][_PLAYER_RELATIVE]
         friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
         target = [int(friendly_x.mean()), int(friendly_y.mean())]
         return actions.FunctionCall(_SELECT_POINT, [[0], target])
 
 
-      def train(self, env, training=True):
+    def train(self, env, training=True):
         self._epsilon.isTraining = training
         self.run_loop(env, self.max_frames)
         if self._epsilon.isTraining:
             torch.save(self._Q.state_dict(), self._Q_weights_path)
 
-      def run_loop(self, env, max_frames=0):
+    def run_loop(self, env, max_frames=0):
         """A run loop to have agents and an environment interact."""
         total_frames = 0
         start_time = time.time()
@@ -156,7 +156,7 @@ class BaseRLAgent(BaseAgent):
     
                 self.reset()
               
-                   while True:
+                while True:
                     total_frames += 1
 
                     self._screen = obs.observation["screen"][5]
@@ -169,7 +169,7 @@ class BaseRLAgent(BaseAgent):
                     if obs.last():
                         print("total frames:", total_frames, "Epsilon:", self._epsilon.value())
                         self._epsilon.increment()
-                          break
+                        break
 
                     action = self.get_action(s)
                     env_actions = self.get_env_action(action, obs)
@@ -202,7 +202,7 @@ class BaseRLAgent(BaseAgent):
             print("Took %.3f seconds for %s steps: %.3f fps" % (
                 elapsed_time, total_frames, total_frames / elapsed_time))
    
-       def get_reward(self, s):
+    def get_reward(self, s):
         player_relative = s[_PLAYER_RELATIVE]
         neutral_y, neutral_x = (player_relative == _PLAYER_NEUTRAL).nonzero()
         neutral_target = [int(neutral_x.mean()), int(neutral_y.mean())]
@@ -216,7 +216,7 @@ class BaseRLAgent(BaseAgent):
         return -distance
 
 
-      def show_chart(self):
+    def show_chart(self):
         self._plot[0].clear()
         self._plot[0].set_xlabel('Last 1000 Training Cycles')
         self._plot[0].set_ylabel('Loss')
@@ -236,7 +236,7 @@ class BaseRLAgent(BaseAgent):
         self._plot[3].imshow(self._action)
         plt.pause(0.00001)
 
-      def train_q(self):
+    def train_q(self):
         if self.train_q_batch_size >= len(self._memory):
             return
 
