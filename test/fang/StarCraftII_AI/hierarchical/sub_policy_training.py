@@ -100,14 +100,10 @@ class Agent(base_agent.BaseAgent):
     return actions.RAW_FUNCTIONS.no_op()
 
   def train_marine(self, obs):
-    completed_barrackses = self.get_my_completed_units_by_type(
-        obs, units.Terran.Barracks)
-    free_supply = (obs.observation.player.food_cap - 
-                   obs.observation.player.food_used)
-    if (len(completed_barrackses) > 0 and obs.observation.player.minerals >= 100
-        and free_supply > 0):
-      barracks = barracks[self.get_least_busy_building(completed_barrackses)]
-      return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barracks.tag)
+    completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+    if (len(completed_barrackses) > 0:
+      barrack = barracks[self.get_least_busy_building(completed_barrackses)]
+      return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barrack.tag)
     return actions.RAW_FUNCTIONS.no_op()
 
   def step(self, obs):
