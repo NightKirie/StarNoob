@@ -101,7 +101,7 @@ class Agent(base_agent.BaseAgent):
 
   def train_marine(self, obs):
     completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
-    if (len(completed_barrackses) > 0:
+    if (len(completed_barrackses) > 0):
       barrack = barracks[self.get_least_busy_building(completed_barrackses)]
       return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barrack.tag)
     return actions.RAW_FUNCTIONS.no_op()
