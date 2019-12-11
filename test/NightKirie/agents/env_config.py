@@ -3,10 +3,9 @@ from pysc2.lib import point_flag
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_enum("_only_use_kwargs", None, "Don't pass args, only kwargs")
+#flags.DEFINE_enum("_only_use_kwargs", None, "Don't pass args, only kwargs")
 
 flags.DEFINE_string("map_name", "Simple64", "Name of a SC2 map")
-flags.mark_flag_as_required("map_name")
 
 flags.DEFINE_bool("battle_net_map", False,
                   "Whether to use the battle.net versions of the map(s)")
@@ -65,5 +64,5 @@ flags.DEFINE_bool("disable_fog", False, "Whether to disable fog of war.")
 flags.DEFINE_bool("ensure_available_actions", True, """Whether to throw an exception when an
                                                         unavailable action is passed to step().""")
 
-flags.DEFINE_string(
-    "version", None, "The version of SC2 to use, defaults to the latest.")
+flags.DEFINE_string("version", None, "The version of SC2 to use, defaults to the latest.")
+

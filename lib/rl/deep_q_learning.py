@@ -1,12 +1,12 @@
 from pysc2.agents.base_agent import BaseAgent
 
-from StarNoob.lib.rl.epsilon_greedy import Epsilon
+from lib.rl.epsilon_greedy import Epsilon
 import time
 import math
 import numpy as np
 import copy
 import os.path
-from StarNoob.lib.rl.replay_memory import ReplayMemory, Transition
+from lib.rl.replay_memory import ReplayMemory, Transition
 from collections import deque
 import matplotlib.pyplot as plt
 plt.ion()

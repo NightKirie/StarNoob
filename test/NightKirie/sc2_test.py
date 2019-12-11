@@ -20,4 +20,7 @@ env = sc2_env.SC2Env(players=players,
                          raw_resolution=64)
                      )
 
-print(type(env._replay_dir))
+print(type(env._random_seed))
+print(type(env._disable_fog))
+print(type(env._ensure_available_actions))
+print(type(env.version))
