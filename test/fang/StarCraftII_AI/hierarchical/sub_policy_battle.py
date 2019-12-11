@@ -3,49 +3,17 @@ import numpy as np
 import pandas as pd
 import os
 from absl import app
-from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
+
+from base_agent import QLearningTable
+import base_agent
 
 DATA_FILE = 'Sub_battle_data'
 KILL_UNIT_REWARD_RATE = 0.00002
 KILL_BUILDING_REWARD_RATE = 0.00004
 DEAD_UNIT_REWARD_RATE = 0.00001 * 0
 DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
-
-class QLearningTable:
-  def __init__(self, actions, learning_rate=0.01, reward_decay=0.9):
-    self.actions = actions
-    self.learning_rate = learning_rate
-    self.reward_decay = reward_decay
-    self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64)
-
-  def choose_action(self, observation, e_greedy=0.9):
-    self.check_state_exist(observation)
-    if np.random.uniform() < e_greedy:
-      state_action = self.q_table.loc[observation, :]
-      action = np.random.choice(
-          state_action[state_action == np.max(state_action)].index)
-    else:
-      action = np.random.choice(self.actions)
-    return action
-
-  def learn(self, s, a, r, s_):
-    if s == s_:
-      return
-    self.check_state_exist(s_)
-    q_predict = self.q_table.loc[s, a]
-    if s_ != 'terminal':
-      q_target = r + self.reward_decay * self.q_table.loc[s_, :].max()
-    else:
-      q_target = r
-    self.q_table.loc[s, a] += self.learning_rate * (q_target - q_predict)
-    
-  def check_state_exist(self, state):
-    if state not in self.q_table.index:
-      self.q_table = self.q_table.append(pd.Series([0] * len(self.actions), 
-                                                   index=self.q_table.columns, 
-                                                   name=state))
 
 class Agent(base_agent.BaseAgent):
 
@@ -67,40 +35,6 @@ class Agent(base_agent.BaseAgent):
              "attack4_3",
              "attack4_4",
              )
-
-  def get_my_units_by_type(self, obs, unit_type):
-    return [unit for unit in obs.observation.raw_units
-            if unit.unit_type == unit_type 
-            and unit.alliance == features.PlayerRelative.SELF]
-  
-  def get_enemy_units_by_type(self, obs, unit_type):
-    return [unit for unit in obs.observation.raw_units
-            if unit.unit_type == unit_type 
-            and unit.alliance == features.PlayerRelative.ENEMY]
-
-  def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-    return  [unit for unit in obs.observation.raw_units
-             if unit.alliance == features.PlayerRelative.SELF
-             and unit.x >= pos1x and unit.x < pos2x
-             and unit.y >= pos1y and unit.y < pos2y]
-
-  def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-    return  [unit for unit in obs.observation.raw_units
-             if unit.alliance == features.PlayerRelative.ENEMY
-             and unit.x >= pos1x and unit.x < pos2x
-             and unit.y >= pos1y and unit.y < pos2y]
-  
-  def get_my_completed_units_by_type(self, obs, unit_type):
-    return [unit for unit in obs.observation.raw_units
-            if unit.unit_type == unit_type 
-            and unit.build_progress == 100
-            and unit.alliance == features.PlayerRelative.SELF]
-    
-  def get_enemy_completed_units_by_type(self, obs, unit_type):
-    return [unit for unit in obs.observation.raw_units
-            if unit.unit_type == unit_type 
-            and unit.build_progress == 100
-            and unit.alliance == features.PlayerRelative.ENEMY]
   
   def get_my_armys(self, obs):
     return [unit for unit in obs.observation.raw_units
@@ -269,13 +203,6 @@ class Agent(base_agent.BaseAgent):
       return actions.RAW_FUNCTIONS.Attack_pt(
           "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
-
-  def step(self, obs):
-    super(Agent, self).step(obs)
-    if obs.first():
-      command_center = self.get_my_units_by_type(
-          obs, units.Terran.CommandCenter)[0]
-      self.base_top_left = (command_center.x < 32)
 
 class SubAgent_Battle(Agent):
 
