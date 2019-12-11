@@ -49,7 +49,8 @@ class Unit:
 
     def __eq__(self, other):
         return (self.hp, self.armor, self.attack, self.range, self.mineral_price, self.gas_price) == \
-            (other.hp, other.range, other.attack, other.range, other.mineral_price, other.gas_price)
+            (other.hp, other.range, other.attack, other.range,
+             other.mineral_price, other.gas_price)
 
     def __ne__(self, other):
         # Not strictly necessary, but to avoid having both x==y and x!=y

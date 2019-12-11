@@ -100,15 +100,8 @@ class BaseRLAgent(BaseAgent):
         else:
             return actions.FunctionCall(_NO_OP, [])
 
-
-    '''
-    :param
-        s = obs.observation["screen"]
-    :returns
-        action = argmax action
-    '''
     def get_action(self, s):
-        # greedy
+           # greedy
         if np.random.rand() > self._epsilon.value():
               # print("greedy action")
             s = Variable(torch.from_numpy(s).cuda())
