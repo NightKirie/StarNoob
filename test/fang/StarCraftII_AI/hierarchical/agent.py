@@ -280,7 +280,6 @@ class SmartAgent(Agent):
     #print('into step')
     if obs.last():
       self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-      self.qtable.q_table.to_csv(DATA_FILE + '.csv')
       self.battle_policy.save_module()
       self.economic_policy.save_module()
       self.training_policy.save_module()

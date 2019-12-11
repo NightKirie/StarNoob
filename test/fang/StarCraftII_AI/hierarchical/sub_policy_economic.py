@@ -257,7 +257,6 @@ class SubAgent_Economic(Agent):
       
     if obs.last():
       self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-      self.qtable.q_table.to_csv(DATA_FILE + '.csv')
     super(SubAgent_Economic, self).step(obs)
     state = str(self.get_state(obs))
     action = self.qtable.choose_action(state)
