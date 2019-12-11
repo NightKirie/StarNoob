@@ -10,7 +10,7 @@ from pysc2.lib import stopwatch
 from absl import app
 from absl import flags
 
-from base_rl_agent import BaseRLAgent as Agent
+from StarNoob.lib.rl.deep_q_learning import BaseRLAgent as Agent
 
 FLAGS = flags.FLAGS
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")
@@ -60,8 +60,13 @@ def run_thread(map_name, visualize):
 
 def main(unused_argv):
     """Run an agent."""
-    stopwatch.sw.enabled = FLAGS.profile or FLAGS.trace
-    stopwatch.sw.trace = FLAGS.trace
+    if FLAGS.profile or FLAGS.trace:
+        stopwatch.sw.enabled()
+    else:
+        stopwatch.sw.disable()
+    
+    if FLAGS.trace:
+        stopwatch.sw.trace()
 
     maps.get(FLAGS.map)  # Assert the map exists.
     run_thread(FLAGS.map, FLAGS.render)
