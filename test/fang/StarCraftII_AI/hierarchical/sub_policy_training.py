@@ -207,7 +207,6 @@ class SubAgent_Training(Agent):
 
   def save_module(self):
     self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-    self.qtable.q_table.to_csv(DATA_FILE + '.csv')
   
   def set_top_left(self, obs):
     if obs.first():
