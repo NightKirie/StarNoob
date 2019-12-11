@@ -13,6 +13,9 @@ from absl import flags
 from StarNoob.lib.rl.deep_q_learning import BaseRLAgent as Agent
 
 FLAGS = flags.FLAGS
+flags.DEFINE_string("map_name", "Simple64", "Name of a SC2 map")
+
+
 flags.DEFINE_bool("render", False, "Whether to render with pygame.")
 flags.DEFINE_bool("train", False, "Whether we are training or running")
 flags.DEFINE_integer("screen_resolution", 28,
@@ -36,13 +39,28 @@ flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
 
-flags.DEFINE_string("map", "MoveToBeacon", "Name of a map to use.")
-flags.mark_flag_as_required("map")
 
 
-def run_thread(map_name, visualize):
+def run_thread(players, visualize):
     with sc2_env.SC2Env(
-        map_name=map_name,
+        map_name=FLAGS.map_name,
+        players=None,
+        agent_interface_format=None,
+        visualize=False,
+        step_mul=None,
+        realtime=False,
+        save_replay_episodes=0,
+        replay_dir=None,
+        replay_prefix=None,
+        game_steps_per_episode=None,
+        score_index=None,
+        score_multiplier=None,
+        random_seed=None,
+        disable_fog=False,
+        ensure_available_actions=True,
+        version=None
+
+        """ map_name=map_name,
         agent_race=FLAGS.agent_race,
         bot_race=FLAGS.bot_race,
         difficulty=FLAGS.difficulty,
@@ -50,7 +68,7 @@ def run_thread(map_name, visualize):
         game_steps_per_episode=FLAGS.game_steps_per_episode,
         screen_size_px=(FLAGS.screen_resolution, FLAGS.screen_resolution),
         minimap_size_px=(FLAGS.minimap_resolution, FLAGS.minimap_resolution),
-        visualize=visualize) as env:
+        visualize=visualize """) as env:
         env = available_actions_printer.AvailableActionsPrinter(env)
         agent = Agent()
         # run_loop([agent], env, FLAGS.max_agent_steps)
@@ -76,8 +94,8 @@ def main(unused_argv):
 
 
 def entry_point():  # Needed so setup.py scripts work.
-      app.run(main)
+    app.run(main)
 
 
 if __name__ == "__main__":
-      app.run(main)
+    app.run(main)
