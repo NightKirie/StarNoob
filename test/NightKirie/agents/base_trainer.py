@@ -1,6 +1,14 @@
 import threading
 import time
 import importlib
+import sys
+import os
+
+STARNOOB_LIB_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    '../../../lib')
+
+sys.path.append(STARNOOB_LIB_DIR)
 
 
 from pysc2 import maps
@@ -13,14 +21,14 @@ from pysc2.lib import stopwatch
 from absl import app
 from absl import flags
 
-from lib.rl.deep_q_learning import BaseRLAgent as Agent
+from rl.deep_q_learning import BaseRLAgent as Agent
 import env_config as config
 
-def run_thread(players, visualize):
+def run_thread(agent_classes, players, visualize):
     with sc2_env.SC2Env(
         map_name=config.FLAGS.map_name,
         battle_net_map=config.FLAGS.battle_net_map,
-        players=None,
+        players=players,
         agent_interface_format=None,
         discount=config.FLAGS.discount,
         discount_zero_after_timeout=config.FLAGS.discount_zero_after_timeout,
@@ -39,13 +47,19 @@ def run_thread(players, visualize):
         version=config.FLAGS.version) as env:
 
         env = available_actions_printer.AvailableActionsPrinter(env)
-        agent = Agent()
+        agents = [agent_cls() for agent_cls in agent_classes]
         # run_loop([agent], env, FLAGS.max_agent_steps)
         run_loop.run_loop(agents, env, config.FLAGS.max_agent_steps, config.FLAGS.max_episodes)
 
 
 def main(unused_argv):
     """Run an agent."""
+    players = [sc2_env.Agent(sc2_env.Race.terran),
+                     sc2_env.Bot(sc2_env.Race.terran,
+                                 sc2_env.Difficulty.very_easy)]
+    agent_classes = [Agent()]
+
+
     if config.FLAGS.profile or config.FLAGS.trace:
         stopwatch.sw.enabled()
     else:
@@ -55,7 +69,7 @@ def main(unused_argv):
         stopwatch.sw.trace()
 
     maps.get(config.FLAGS.map_name)  # Assert the map exists.
-    run_thread(config.FLAGS.map, config.FLAGS.render)
+    run_thread(config.FLAGS.map_name, config.FLAGS.render)
 
     if config.FLAGS.profile:
         print(stopwatch.sw)

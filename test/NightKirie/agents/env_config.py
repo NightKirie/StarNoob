@@ -66,3 +66,9 @@ flags.DEFINE_bool("ensure_available_actions", True, """Whether to throw an excep
 
 flags.DEFINE_string("version", None, "The version of SC2 to use, defaults to the latest.")
 
+
+
+flags.DEFINE_integer("max_agent_steps", 0, "Total agent steps.")
+flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
+flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
+flags.DEFINE_bool("render", True, "Whether to render with pygame.")
