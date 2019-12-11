@@ -104,7 +104,7 @@ class Agent(base_agent.BaseAgent):
   
   def get_my_armys(self, obs):
     return [unit for unit in obs.observation.raw_units
-            if unit.unit_type in [units.Terran.Marine, units.Terran.Reaper]
+            if unit.unit_type in [units.Terran.Marine, units.Terran.Reaper, units.Terran.Marauder]
             and unit.alliance == features.PlayerRelative.SELF]
 
   def do_nothing(self, obs):
