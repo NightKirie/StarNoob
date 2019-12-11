@@ -5,7 +5,7 @@ import sys
 import glob
 
 STARNOOB_LIB_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__FILE__)),
+    os.path.dirname(os.path.abspath(__file__)),
                     '../../lib')
 
 sys.path.append(STARNOOB_LIB_DIR)
@@ -35,54 +35,6 @@ def get_all_replays_recursive(dir_path = r"./"):
         result += tmp_replay
     
     return result
-
-def parse_replay(replay, player_no = 1):
-    """ parse replay to game events
-
-    Args:
-        replay (sc2reader.resource.Replay): produced by sc2reader
-        player_no (int): 1 or 2
-
-    Returns:
-        list[sc2reader.events.game.GameEvent, ...] : # of inside List based on # of players
-    """
-    result = []
-    for event in replay.game_events:
-        try:
-            if event.player == replay.players[player_no-1]:
-                result.append(event)
-        except:
-            continue
-
-    return result
-
-def load_replays(paths):
-    """ use sc2reader.load_replay and parse_replay
-        to parse paths to game events
-    
-    Args:
-        paths (list[list["path", player_no]]): paths of .SC2Replay
-                        (from classify_by_race)
-        or
-        paths (list["path"]): paths of .SC2Replay
-                        (from classify_by_map)
-    
-    Returns:
-        list[list[events], ...]: a list of all events of replay in input paths
-    """
-    results = []
-    if type(paths[0]) == list:
-        for path in paths:
-            replay = sc2reader.load_replay(path[0], load_map=True)
-            results.append(parse_replay(replay, path[1]))
-    elif type(paths[0]) == str:
-        for path in paths:
-            replay = sc2reader.load_replay(path, load_map=True)
-            # suppose num of player is 2
-            results.append(parse_replay(replay, 1))
-            results.append(parse_replay(replay, 2))
-    
-    return results
 
 def classify_by_map(paths, file_name = "classify_map.txt"):
     """ classify replays in paths by map
@@ -152,14 +104,14 @@ def get_replays_by_map(file_name = 'classify_map.txt', map_name= None):
                         (default is None)
     
     Returns:
-        str : map_name from input or map used the most time
         list: a list of paths
+        str : map_name from input or map used the most time
     """
     with open('classify_map.txt', 'r') as f:
         maps = json.load(f)
     
     if map_name is not None and map_name in maps.keys():
-        return map_name, maps[map_name]
+        return maps[map_name], map_name
     else:
         max_num_map = ""
         max_num = 0
@@ -167,7 +119,7 @@ def get_replays_by_map(file_name = 'classify_map.txt', map_name= None):
             if len(replays) > max_num:
                 max_num = len(replays)
                 max_num_map = map_name
-        return max_num_map, maps[max_num_map]
+        return maps[max_num_map], max_num_map
 
 def get_replays_by_race(file_name = 'classify_race.txt', race = None):
     """ from file to get paths, and get replay path by race
@@ -180,29 +132,128 @@ def get_replays_by_race(file_name = 'classify_race.txt', race = None):
                         (default is None)
     
     Returns:
-        str:  "Terran", "Protoss", "Zerg"
         list: a list of paths
+        str:  "Terran", "Protoss", "Zerg"
     """
     with open(file_name, 'r') as f:
         races = json.load(f)
     
     if race not in ["Terran", "Protoss", "Zerg"]:
         return race, max(races.values())
-    return race, races[race]
+    return races[race], race
+
+def parse_replay(replay, player_no = 1):
+    """ parse replay to game events
+
+    Args:
+        replay (sc2reader.resource.Replay): produced by sc2reader
+        player_no (int): 1 or 2
+
+    Returns:
+        list[sc2reader.events.game.GameEvent, ...] : # of inside List based on # of players
+    """
+    result = []
+    for event in replay.game_events:
+        try:
+            if event.player == replay.players[player_no-1]:
+                result.append(event)
+        except:
+            continue
+
+    return result
+
+def load_replays(paths):
+    """ use sc2reader.load_replay and parse_replay
+        to parse paths to game events
+    
+    Args:
+        paths (list[list["path", player_no]]): paths of .SC2Replay
+                        (from classify_by_race)
+        or
+        paths (list["path"]): paths of .SC2Replay
+                        (from classify_by_map)
+    
+    Returns:
+        list[list[events], ...]: a list of all events of replay in input paths
+    """
+    results = []
+    if type(paths[0]) == list:
+        for path in paths:
+            replay = sc2reader.load_replay(path[0], load_map=True)
+            results.append(parse_replay(replay, path[1]))
+    elif type(paths[0]) == str:
+        for path in paths:
+            replay = sc2reader.load_replay(path, load_map=True)
+            # suppose num of player is 2
+            results.append(parse_replay(replay, 1))
+            results.append(parse_replay(replay, 2))
+    
+    return results
+
+def filter_event(replays):
+    """ filter events to minimize information of events
+
+    Args:
+        events (list[list[event]]): 
+            a list of list of game events
+    Returns:
+        list[list[str]]: a list of game events by string
+
+
+    """
+    outputs = []
+    for replay in replays:
+        control_group_list = [[]]*10
+        selected_units = []
+        prev_str = ''
+        output = []
+        for act in replay:
+            if type(act) == sc2reader.events.game.SelectionEvent:
+                if act.new_units:
+                    selected_units = act.new_units
+                else:
+                    selected_units = act.new_unit_info
+
+            elif type(act) == sc2reader.events.game.GetControlGroupEvent:
+                selected_units = control_group_list[act.control_group]
+
+            elif type(act) == sc2reader.events.game.AddToControlGroupEvent:
+                control_group_list[act.control_group] += selected_units
+
+            elif type(act) == sc2reader.events.game.SetControlGroupEvent:
+                control_group_list[act.control_group] = selected_units
+
+            elif type(act) == sc2reader.events.game.CameraEvent:
+                pass
+
+            else:
+                if selected_units:
+                    output.append('SelectionEvent ' + str(set([str(s).split(' ')[0] for s in selected_units])))
+                    selected_units = []
+
+                now_str = str(act)
+                if prev_str != now_str:
+                    output.append(now_str)
+                    prev_str = now_str
+            
+        outputs.append(output)
+
+    return outputs
 
 if __name__ == "__main__":
     paths = get_all_replays_recursive()
     # write into file
     maps = classify_by_map(paths)
     # get from file 
-    map_name, replays_path = get_replays_by_map()
+    replays_path, map_name= get_replays_by_map()
     
     # write into file
     races = classify_by_race(replays_path) # or maps[map_name]
     # get from file
-    race_name, replays_path = get_replays_by_race()
+    replays_path, race_name = get_replays_by_race()
 
     replays = load_replays(replays_path)
+    replays = filter_event(results)
 
     # print all events of all replay (classified)
     for events in replays:

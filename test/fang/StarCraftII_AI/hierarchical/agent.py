@@ -22,6 +22,11 @@ class QLearningTable:
 
 
   def choose_action(self, observation, e_greedy=0.9):
+    """
+    choose a action in action pool
+    Args:  obs, e_greedy = 0.9
+    return: action,  type:string
+    """
     self.check_state_exist(observation)
     if np.random.uniform() < e_greedy:
       state_action = self.q_table.loc[observation, :]
@@ -32,6 +37,11 @@ class QLearningTable:
     return action
 
   def learn(self, s, a, r, s_):
+    """
+    learning
+    Args: previous_state(list), previous_action(string), reward(variable), this_state(list)
+    Returns: none
+    """
     if s == s_:
       return
     self.check_state_exist(s_)
@@ -60,34 +70,64 @@ class Agent(base_agent.BaseAgent):
              )
 
   def get_my_units_by_type(self, obs, unit_type):
+    """
+    get all user's units of a type
+    Args: observation,  unit_type(int)
+    Returns: unit(list)
+    """
     return [unit for unit in obs.observation.raw_units
             if unit.unit_type == unit_type 
             and unit.alliance == features.PlayerRelative.SELF]
   
   def get_enemy_units_by_type(self, obs, unit_type):
+    """
+    get all enemy's units of a type
+    Args: observation,  unit_type(int)
+    Returns: unit(list)
+    """
     return [unit for unit in obs.observation.raw_units
             if unit.unit_type == unit_type 
             and unit.alliance == features.PlayerRelative.ENEMY]
 
   def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
+    """
+    get user's units in a position range
+    Args: observation,  position
+    Returns: unit(list)
+    """
     return  [unit for unit in obs.observation.raw_units
              if unit.alliance == features.PlayerRelative.SELF
              and unit.x >= pos1x and unit.x < pos2x
              and unit.y >= pos1y and unit.y < pos2y]
 
   def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
+    """
+    get enemy's units in a position range
+    Args: observation,  position
+    Returns: unit(list)
+    """
     return  [unit for unit in obs.observation.raw_units
              if unit.alliance == features.PlayerRelative.ENEMY
              and unit.x >= pos1x and unit.x < pos2x
              and unit.y >= pos1y and unit.y < pos2y]
   
   def get_my_completed_units_by_type(self, obs, unit_type):
+    """
+    get a list of user's complete building of a type
+    Args: observation,  unit_type(int)
+    Returns: unit(list)
+    """
     return [unit for unit in obs.observation.raw_units
             if unit.unit_type == unit_type 
             and unit.build_progress == 100
             and unit.alliance == features.PlayerRelative.SELF]
     
   def get_enemy_completed_units_by_type(self, obs, unit_type):
+    """
+    get a list of enemy's complete building of a type
+    Args: observation,  unit_type(int)
+    Returns: unit(list)
+    """
     return [unit for unit in obs.observation.raw_units
             if unit.unit_type == unit_type 
             and unit.build_progress == 100
@@ -95,24 +135,39 @@ class Agent(base_agent.BaseAgent):
               
 
   def choose_battle_policy(self, obs):
+    """
+    call sub policy to choose a action
+    Args:  observation
+    Returns: action(string)
+    """
     #print('in choose battle')
     choose_action = self.battle_policy.step(obs)
     #print('out choose battle')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def choose_economic_policy(self, obs):
+    """
+    call sub policy to choose a action
+    Args:  observation
+    Returns: action(string)
+    """
     #print('in choose economic')
     choose_action = self.economic_policy.step(obs)
     #print('out choose economic')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def choose_training_policy(self, obs):
+    """
+    call sub policy to choose a action
+    Args:  observation
+    Returns: action(string)
+    """
     #print('in choose training')
     choose_action = self.training_policy.step(obs)
     #print('out choose training')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def step(self, obs):
@@ -163,6 +218,11 @@ class SmartAgent(Agent):
     self.previous_total_spent_minerals = 0
     
   def get_state(self, obs):
+    """
+    get state of starcraft II
+    Args:  observation
+    Returns: state(list)
+    """
     scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
     idle_scvs = [scv for scv in scvs if scv.order_length == 0]
     command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
@@ -213,17 +273,20 @@ class SmartAgent(Agent):
             )
     
   def step(self, obs):
+    """
+    every step starcraft II will call this function
+    return: getattr(self, action)(obs)
+    """
     #print('into step')
     if obs.last():
       self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-      self.qtable.q_table.to_csv(DATA_FILE + '.csv')
       self.battle_policy.save_module()
       self.economic_policy.save_module()
       self.training_policy.save_module()
     super(SmartAgent, self).step(obs)
     state = str(self.get_state(obs))
     action = self.qtable.choose_action(state)
-    print(action)
+    #print(action)
 
     if self.previous_action is not None:
       step_reward = 0

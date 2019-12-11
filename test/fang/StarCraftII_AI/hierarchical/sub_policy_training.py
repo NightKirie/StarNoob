@@ -49,6 +49,8 @@ class Agent(base_agent.BaseAgent):
 
   actions = ("do_nothing",
              "train_marine", 
+             "train_reaper",
+             "train_marauder",
              )
 
   def get_my_units_by_type(self, obs, unit_type):
@@ -90,28 +92,49 @@ class Agent(base_agent.BaseAgent):
     return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
 
   def get_least_busy_building(self, building):
-    order_array = []
-    for item in building:
-      order_array.append(item.order_length)
-    return order_array.index(min(order_array))
+    return min(building, key = lambda building: building.order_length)
               
 
   def do_nothing(self, obs):
     return actions.RAW_FUNCTIONS.no_op()
 
-  def train_marine(self, obs):
-    completed_barrackses = self.get_my_completed_units_by_type(
-        obs, units.Terran.Barracks)
-    free_supply = (obs.observation.player.food_cap - 
-                   obs.observation.player.food_used)
-    if (len(completed_barrackses) > 0 and obs.observation.player.minerals >= 100
-        and free_supply > 0):
-      barracks = self.get_my_units_by_type(obs, units.Terran.Barracks)
-      barracks = barracks[self.get_least_busy_building(barracks)]
-      if barracks.order_length < 5:
-        return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barracks.tag)
-    return actions.RAW_FUNCTIONS.no_op()
+  def get_barrackses(self, obs):
+    """ get least busy barrack
 
+    Args:
+      obs
+    Returns:
+      int: if barrack exist, barrack.tag
+      or False: if barrack not exist
+    """
+    completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+    if len(completed_barrackses) > 0:
+      return self.get_least_busy_building(completed_barrackses).tag
+    else:
+      return False
+    
+    
+  def train_marine(self, obs):
+    barrack_tag = self.get_barrackses(obs)
+    if barrack_tag != False:
+      return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barrack_tag)
+    else:
+      return actions.RAW_FUNCTIONS.no_op()
+
+  def train_reaper(self, obs):
+    barrack_tag = self.get_barrackses(obs)
+    if barrack_tag != False:
+      return actions.RAW_FUNCTIONS.Train_Reaper_quick("now", barrack_tag)
+    else:
+      return actions.RAW_FUNCTIONS.no_op()
+    
+  def train_marauder(self, obs):
+    barrack_tag = self.get_barrackses(obs)
+    if barrack_tag != False:
+      return actions.RAW_FUNCTIONS.Train_Marauder_quick("now", barrack_tag)
+    else:
+      return actions.RAW_FUNCTIONS.no_op()
+     
   def step(self, obs):
     super(Agent, self).step(obs)
     if obs.first():
@@ -179,7 +202,6 @@ class SubAgent_Training(Agent):
       
     if obs.last():
       self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-      self.qtable.q_table.to_csv(DATA_FILE + '.csv')
     super(SubAgent_Training, self).step(obs)
     state = str(self.get_state(obs))
     action = self.qtable.choose_action(state)
@@ -214,7 +236,6 @@ class SubAgent_Training(Agent):
 
   def save_module(self):
     self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-    self.qtable.q_table.to_csv(DATA_FILE + '.csv')
   
   def set_top_left(self, obs):
     if obs.first():

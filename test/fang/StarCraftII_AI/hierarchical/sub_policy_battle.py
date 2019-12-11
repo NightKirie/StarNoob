@@ -101,168 +101,173 @@ class Agent(base_agent.BaseAgent):
             if unit.unit_type == unit_type 
             and unit.build_progress == 100
             and unit.alliance == features.PlayerRelative.ENEMY]
+  
+  def get_my_armys(self, obs):
+    return [unit for unit in obs.observation.raw_units
+            if unit.unit_type in [units.Terran.Marine, units.Terran.Reaper, units.Terran.Marauder]
+            and unit.alliance == features.PlayerRelative.SELF]
 
   def do_nothing(self, obs):
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack1_1(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (8, 8)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack1_2(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (24, 8)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack1_3(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (40, 8)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack1_4(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (56, 8)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack2_1(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (8, 24)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack2_2(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (24, 24)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack2_3(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (40, 24)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack2_4(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (56, 24)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
   
   def attack3_1(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (8, 40)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack3_2(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (24, 40)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack3_3(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (40, 40)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack3_4(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (56, 40)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack4_1(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (8, 56)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack4_2(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (24, 56)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack4_3(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (40, 56)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def attack4_4(self, obs):
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-    if len(marines) > 0:
+    armys = self.get_my_armys(obs)
+    if len(armys) > 0:
       attack_xy = (56, 56)
       x_offset = random.randint(-4, 4)
       y_offset = random.randint(-4, 4)
       return actions.RAW_FUNCTIONS.Attack_pt(
-          "now", [soldier.tag for soldier in marines], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+          "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
     return actions.RAW_FUNCTIONS.no_op()
 
   def step(self, obs):
@@ -330,7 +335,7 @@ class SubAgent_Battle(Agent):
     enemy_unit_at_4_3 = self.get_enemy_units_by_pos(obs, 32, 48, 48, 64)
     enemy_unit_at_4_4 = self.get_enemy_units_by_pos(obs, 48, 48, 64, 64)
 
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
+    armys = self.get_my_armys(obs) 
 
     free_supply = (obs.observation.player.food_cap - 
                    obs.observation.player.food_used)
@@ -345,7 +350,7 @@ class SubAgent_Battle(Agent):
     
 
     return (self.base_top_left,
-            len(marines),
+            len(armys),
             free_supply,
             len(enemy_command_centers),
             len(enemy_scvs),
@@ -390,7 +395,6 @@ class SubAgent_Battle(Agent):
       
     if obs.last():
       self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-      self.qtable.q_table.to_csv(DATA_FILE + '.csv')
     super(SubAgent_Battle, self).step(obs)
     state = str(self.get_state(obs))
     action = self.qtable.choose_action(state)
@@ -432,7 +436,6 @@ class SubAgent_Battle(Agent):
 
   def save_module(self):
     self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-    self.qtable.q_table.to_csv(DATA_FILE + '.csv')
     
   def set_top_left(self, obs):
     if obs.first():
