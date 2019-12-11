@@ -56,6 +56,11 @@ class Agent(base_agent.BaseAgent):
              "harvest_gas",
              "build_barrack_techlab",
              "build_barrack_reactor",
+             "build_engineeringbays",
+             "research_infantryweapons",
+             "research_infantryarmor",
+             "research_hiSecautotracking",
+             "research_structurearmor",
              )
 
   def get_my_units_by_type(self, obs, unit_type):
@@ -233,7 +238,7 @@ class Agent(base_agent.BaseAgent):
           "now", scv.tag, barracks_xy)
     if (len(completed_supply_depots) > 0 and len(barrackses) == 1 and 
         obs.observation.player.minerals >= 150 and len(scvs) > 0):
-      barracks_xy = (22, 24) if self.base_top_left else (35, 48)
+      barracks_xy = (22, 24) if self.base_top_left else (35, 47)  
       distances = self.get_distances(obs, scvs, barracks_xy)
       scv = scvs[np.argmin(distances)]
       return actions.RAW_FUNCTIONS.Build_Barracks_pt(
@@ -253,6 +258,47 @@ class Agent(base_agent.BaseAgent):
       return actions.RAW_FUNCTIONS.Build_Reactor_Barracks_quick(
           "now", [barrack.tag for barrack in completed_barrackses])
     return actions.RAW_FUNCTIONS.no_op()
+
+  def build_engineeringbays(self, obs):
+    engineeringbays  = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
+    scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+    if len(engineeringbays) == 0 and len(scvs) > 0:
+      engineeringbays_xy = (19, 28) if self.base_top_left else (38, 40)
+      distances = self.get_distances(obs, scvs, engineeringbays_xy)
+      scv = scvs[np.argmin(distances)]
+      return actions.RAW_FUNCTIONS.Build_EngineeringBay_pt(
+          "now", scv.tag, engineeringbays_xy)
+    return actions.RAW_FUNCTIONS.no_op()
+  
+
+  def research_infantryweapons(self, obs):
+    completed_engineeringbays  = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
+    if len(completed_engineeringbays) > 0:
+      return actions.RAW_FUNCTIONS.Research_TerranInfantryWeapons_quick(
+          "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def research_infantryarmor(self, obs):
+    completed_engineeringbays  = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
+    if len(completed_engineeringbays) > 0:
+      return actions.RAW_FUNCTIONS.Research_TerranInfantryArmor_quick(
+          "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def research_hiSecautotracking(self, obs):
+    completed_engineeringbays  = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
+    if len(completed_engineeringbays) > 0:
+      return actions.RAW_FUNCTIONS.Research_HiSecAutoTracking_quick(
+          "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def research_structurearmor(self, obs):
+    completed_engineeringbays  = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
+    if len(completed_engineeringbays) > 0:
+      return actions.RAW_FUNCTIONS.Research_TerranStructureArmorUpgrade_quick(
+          "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
+    return actions.RAW_FUNCTIONS.no_op()
+  
 
 
 
@@ -309,8 +355,8 @@ class SubAgent_Economic(Agent):
     reactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
     completed_reactors = self.get_my_completed_units_by_type(obs, units.Terran.BarracksReactor)
 
-
-    marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
+    engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
+    completed_engineeringbays = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
     
     free_supply = (obs.observation.player.food_cap - 
                    obs.observation.player.food_used)
@@ -321,7 +367,26 @@ class SubAgent_Economic(Agent):
     can_afford_barracks = obs.observation.player.minerals >= 150
     can_afford_reactor = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
     can_afford_techlab = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 25
+    can_afford_engineeringbays = obs.observation.player.minerals >= 125
 
+    
+    have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
+    have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
+    have_research_infantryweapons_level3 = 9 in obs.observation.upgrades
+    have_research_infantryarmor_level1 = 11 in obs.observation.upgrades
+    have_research_infantryarmor_level2 = 12 in obs.observation.upgrades
+    have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
+    have_research_hiSecautotracking = 5 in obs.observation.upgrades
+    have_research_structurearmor = 6 in obs.observation.upgrades
+    #print(actions.RAW_FUNCTIONS.Research_HiSecAutoTracking_quick.id in actions.RAW_FUNCTIONS_AVAILABLE)
+    print(obs.observation.upgrades)
+    #print([have_research_hiSecautotracking, have_research_infantryweapons_level1, have_research_infantryweapons_level2, have_research_infantryweapons_level3])
+    """
+    if actions.RAW_FUNCTIONS.Build_EngineeringBay_pt.id in obs.observation['available_actions']:
+      print('1')
+    else:
+      print('0')
+    """
 
     return (self.base_top_left,
             len(command_centers),
@@ -337,14 +402,24 @@ class SubAgent_Economic(Agent):
             len(completed_techlabs),
             len(reactors),
             len(completed_reactors),
-            len(marines),
+            len(engineeringbays),
+            len(completed_engineeringbays),
             free_supply,
             can_afford_SCV,
             can_afford_supply_depot,
             can_afford_refinery,
             can_afford_barracks,
             can_afford_reactor,
-            can_afford_techlab
+            can_afford_techlab,
+            can_afford_engineeringbays,
+            have_research_infantryweapons_level1,
+            have_research_infantryweapons_level2,
+            have_research_infantryweapons_level3,
+            have_research_infantryarmor_level1,
+            have_research_infantryarmor_level2,
+            have_research_infantryarmor_level3,
+            have_research_hiSecautotracking,
+            have_research_structurearmor
             )
     
   def step(self, obs):

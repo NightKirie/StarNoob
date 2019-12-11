@@ -143,7 +143,7 @@ class Agent(base_agent.BaseAgent):
     #print('in choose battle')
     choose_action = self.battle_policy.step(obs)
     #print('out choose battle')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def choose_economic_policy(self, obs):
@@ -155,7 +155,7 @@ class Agent(base_agent.BaseAgent):
     #print('in choose economic')
     choose_action = self.economic_policy.step(obs)
     #print('out choose economic')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def choose_training_policy(self, obs):
@@ -167,7 +167,7 @@ class Agent(base_agent.BaseAgent):
     #print('in choose training')
     choose_action = self.training_policy.step(obs)
     #print('out choose training')
-    print(choose_action)
+    #print(choose_action)
     return choose_action
 
   def step(self, obs):
@@ -286,7 +286,7 @@ class SmartAgent(Agent):
     super(SmartAgent, self).step(obs)
     state = str(self.get_state(obs))
     action = self.qtable.choose_action(state)
-    print(action)
+    #print(action)
 
     if self.previous_action is not None:
       step_reward = 0
