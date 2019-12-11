@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
+import sc2reader
 import os
 import sys
 
 STARNOOB_LIB_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__FILE__)),
-                    '../../lib')
+    '../../lib')
 
 sys.path.append(STARNOOB_LIB_DIR)
 
-import sc2reader
 
 def parse_replay(replay, player_no):
     result = []
@@ -20,6 +20,7 @@ def parse_replay(replay, player_no):
             continue
 
     return result
+
 
 if __name__ == "__main__":
     path = ['./Acid-Plant-LE-13.sc2replay', 1]
@@ -53,4 +54,3 @@ if __name__ == "__main__":
             if prev_str != now_str:
                 print(now_str)
                 prev_str = now_str
-

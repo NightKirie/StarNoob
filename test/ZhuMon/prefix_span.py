@@ -1,13 +1,14 @@
+import json
+from event import *
+import sc2reader
 import os
 import sys
 
 sys.path.append(
     os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        '../../lib'))
-import sc2reader
-from event import *
+                 '../../lib'))
 
-import json
+
 class PrefixSpan():
     def __init__(self, db):
         """
@@ -31,8 +32,7 @@ class PrefixSpan():
         self.key = len(self._str_db) // 4
 
         # get prefix
-        self._prefix = self.get_prefix() # List[]
-
+        self._prefix = self.get_prefix()  # List[]
 
     def get_prefix(self):
         """ from db to parse prefix
@@ -45,7 +45,7 @@ class PrefixSpan():
         # 並且紀錄event出現在幾個replay中
         pattern = {}
         for replay in self._str_db:
-            pattern_tmp = [] # to check whether count the pattern
+            pattern_tmp = []  # to check whether count the pattern
             for event in replay:
                 if event not in pattern.keys():
                     pattern[event] = 1
@@ -79,7 +79,7 @@ class PrefixSpan():
 
             tmp_replay = list(replay)
             kmp_result = 0
-            tmp_pattern = [] # to check whether count the pattern
+            tmp_pattern = []  # to check whether count the pattern
 
             while tmp_replay != []:
                 kmp_result = kmp(prefix, tmp_replay)

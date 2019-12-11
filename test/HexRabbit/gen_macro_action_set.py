@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sc2reader
 import os
 import sys
 import collections
@@ -8,7 +9,6 @@ import logging
 STARNOOB_LIB_DIR = '/root/StarNoob/lib'
 sys.path.append(STARNOOB_LIB_DIR)
 
-import sc2reader
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -37,7 +37,7 @@ LOG.addFilter(logging.Filter(__name__))
 
 
 # get all replays recursively
-def get_all_replays_recursive(dir_path = r"./"):
+def get_all_replays_recursive(dir_path=r"./"):
     result = []
     replay_path = r"*.SC2Replay"
     all_dir_path = r"*/"
@@ -59,11 +59,13 @@ def load_replays(paths):
     total = len(paths)
     LOG.info(f'Total replays: {total}')
     for i, path in enumerate(paths):
-        LOG.info(f'{i}/{total} Processing {path[0] if len(path[0]) < 50 else f"...{path[0][-50:]}"}')
+        LOG.info(
+            f'{i}/{total} Processing {path[0] if len(path[0]) < 50 else f"...{path[0][-50:]}"}')
         replay = sc2reader.load_replay(path[0], load_map=True)
         results.append(parse_replay(replay, path[1]))
 
     return results
+
 
 def parse_replay(replay, player_no):
     result = []
@@ -75,6 +77,7 @@ def parse_replay(replay, player_no):
             continue
 
     return result
+
 
 def classify_by_race(paths):
     """
@@ -94,6 +97,7 @@ def classify_by_race(paths):
 
     return races
 
+
 def main():
     if len(sys.argv) != 2 or sys.argv[1] not in ['Terran', 'Protoss', 'Zerg']:
         print(f'Usage: {__file__} [Terran|Protoss|Zerg]')
@@ -106,7 +110,6 @@ def main():
     targets = get_all_replays_recursive(r'/root/replays/')
     targets = classify_by_race(targets)[sys.argv[1]]
     event_list_list = load_replays(targets)
-
 
     for event_list in event_list_list:
         control_group_list = [[]]*10
@@ -133,7 +136,8 @@ def main():
 
             else:
                 if selected_units:
-                    lst.append('SelectionEvent ' + str(set([str(s).split(' ')[0] for s in selected_units])))
+                    lst.append(
+                        'SelectionEvent ' + str(set([str(s).split(' ')[0] for s in selected_units])))
                     selected_units = []
 
                 now_str = str(act)
@@ -141,10 +145,9 @@ def main():
                     lst.append(now_str)
                     prev_str = now_str
 
-
     for l in [3, 4, 5, 6]:
         for i in range(len(lst) - l):
-            if lst[i].startswith('Sele'): # SelectionEvent
+            if lst[i].startswith('Sele'):  # SelectionEvent
                 conlst = tuple(lst[i:i+l])
                 val = hash(conlst)
                 mapping[val] = conlst
@@ -157,6 +160,6 @@ def main():
         print(len(mapping[k]), cnt[k], mapping[k])
         i += 1
 
+
 if __name__ == '__main__':
     main()
-

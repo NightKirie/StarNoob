@@ -28,7 +28,8 @@ flags.DEFINE_integer("game_steps_per_episode", 0, "Game steps per episode.")
 flags.DEFINE_integer("step_mul", 8, "Game steps per agent step.")
 
 # flags.DEFINE_string("agent", "pysc2.agents.random_agent.RandomAgent", "Which agent to run")
-flags.DEFINE_enum("agent_race", None, sc2_env.Race._member_names_, "Agent's race.")
+flags.DEFINE_enum("agent_race", None,
+                  sc2_env.Race._member_names_, "Agent's race.")
 flags.DEFINE_enum("bot_race", None, sc2_env.Race._member_names_, "Bot's race.")
 flags.DEFINE_enum("difficulty", None, sc2_env.Difficulty._member_names_,
                   "Bot's strength.")
@@ -38,7 +39,6 @@ flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_integer("parallel", 1, "How many instances to run in parallel.")
 
 flags.DEFINE_bool("save_replay", False, "Whether to save a replay at the end.")
-
 
 
 def run_thread(players, visualize):
@@ -76,13 +76,14 @@ def run_thread(players, visualize):
         if FLAGS.save_replay:
             env.save_replay(Agent.__name__)
 
+
 def main(unused_argv):
     """Run an agent."""
     if FLAGS.profile or FLAGS.trace:
         stopwatch.sw.enabled()
     else:
         stopwatch.sw.disable()
-    
+
     if FLAGS.trace:
         stopwatch.sw.trace()
 
