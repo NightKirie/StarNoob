@@ -50,7 +50,12 @@ class Agent(base_agent.BaseAgent):
   actions = ("do_nothing",
              "harvest_minerals", 
              "build_supply_depot", 
-             "build_barracks", 
+             "build_barracks",
+             "build_refinery",
+             "train_SCV",
+             "harvest_gas",
+             "build_barrack_techlab",
+             "build_barrack_reactor",
              )
 
   def get_my_units_by_type(self, obs, unit_type):
@@ -96,6 +101,14 @@ class Agent(base_agent.BaseAgent):
     for item in building:
       order_array.append(item.order_length)
     return order_array.index(min(order_array))
+
+  def get_notfull_worker_building_by_type(self, obs, unit_type):
+    return [unit for unit in obs.observation.raw_units
+        if unit.unit_type == unit_type 
+        and unit.build_progress == 100
+        and unit.assigned_harvesters < unit.ideal_harvesters 
+        and unit.alliance == features.PlayerRelative.SELF]
+
               
 
   def do_nothing(self, obs):
@@ -127,6 +140,26 @@ class Agent(base_agent.BaseAgent):
           "now", scv.tag, mineral_patch.tag)
     return actions.RAW_FUNCTIONS.no_op()
 
+  def harvest_gas(self, obs):
+    notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
+    scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+    if len(scvs) > 0 and len(notfull_completed_refinerys) > 0:
+      scv = random.choice(scvs)
+      distances = self.get_distances(obs, notfull_completed_refinerys, (scv.x, scv.y))
+      refinery = notfull_completed_refinerys[np.argmin(distances)] 
+      return actions.RAW_FUNCTIONS.Harvest_Gather_unit(
+          "now", scv.tag, refinery.tag)
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def train_SCV(self, obs):
+    completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+    free_supply = (obs.observation.player.food_cap - obs.observation.player.food_used)
+
+    if len(completed_commandcenters) > 0 and free_supply > 0:
+      completed_commandcenter = completed_commandcenters[self.get_least_busy_building(completed_commandcenters)]
+      return actions.RAW_FUNCTIONS.Train_SCV_quick("now", completed_commandcenter.tag)
+    return actions.RAW_FUNCTIONS.no_op()
+
   def build_supply_depot(self, obs):
     supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
     scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -151,7 +184,38 @@ class Agent(base_agent.BaseAgent):
       scv = scvs[np.argmin(distances)]
       return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
           "now", scv.tag, supply_depot_xy)
+    if (len(supply_depots) == 3 and obs.observation.player.minerals >= 100 and
+        len(scvs) > 0):
+      supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
+      distances = self.get_distances(obs, scvs, supply_depot_xy)
+      scv = scvs[np.argmin(distances)]
+      return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
+          "now", scv.tag, supply_depot_xy)
       
+    return actions.RAW_FUNCTIONS.no_op()
+
+  def build_refinery(self, obs):
+    refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
+    scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+    gas_patches = [unit for unit in obs.observation.raw_units
+                         if unit.unit_type in [
+                           units.Neutral.ProtossVespeneGeyser  ,
+                           units.Neutral.PurifierVespeneGeyser  ,
+                           units.Neutral.RichVespeneGeyser,
+                           units.Neutral.ShakurasVespeneGeyser ,
+                           units.Neutral.SpacePlatformGeyser ,
+                           units.Neutral.VespeneGeyser
+                         ]]
+    if (len(refinery) == 0 and len(scvs) > 0):
+      scv = random.choice(scvs)
+      distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
+      gas_patch = gas_patches[np.argmin(distances)] 
+      return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
+    if (len(refinery) == 1 and len(scvs) > 0):
+      scv = random.choice(scvs)
+      distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
+      gas_patch = gas_patches[np.argmin(distances)] 
+      return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
     return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -176,19 +240,21 @@ class Agent(base_agent.BaseAgent):
           "now", scv.tag, barracks_xy)
     return actions.RAW_FUNCTIONS.no_op()
 
-
-  def train_marine(self, obs):
-    completed_barrackses = self.get_my_completed_units_by_type(
-        obs, units.Terran.Barracks)
-    free_supply = (obs.observation.player.food_cap - 
-                   obs.observation.player.food_used)
-    if (len(completed_barrackses) > 0 and obs.observation.player.minerals >= 100
-        and free_supply > 0):
-      barracks = self.get_my_units_by_type(obs, units.Terran.Barracks)
-      barracks = barracks[self.get_least_busy_building(barracks)]
-      if barracks.order_length < 5:
-        return actions.RAW_FUNCTIONS.Train_Marine_quick("now", barracks.tag)
+  def build_barrack_techlab(self, obs):
+    completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+    if len(completed_barrackses) > 0:
+      return actions.RAW_FUNCTIONS.Build_TechLab_Barracks_quick(
+          "now", [barrack.tag for barrack in completed_barrackses])
     return actions.RAW_FUNCTIONS.no_op()
+
+  def build_barrack_reactor(self, obs):
+    completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+    if len(completed_barrackses) > 0:
+      return actions.RAW_FUNCTIONS.Build_Reactor_Barracks_quick(
+          "now", [barrack.tag for barrack in completed_barrackses])
+    return actions.RAW_FUNCTIONS.no_op()
+
+
 
   def step(self, obs):
     super(Agent, self).step(obs)
@@ -225,32 +291,60 @@ class SubAgent_Economic(Agent):
     scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
     idle_scvs = [scv for scv in scvs if scv.order_length == 0]
     command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+
+    refinerys  = self.get_my_units_by_type(obs, units.Terran.Refinery)
+    completed_refinerys = self.get_my_completed_units_by_type(obs, units.Terran.Refinery)
+
     supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
     completed_supply_depots = self.get_my_completed_units_by_type(
         obs, units.Terran.SupplyDepot)
+
     barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
     completed_barrackses = self.get_my_completed_units_by_type(
         obs, units.Terran.Barracks)
+
+    techlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
+    completed_techlabs = self.get_my_completed_units_by_type(obs, units.Terran.BarracksTechLab)
+
+    reactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
+    completed_reactors = self.get_my_completed_units_by_type(obs, units.Terran.BarracksReactor)
+
 
     marines = self.get_my_units_by_type(obs, units.Terran.Marine) 
     
     free_supply = (obs.observation.player.food_cap - 
                    obs.observation.player.food_used)
+
+    can_afford_SCV = obs.observation.player.minerals >= 50
     can_afford_supply_depot = obs.observation.player.minerals >= 100
+    can_afford_refinery = obs.observation.player.minerals >= 75
     can_afford_barracks = obs.observation.player.minerals >= 150
+    can_afford_reactor = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
+    can_afford_techlab = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 25
+
 
     return (self.base_top_left,
             len(command_centers),
             len(scvs),
             len(idle_scvs),
+            len(refinerys),
+            len(completed_refinerys),
             len(supply_depots),
             len(completed_supply_depots),
             len(barrackses),
             len(completed_barrackses),
+            len(techlabs),
+            len(completed_techlabs),
+            len(reactors),
+            len(completed_reactors),
             len(marines),
             free_supply,
+            can_afford_SCV,
             can_afford_supply_depot,
-            can_afford_barracks
+            can_afford_refinery,
+            can_afford_barracks,
+            can_afford_reactor,
+            can_afford_techlab
             )
     
   def step(self, obs):
