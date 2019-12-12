@@ -35,7 +35,7 @@ def run_thread(agent_classes, players):
             rgb_screen=FLAGS.rgb_screen_size,
             rgb_minimap=FLAGS.rgb_minimap_size,
             action_space=FLAGS.action_space,
-            use_feature_units=FLAGS.use_feature_units),
+            use_feature_units=FLAGS.use_feature_units
         ),
         discount=config.FLAGS.discount,
         discount_zero_after_timeout=config.FLAGS.discount_zero_after_timeout,
