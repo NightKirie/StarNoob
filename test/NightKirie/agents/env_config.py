@@ -27,7 +27,7 @@ flags.DEFINE_float("discount", 1., "Returned as part of the observation")
 flags.DEFINE_bool("discount_zero_after_timeout", False,
                   "If True, the discount will be zero after the 'game_steps_per_episode' timeout")
 
-flags.DEFINE_bool("visualize", False,
+flags.DEFINE_bool("visualize", True,
                   "Whether to pop up a window showing the camera and feature layers.")
 
 flags.DEFINE_integer("step_mul", None, """How many game steps per agent step (action/observation). 
@@ -72,3 +72,16 @@ flags.DEFINE_integer("max_agent_steps", 0, "Total agent steps.")
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_bool("render", True, "Whether to render with pygame.")
+point_flag.DEFINE_point("feature_screen_size", "84",
+                            "Resolution for screen feature layers.")
+point_flag.DEFINE_point("feature_minimap_size", "64",
+                        "Resolution for minimap feature layers.")
+point_flag.DEFINE_point("rgb_screen_size", None,
+                        "Resolution for rendered screen.")
+point_flag.DEFINE_point("rgb_minimap_size", None,
+                        "Resolution for rendered minimap.")
+flags.DEFINE_enum("action_space", None, sc2_env.ActionSpace._member_names_,  # pylint: disable=protected-access
+                    "Which action space to use. Needed if you take both feature "
+                    "and rgb observations.")
+flags.DEFINE_bool("use_feature_units", False,
+                    "Whether to include feature units.")

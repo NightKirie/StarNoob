@@ -24,12 +24,19 @@ from absl import flags
 from rl.deep_q_learning import BaseRLAgent as Agent
 import env_config as config
 
-def run_thread(agent_classes, players, visualize):
+def run_thread(agent_classes, players):
     with sc2_env.SC2Env(
         map_name=config.FLAGS.map_name,
         battle_net_map=config.FLAGS.battle_net_map,
         players=players,
-        agent_interface_format=None,
+        agent_interface_format=sc2_env.parse_agent_interface_format(
+            feature_screen=FLAGS.feature_screen_size,
+            feature_minimap=FLAGS.feature_minimap_size,
+            rgb_screen=FLAGS.rgb_screen_size,
+            rgb_minimap=FLAGS.rgb_minimap_size,
+            action_space=FLAGS.action_space,
+            use_feature_units=FLAGS.use_feature_units),
+        ),
         discount=config.FLAGS.discount,
         discount_zero_after_timeout=config.FLAGS.discount_zero_after_timeout,
         visualize=config.FLAGS.visualize,
@@ -43,8 +50,7 @@ def run_thread(agent_classes, players, visualize):
         score_multiplier=config.FLAGS.score_multiplier,
         random_seed=config.FLAGS.random_seed,
         disable_fog=config.FLAGS.disable_fog,
-        ensure_available_actions=config.FLAGS.ensure_available_actions,
-        version=config.FLAGS.version) as env:
+        ensure_available_actions=config.FLAGS.ensure_available_actions) as env:
 
         env = available_actions_printer.AvailableActionsPrinter(env)
         agents = [agent_cls() for agent_cls in agent_classes]
@@ -69,7 +75,7 @@ def main(unused_argv):
         stopwatch.sw.trace()
 
     maps.get(config.FLAGS.map_name)  # Assert the map exists.
-    run_thread(config.FLAGS.map_name, config.FLAGS.render)
+    run_thread(agent_classes, players)
 
     if config.FLAGS.profile:
         print(stopwatch.sw)
