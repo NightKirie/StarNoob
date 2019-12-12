@@ -4,7 +4,7 @@ import os
 import sys
 
 STARNOOB_LIB_DIR = os.path.join(
-    os.path.dirname(os.path.abspath(__FILE__)),
+    os.path.dirname(os.path.abspath(__file__)),
     '../../lib')
 
 sys.path.append(STARNOOB_LIB_DIR)
@@ -25,7 +25,7 @@ def parse_replay(replay, player_no):
 if __name__ == "__main__":
     path = ['./Acid-Plant-LE-13.sc2replay', 1]
     replay = sc2reader.load_replay(path[0], load_map=True)
-    control_group_list = [0]*10
+    control_group_list = [[]]*10
     selected_units = {}
     prev_str = ''
 
