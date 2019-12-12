@@ -317,15 +317,6 @@ class SubAgent_Economic(Agent):
         have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
         have_research_hiSecautotracking = 5 in obs.observation.upgrades
         have_research_structurearmor = 6 in obs.observation.upgrades
-        #print(actions.RAW_FUNCTIONS.Research_HiSecAutoTracking_quick.id in actions.RAW_FUNCTIONS_AVAILABLE)
-        print(obs.observation.upgrades)
-        #print([have_research_hiSecautotracking, have_research_infantryweapons_level1, have_research_infantryweapons_level2, have_research_infantryweapons_level3])
-        """
-    if actions.RAW_FUNCTIONS.Build_EngineeringBay_pt.id in obs.observation['available_actions']:
-      print('1')
-    else:
-      print('0')
-    """
 
         return (self.base_top_left,
                 len(command_centers),

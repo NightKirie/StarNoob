@@ -19,7 +19,10 @@ class Agent(base_agent.BaseAgent):
                "train_marine",
                "train_reaper",
                "train_marauder",
+               "train_ghost"
                )
+    # TODO Hellion SiegeTank WidowMine Hellbat Thor Liberator
+    # TODO Cyclone Viking Medivac Raven Banshee Battlecruiser
 
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]
@@ -63,6 +66,13 @@ class Agent(base_agent.BaseAgent):
         barrack_tag = self.get_barrackses(obs)
         if barrack_tag != False:
             return actions.RAW_FUNCTIONS.Train_Marauder_quick("now", barrack_tag)
+        else:
+            return actions.RAW_FUNCTIONS.no_op()
+    
+    def train_ghost(self, obs):
+        barrack_tag = self.get_barrackses(obs)
+        if barrack_tag != False:
+            return actions.RAW_FUNCTIONS.Train_Ghost_quick("now", barrack_tag)
         else:
             return actions.RAW_FUNCTIONS.no_op()
 
