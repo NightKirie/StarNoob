@@ -1,0 +1,11 @@
+name: StarNoob
+dependencies: 
+- python=3.6
+- matplotlib
+- pytorch
+- pip
+- pip:
+    - pysc2
+    - pyvirtualdisplay
+    - opencv-python
+    - torchvision
