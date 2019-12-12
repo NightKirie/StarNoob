@@ -117,7 +117,7 @@ class BaseRLAgent(BaseAgent):
             return action * self._screen_size*self._screen_size + target[0] * self._screen_size + target[1]
 
     def select_friendly_action(self, obs):
-        player_relative = obs.observation["screen"][_PLAYER_RELATIVE]
+        player_relative = obs.observation["feature_screen"][_PLAYER_RELATIVE]
         friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
         target = [int(friendly_x.mean()), int(friendly_y.mean())]
         return actions.FunctionCall(_SELECT_POINT, [[0], target])
@@ -152,8 +152,8 @@ class BaseRLAgent(BaseAgent):
                 while True:
                     total_frames += 1
 
-                    self._screen = obs.observation["screen"][5]
-                    s = np.expand_dims(obs.observation["screen"][5], 0)
+                    self._screen = obs.observation["feature_screen"][5]
+                    s = np.expand_dims(obs.observation["feature_screen"][5], 0)
                     # plt.imshow(s[5])
                     # plt.pause(0.00001)
                     if max_frames and total_frames >= max_frames:
@@ -169,7 +169,7 @@ class BaseRLAgent(BaseAgent):
                     obs = env.step([env_actions])[0]
 
                     r = obs.reward
-                    s1 = np.expand_dims(obs.observation["screen"][5], 0)
+                    s1 = np.expand_dims(obs.observation["feature_screen"][5], 0)
                     done = r > 0
                     if self._epsilon.isTraining:
                         transition = Transition(s, action, s1, r, done)

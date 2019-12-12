@@ -24,7 +24,7 @@ from absl import flags
 from rl.deep_q_learning import BaseRLAgent as Agent
 import env_config as config
 
-def run_thread(agent_classes, players):
+def run_thread(players):
     with sc2_env.SC2Env(
         map_name=config.FLAGS.map_name,
         battle_net_map=config.FLAGS.battle_net_map,
@@ -53,18 +53,16 @@ def run_thread(agent_classes, players):
         ensure_available_actions=config.FLAGS.ensure_available_actions) as env:
 
         env = available_actions_printer.AvailableActionsPrinter(env)
-        agents = [agent_cls() for agent_cls in agent_classes]
+        agent = Agent()
         # run_loop([agent], env, FLAGS.max_agent_steps)
-        run_loop.run_loop(agents, env, config.FLAGS.max_agent_steps, config.FLAGS.max_episodes)
+        agent.train(env, True)
 
 
 def main(unused_argv):
     """Run an agent."""
     players = [sc2_env.Agent(sc2_env.Race.terran),
-                     sc2_env.Bot(sc2_env.Race.terran,
-                                 sc2_env.Difficulty.very_easy)]
-    agent_classes = [Agent()]
-
+                sc2_env.Bot(sc2_env.Race.terran,
+                sc2_env.Difficulty.very_easy)]
 
     if config.FLAGS.profile or config.FLAGS.trace:
         stopwatch.sw.enabled()
@@ -75,7 +73,7 @@ def main(unused_argv):
         stopwatch.sw.trace()
 
     maps.get(config.FLAGS.map_name)  # Assert the map exists.
-    run_thread(agent_classes, players)
+    run_thread(players)
 
     if config.FLAGS.profile:
         print(stopwatch.sw)
