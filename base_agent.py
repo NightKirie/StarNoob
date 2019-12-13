@@ -58,30 +58,44 @@ class QLearningTable:
 class BaseAgent(base_agent.BaseAgent):
 
     def get_my_units_by_type(self, obs, unit_type):
-        """
-        get all user's units of a type
-        Args: observation,  unit_type(int)
-        Returns: unit(list)
+        """ get all user's units of a type
+        Args: 
+            observation
+            unit_type (int)
+        
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.unit_type == unit_type
                 and unit.alliance == features.PlayerRelative.SELF]
 
     def get_enemy_units_by_type(self, obs, unit_type):
-        """
-        get all enemy's units of a type
-        Args: observation,  unit_type(int)
-        Returns: unit(list)
+        """ get all enemy's units of a type
+
+        Args:
+            observation
+            unit_type (int)
+        
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.unit_type == unit_type
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
     def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-        """
-        get user's units in a position range
-        Args: observation,  position
-        Returns: unit(list)
+        """ get user's units in a position range
+        
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
@@ -89,10 +103,17 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.y >= pos1y and unit.y < pos2y]
 
     def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-        """
-        get enemy's units in a position range
-        Args: observation,  position
-        Returns: unit(list)
+        """get enemy's units in a position range
+        
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
@@ -100,10 +121,14 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.y >= pos1y and unit.y < pos2y]
 
     def get_my_completed_units_by_type(self, obs, unit_type):
-        """
-        get a list of user's complete building of a type
-        Args: observation,  unit_type(int)
-        Returns: unit(list)
+        """ get a list of user's complete building of a type
+        
+        Args:
+            observation
+            unit_type (int)
+
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.unit_type == unit_type
@@ -111,10 +136,14 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.alliance == features.PlayerRelative.SELF]
 
     def get_enemy_completed_units_by_type(self, obs, unit_type):
-        """
-        get a list of enemy's complete building of a type
-        Args: observation,  unit_type(int)
-        Returns: unit(list)
+        """ get a list of enemy's complete building of a type
+        
+        Args:
+            observation
+            unit_type (int)
+        
+        Returns:
+            list: a list of units
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.unit_type == unit_type
