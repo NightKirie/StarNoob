@@ -80,7 +80,7 @@ class Agent(base_agent.BaseAgent):
             building_tag = self.get_building(obs, BARRACKS)
         elif unit in ["Hellion", "SiegeTank", "WidowMine", "Hellbat", "Thor", "Liberator"]:
             building_tag = self.get_building(obs, FACTORY)
-        elif unit in ["Cyclone", "Viking", "Medivac", "Raven", "Banshee", "Battlecruiser"]:
+        elif unit in ["Cyclone", "VikingFighter", "Medivac", "Raven", "Banshee", "Battlecruiser"]:
             building_tag = self.get_building(obs, STARPORT)
 
         if building_tag:
@@ -130,11 +130,42 @@ class SubAgent_Training(Agent):
             obs, units.Terran.Barracks)
 
         marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-
+        reapers = self.get_my_units_by_type(obs, units.Terran.Reaper)
+        marauders = self.get_my_units_by_type(obs, units.Terran.Marauder)
+        ghosts = self.get_my_units_by_type(obs, units.Terran.Ghost)
+        hellions = self.get_my_units_by_type(obs, units.Terran.Hellion)
+        siegetanks = self.get_my_units_by_type(obs, units.Terran.SiegeTank)
+        widowmines = self.get_my_units_by_type(obs, units.Terran.WidowMine)
+        hellbats = self.get_my_units_by_type(obs, units.Terran.Hellbat)
+        thors = self.get_my_units_by_type(obs, units.Terran.Thor)
+        liberators = self.get_my_units_by_type(obs, units.Terran.Liberator)
+        cyclones = self.get_my_units_by_type(obs, units.Terran.Cyclone)
+        vikingfighters = self.get_my_units_by_type(obs, units.Terran.VikingFighter)
+        medivacs = self.get_my_units_by_type(obs, units.Terran.Medivac)
+        ravens = self.get_my_units_by_type(obs, units.Terran.Raven)
+        banshees = self.get_my_units_by_type(obs, units.Terran.Banshee)
+        battlecruisers = self.get_my_units_by_type(obs, units.Terran.Battlecruiser)
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
         can_afford_marine = obs.observation.player.minerals >= 100
+        can_afford_reapers = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
+        can_afford_marauders = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 25
+        can_afford_ghosts = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 125
+        can_afford_hellionsv = obs.observation.player.minerals >= 100
+        can_afford_siegetanks = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 125
+        can_afford_widowmines = obs.observation.player.minerals >= 75 and obs.observation.player.vespene >= 25
+        can_afford_hellbats = obs.observation.player.minerals >= 100
+        can_afford_thors = obs.observation.player.minerals >= 300 and obs.observation.player.vespene >= 200
+        can_afford_liberators = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 150
+        can_afford_cyclones = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
+        can_afford_vikingfighters = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 75
+        can_afford_medivacs = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 100
+        can_afford_ravens = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 200
+        can_afford_banshees = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
+        can_afford_battlecruisers = obs.observation.player.minerals >= 400 and obs.observation.player.vespene >= 300
+
+        
 
         return (self.base_top_left,
                 len(command_centers),
@@ -145,8 +176,38 @@ class SubAgent_Training(Agent):
                 len(barrackses),
                 len(completed_barrackses),
                 len(marines),
+                len(reapers),
+                len(marauders),
+                len(ghosts),
+                len(hellions),
+                len(siegetanks),
+                len(widowmines),
+                len(hellbats),
+                len(thors),
+                len(liberators),
+                len(cyclones),
+                len(vikingfighters),
+                len(medivacs),
+                len(ravens),
+                len(banshees),
+                len(battlecruisers),
                 free_supply,
                 can_afford_marine,
+                can_afford_reapers,
+                can_afford_marauders,
+                can_afford_ghosts,
+                can_afford_hellionsv,
+                can_afford_siegetanks,
+                can_afford_widowmines,
+                can_afford_hellbats,
+                can_afford_thors,
+                can_afford_liberators,
+                can_afford_cyclones,
+                can_afford_vikingfighters,
+                can_afford_medivacs,
+                can_afford_ravens,
+                can_afford_banshees,
+                can_afford_battlecruisers,
                 )
 
     def step(self, obs):
