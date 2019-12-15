@@ -114,28 +114,31 @@ class Agent(base_agent.BaseAgent):
         supply_depots = self.get_my_units_by_type(
             obs, units.Terran.SupplyDepot)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(supply_depots) == 0 and obs.observation.player.minerals >= 100 and
-                len(scvs) > 0):
-            supply_depot_xy = (22, 26) if self.base_top_left else (35, 42)
+        if len(supply_depots) >= 9:
+            return actions.RAW_FUNCTIONS.no_op()
+        else:
+            if (len(supply_depots) == 0 and len(scvs) > 0):
+                supply_depot_xy = (22, 26) if self.base_top_left else (35, 42)
+            if (len(supply_depots) == 1 and len(scvs) > 0):
+                supply_depot_xy = (21, 26) if self.base_top_left else (36, 42)
+            if (len(supply_depots) == 2 and len(scvs) > 0):
+                supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
+            if (len(supply_depots) == 3 and len(scvs) > 0):
+                supply_depot_xy = (17, 26) if self.base_top_left else (40, 42)
+            if (len(supply_depots) == 4 and len(scvs) > 0):
+                supply_depot_xy = (12, 18) if self.base_top_left else (46, 42)   
+            if (len(supply_depots) == 5 and len(scvs) > 0):
+                supply_depot_xy = (12, 20) if self.base_top_left else (46, 44)   
+            if (len(supply_depots) == 6 and len(scvs) > 0):
+                supply_depot_xy = (12, 22) if self.base_top_left else (46, 46)   
+            if (len(supply_depots) == 7 and len(scvs) > 0):
+                supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)   
+            if (len(supply_depots) == 8 and len(scvs) > 0):
+                supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)   
             distances = self.get_distances(obs, scvs, supply_depot_xy)
             scv = scvs[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
                 "now", scv.tag, supply_depot_xy)
-        if (len(supply_depots) == 1 and obs.observation.player.minerals >= 100 and
-                len(scvs) > 0):
-            supply_depot_xy = (21, 26) if self.base_top_left else (36, 42)
-            distances = self.get_distances(obs, scvs, supply_depot_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-                "now", scv.tag, supply_depot_xy)
-        if (len(supply_depots) == 2 and obs.observation.player.minerals >= 100 and
-                len(scvs) > 0):
-            supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
-            distances = self.get_distances(obs, scvs, supply_depot_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-                "now", scv.tag, supply_depot_xy)
-
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_refinery(self, obs):
@@ -444,6 +447,8 @@ class SubAgent_Economic(Agent):
         have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
         have_research_hiSecautotracking = 5 in obs.observation.upgrades
         have_research_structurearmor = 6 in obs.observation.upgrades
+
+
 
         return (self.base_top_left,
                 len(command_centers),
