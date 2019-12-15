@@ -11,6 +11,7 @@ import base_agent
 
 DATA_FILE = 'Sub_building_data'
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
+MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
 
 class Agent(base_agent.BaseAgent):
@@ -358,6 +359,7 @@ class SubAgent_Economic(Agent):
         self.previous_total_value_units_score = 0
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
+        self.previous_total_spent_vespene = 0
 
     def get_state(self, obs):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -512,6 +514,7 @@ class SubAgent_Economic(Agent):
         total_value_units_score = obs.observation['score_cumulative'][3]
         total_value_structures_score = obs.observation['score_cumulative'][4]
         total_spent_minerals = obs.observation['score_cumulative'][11]
+        total_spent_vespene = obs.observation['score_cumulative'][12]
 
         if self.previous_action is not None:
             step_reward = 0
@@ -524,6 +527,9 @@ class SubAgent_Economic(Agent):
             if total_spent_minerals > self.previous_total_spent_minerals:
                 step_reward += MORE_MINERALS_USED_REWARD_RATE * \
                     (total_spent_minerals - self.previous_total_spent_minerals)
+            if total_spent_vespene > self.previous_total_spent_vespene:
+                step_reward += MORE_VESPENE_USED_REWARD_RATE * \
+                    (total_spent_vespene - self.previous_total_spent_vespene)
 
             self.qtable.learn(self.previous_state,
                               self.previous_action,
@@ -533,6 +539,7 @@ class SubAgent_Economic(Agent):
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
+        self.previous_total_spent_vespene = total_spent_vespene
         self.previous_state = state
         self.previous_action = action
         return getattr(self, action)(obs)
