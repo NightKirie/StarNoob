@@ -25,7 +25,7 @@ COMBAT_UNIT_NAME = [
     "Thor",
     "Liberator",
     "Cyclone",
-    "Viking",
+    "VikingFighter",
     "Medivac",
     "Raven",
     "Banshee",
