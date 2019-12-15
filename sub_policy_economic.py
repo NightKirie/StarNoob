@@ -24,7 +24,16 @@ class Agent(base_agent.BaseAgent):
                "harvest_gas",
                "build_barrack_techlab",
                "build_barrack_reactor",
+               "build_ghostacademys",
                "build_engineeringbays",
+               "build_factorys",
+               "build_factory_techlab",
+               "build_factory_reactor",
+               "build_armorys",
+               "build_starports",
+               "build_starports_techlab",
+               "build_starports_reactor",
+               "build_fusioncores",
                "research_infantryweapons",
                "research_infantryarmor",
                "research_hiSecautotracking",
@@ -125,13 +134,6 @@ class Agent(base_agent.BaseAgent):
             scv = scvs[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
                 "now", scv.tag, supply_depot_xy)
-        if (len(supply_depots) == 3 and obs.observation.player.minerals >= 100 and
-                len(scvs) > 0):
-            supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
-            distances = self.get_distances(obs, scvs, supply_depot_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-                "now", scv.tag, supply_depot_xy)
 
         return actions.RAW_FUNCTIONS.no_op()
 
@@ -196,6 +198,17 @@ class Agent(base_agent.BaseAgent):
                 "now", [barrack.tag for barrack in completed_barrackses])
         return actions.RAW_FUNCTIONS.no_op()
 
+    def build_ghostacademys(self, obs):
+        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        if (len(ghostacademys) == 0 and obs.observation.player.minerals >= 150 and len(scvs) > 0):
+            ghostacademys_xy = (25, 17) if self.base_top_left else (35, 49)
+            distances = self.get_distances(obs, scvs, ghostacademys_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_GhostAcademy_pt(
+                "now", scv.tag, ghostacademys_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
     def build_engineeringbays(self, obs):
         engineeringbays = self.get_my_units_by_type(
             obs, units.Terran.EngineeringBay)
@@ -206,6 +219,86 @@ class Agent(base_agent.BaseAgent):
             scv = scvs[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Build_EngineeringBay_pt(
                 "now", scv.tag, engineeringbays_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_factorys(self, obs):
+        factorys = self.get_my_units_by_type(
+            obs, units.Terran.Factory)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        if len(factorys) == 0 and len(scvs) > 0:
+            factorys_xy = (21, 28) if self.base_top_left else (43, 41)
+            distances = self.get_distances(obs, scvs, factorys_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_Factory_pt(
+                "now", scv.tag, factorys_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_factory_techlab(self, obs):
+        completed_factorys = self.get_my_completed_units_by_type(
+            obs, units.Terran.Factory)
+        if len(completed_factorys) > 0:
+            return actions.RAW_FUNCTIONS.Build_TechLab_Factory_quick(
+                "now", [factorys.tag for factorys in completed_factorys])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_factory_reactor(self, obs):
+        completed_factorys = self.get_my_completed_units_by_type(
+            obs, units.Terran.Factory)
+        if len(completed_factorys) > 0:
+            return actions.RAW_FUNCTIONS.Build_Reactor_Factory_quick(
+                "now", [factorys.tag for factorys in completed_factorys])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_armorys(self, obs):
+        armorys = self.get_my_units_by_type(
+            obs, units.Terran.Armory)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        if len(armorys) == 0 and len(scvs) > 0:
+            armorys_xy = (17, 28) if self.base_top_left else (40, 40)
+            distances = self.get_distances(obs, scvs, armorys_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_Armory_pt(
+                "now", scv.tag, armorys_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_starports(self, obs):
+        starports = self.get_my_units_by_type(
+            obs, units.Terran.Starport)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        if len(starports) == 0 and len(scvs) > 0:
+            starports_xy = (25, 21) if self.base_top_left else (32, 45)
+            distances = self.get_distances(obs, scvs, starports_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_Starport_pt(
+                "now", scv.tag, starports_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_fusioncores(self, obs):
+        fusioncores = self.get_my_units_by_type(
+            obs, units.Terran.FusionCore)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        if len(fusioncores) == 0 and len(scvs) > 0:
+            fusioncores_xy = (25, 19) if self.base_top_left else (32, 47)
+            distances = self.get_distances(obs, scvs, fusioncores_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_FusionCore_pt(
+                "now", scv.tag, fusioncores_xy)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_starports_techlab(self, obs):
+        completed_starports = self.get_my_completed_units_by_type(
+            obs, units.Terran.Starport)
+        if len(completed_starports) > 0:
+            return actions.RAW_FUNCTIONS.Build_TechLab_Starport_quick(
+                "now", [starports.tag for starports in completed_starports])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_starports_reactor(self, obs):
+        completed_starports = self.get_my_completed_units_by_type(
+            obs, units.Terran.Starport)
+        if len(completed_starports) > 0:
+            return actions.RAW_FUNCTIONS.Build_Reactor_Starport_quick(
+                "now", [starports.tag for starports in completed_starports])
         return actions.RAW_FUNCTIONS.no_op()
 
     def research_infantryweapons(self, obs):
@@ -285,18 +378,45 @@ class SubAgent_Economic(Agent):
         completed_barrackses = self.get_my_completed_units_by_type(
             obs, units.Terran.Barracks)
 
-        techlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
-        completed_techlabs = self.get_my_completed_units_by_type(
+        barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
+        completed_barrackstechlabs = self.get_my_completed_units_by_type(
             obs, units.Terran.BarracksTechLab)
 
-        reactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
-        completed_reactors = self.get_my_completed_units_by_type(
+        barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
+        completed_barracksreactors = self.get_my_completed_units_by_type(
             obs, units.Terran.BarracksReactor)
+
+        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
+        complete_ghostacademys = self.get_my_completed_units_by_type(obs, units.Terran.GhostAcademy)
 
         engineeringbays = self.get_my_units_by_type(
             obs, units.Terran.EngineeringBay)
         completed_engineeringbays = self.get_my_completed_units_by_type(
             obs, units.Terran.EngineeringBay)
+
+        factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
+        completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
+
+        factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
+        completed_factorytechlabs = self.get_my_completed_units_by_type(obs, units.Terran.FactoryTechLab)
+
+        factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
+        completed_factoryreactors = self.get_my_completed_units_by_type(obs, units.Terran.FactoryReactor)
+
+        armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
+        completed_armorys = self.get_my_completed_units_by_type(obs, units.Terran.Armory)
+
+        starports = self.get_my_units_by_type(obs, units.Terran.Starport)
+        complete_starports = self.get_my_completed_units_by_type(obs, units.Terran.Starport)
+
+        starportstechlabs = self.get_my_units_by_type(obs, units.Terran.StarportTechLab )
+        completed_starportstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.StarportTechLab )
+
+        starportsreactors = self.get_my_units_by_type(obs, units.Terran.StarportReactor )
+        completed_starportsreactors = self.get_my_completed_units_by_type(obs, units.Terran.StarportReactor)
+
+        fusioncores = self.get_my_units_by_type(obs, units.Terran.FusionCore)
+        complete_fusioncores = self.get_my_completed_units_by_type(obs, units.Terran.FusionCore)
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
@@ -307,7 +427,12 @@ class SubAgent_Economic(Agent):
         can_afford_barracks = obs.observation.player.minerals >= 150
         can_afford_reactor = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
         can_afford_techlab = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 25
+        can_afford_ghostacademys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 50
         can_afford_engineeringbays = obs.observation.player.minerals >= 125
+        can_afford_factorys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
+        can_afford_armorys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
+        can_afford_starports = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
+        can_afford_fusioncores = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 150
 
         have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
         have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
@@ -328,12 +453,30 @@ class SubAgent_Economic(Agent):
                 len(completed_supply_depots),
                 len(barrackses),
                 len(completed_barrackses),
-                len(techlabs),
-                len(completed_techlabs),
-                len(reactors),
-                len(completed_reactors),
+                len(barrackstechlabs),
+                len(completed_barrackstechlabs),
+                len(barracksreactors),
+                len(completed_barracksreactors),
+                len(ghostacademys),
+                len(complete_ghostacademys),
                 len(engineeringbays),
                 len(completed_engineeringbays),
+                len(factorys),
+                len(completed_factorys),
+                len(factorytechlabs),
+                len(completed_factorytechlabs),
+                len(factoryreactors),
+                len(completed_factoryreactors),
+                len(armorys), 
+                len(completed_armorys),
+                len(starports),
+                len(complete_starports),
+                len(starportstechlabs),
+                len(completed_starportstechlabs),
+                len(starportsreactors),
+                len(completed_starportsreactors),
+                len(fusioncores),
+                len(complete_fusioncores),
                 free_supply,
                 can_afford_SCV,
                 can_afford_supply_depot,
@@ -341,7 +484,12 @@ class SubAgent_Economic(Agent):
                 can_afford_barracks,
                 can_afford_reactor,
                 can_afford_techlab,
+                can_afford_ghostacademys,
                 can_afford_engineeringbays,
+                can_afford_factorys,
+                can_afford_armorys,
+                can_afford_starports,
+                can_afford_fusioncores,
                 have_research_infantryweapons_level1,
                 have_research_infantryweapons_level2,
                 have_research_infantryweapons_level3,
