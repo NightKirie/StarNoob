@@ -212,8 +212,8 @@ def main(unused_argv):
                 use_raw_units=True,
                 raw_resolution=64,
             ),
-            step_mul=48,
-            disable_fog=True,
+            step_mul=None,
+            disable_fog=False,
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
             run_loop.run_loop([agent1], env, max_episodes=1000)

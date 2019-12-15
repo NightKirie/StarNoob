@@ -73,7 +73,9 @@ flags.DEFINE_integer("max_agent_steps", 0, "Total agent steps.")
 flags.DEFINE_bool("profile", False, "Whether to turn on code profiling.")
 flags.DEFINE_bool("trace", False, "Whether to trace the code execution.")
 flags.DEFINE_bool("render", True, "Whether to render with pygame.")
-point_flag.DEFINE_point("feature_screen_size", "84",
+
+
+point_flag.DEFINE_point("feature_screen_size", "64",
                             "Resolution for screen feature layers.")
 point_flag.DEFINE_point("feature_minimap_size", "64",
                         "Resolution for minimap feature layers.")

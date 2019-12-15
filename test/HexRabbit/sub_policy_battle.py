@@ -2,6 +2,9 @@ import random
 import numpy as np
 import pandas as pd
 import os
+from types import SimpleNamespace
+from functools import partial
+
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
@@ -22,7 +25,8 @@ KILL_UNIT_REWARD_RATE = 0.00002
 KILL_BUILDING_REWARD_RATE = 0.00004
 DEAD_UNIT_REWARD_RATE = 0.00001 * 0
 DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
-
+SUB_ATTACK_DIVISION = 4
+SUB_ATTACK_OFFSET = 16
 
 BATCH_SIZE = 128
 GAMMA = 0.999
@@ -59,6 +63,8 @@ class ReplayMemory(object):
 class DQN(nn.Module):
     def __init__(self, state_size, action_size):
         super(DQN, self).__init__()
+        print(state_size)
+        print(action_size)
         self.net = nn.Sequential(
             nn.Linear(state_size, 64),
             nn.ReLU(),
@@ -72,25 +78,17 @@ class DQN(nn.Module):
 
 
 class Agent(base_agent.BaseAgent):
+    actions = tuple(["do_nothing"]) + \
+        tuple([f"attack_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
+    
+    def __init__(self):
+        super().__init__()
 
-    actions = ("do_nothing",
-               "attack1_1",
-               "attack1_2",
-               "attack1_3",
-               "attack1_4",
-               "attack2_1",
-               "attack2_2",
-               "attack2_3",
-               "attack2_4",
-               "attack3_1",
-               "attack3_2",
-               "attack3_3",
-               "attack3_4",
-               "attack4_1",
-               "attack4_2",
-               "attack4_3",
-               "attack4_4",
-               )
+        for i in range(0, SUB_ATTACK_DIVISION):
+            for j in range(0, SUB_ATTACK_DIVISION):
+                self.__setattr__(
+                    f"attack_{i}_{j}", partial(
+                        self.attack, range=SimpleNamespace(**{'x': i, 'y': j}), offset=SUB_ATTACK_OFFSET))
 
     def get_my_armys(self, obs):
         return [unit for unit in obs.observation.raw_units
@@ -100,164 +98,13 @@ class Agent(base_agent.BaseAgent):
     def do_nothing(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
 
-    def attack1_1(self, obs):
+    def attack(self, obs, range, offset):
         armys = self.get_my_armys(obs)
         if len(armys) > 0:
-            attack_xy = (8, 8)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
+            attack = SimpleNamespace(**{'x': range.x * offset, 'y': range.y * offset})
+            offset = SimpleNamespace(**{'x': random.randint(0, offset), 'y': random.randint(0, offset)})
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack1_2(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (24, 8)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack1_3(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (40, 8)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack1_4(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (56, 8)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack2_1(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (8, 24)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack2_2(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (24, 24)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack2_3(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (40, 24)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack2_4(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (56, 24)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack3_1(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (8, 40)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack3_2(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (24, 40)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack3_3(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (40, 40)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack3_4(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (56, 40)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack4_1(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (8, 56)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack4_2(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (24, 56)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack4_3(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (40, 56)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack4_4(self, obs):
-        armys = self.get_my_armys(obs)
-        if len(armys) > 0:
-            attack_xy = (56, 56)
-            x_offset = random.randint(-4, 4)
-            y_offset = random.randint(-4, 4)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack_xy[0] + x_offset, attack_xy[1] + y_offset))
+                "now", [soldier.tag for soldier in armys], (attack.x + offset.x, attack.y + offset.y))
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -265,7 +112,7 @@ class SubAgent_Battle(Agent):
 
     def __init__(self):
         super(SubAgent_Battle, self).__init__()
-        self.state_size = 40
+        self.state_size = 8 + 2 * (SUB_ATTACK_DIVISION ** SUB_ATTACK_DIVISION)
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -292,40 +139,20 @@ class SubAgent_Battle(Agent):
         self.previous_killed_value_structures_score = 0
 
     def get_state(self, obs):
+        
+        my_unit_location = [self.get_my_units_by_pos(obs, 
+                                                     i * SUB_ATTACK_OFFSET, 
+                                                     j * SUB_ATTACK_OFFSET, 
+                                                     (i + 1) * SUB_ATTACK_OFFSET, 
+                                                     (j + 1) * SUB_ATTACK_OFFSET) 
+                                                     for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
-        my_unit_at_1_1 = self.get_my_units_by_pos(obs, 0, 0, 16, 16)
-        my_unit_at_1_2 = self.get_my_units_by_pos(obs, 16, 0, 32, 16)
-        my_unit_at_1_3 = self.get_my_units_by_pos(obs, 32, 0, 48, 16)
-        my_unit_at_1_4 = self.get_my_units_by_pos(obs, 48, 0, 64, 16)
-        my_unit_at_2_1 = self.get_my_units_by_pos(obs, 0, 16, 16, 32)
-        my_unit_at_2_2 = self.get_my_units_by_pos(obs, 16, 16, 32, 32)
-        my_unit_at_2_3 = self.get_my_units_by_pos(obs, 32, 16, 48, 32)
-        my_unit_at_2_4 = self.get_my_units_by_pos(obs, 48, 16, 64, 32)
-        my_unit_at_3_1 = self.get_my_units_by_pos(obs, 0, 32, 16, 48)
-        my_unit_at_3_2 = self.get_my_units_by_pos(obs, 16, 32, 32, 48)
-        my_unit_at_3_3 = self.get_my_units_by_pos(obs, 32, 32, 48, 48)
-        my_unit_at_3_4 = self.get_my_units_by_pos(obs, 48, 32, 64, 48)
-        my_unit_at_4_1 = self.get_my_units_by_pos(obs, 0, 48, 16, 64)
-        my_unit_at_4_2 = self.get_my_units_by_pos(obs, 16, 48, 32, 64)
-        my_unit_at_4_3 = self.get_my_units_by_pos(obs, 32, 48, 48, 64)
-        my_unit_at_4_4 = self.get_my_units_by_pos(obs, 48, 48, 64, 64)
-
-        enemy_unit_at_1_1 = self.get_enemy_units_by_pos(obs, 0, 0, 16, 16)
-        enemy_unit_at_1_2 = self.get_enemy_units_by_pos(obs, 16, 0, 32, 16)
-        enemy_unit_at_1_3 = self.get_enemy_units_by_pos(obs, 32, 0, 48, 16)
-        enemy_unit_at_1_4 = self.get_enemy_units_by_pos(obs, 48, 0, 64, 16)
-        enemy_unit_at_2_1 = self.get_enemy_units_by_pos(obs, 0, 16, 16, 32)
-        enemy_unit_at_2_2 = self.get_enemy_units_by_pos(obs, 16, 16, 32, 32)
-        enemy_unit_at_2_3 = self.get_enemy_units_by_pos(obs, 32, 16, 48, 32)
-        enemy_unit_at_2_4 = self.get_enemy_units_by_pos(obs, 48, 16, 64, 32)
-        enemy_unit_at_3_1 = self.get_enemy_units_by_pos(obs, 0, 32, 16, 48)
-        enemy_unit_at_3_2 = self.get_enemy_units_by_pos(obs, 16, 32, 32, 48)
-        enemy_unit_at_3_3 = self.get_enemy_units_by_pos(obs, 32, 32, 48, 48)
-        enemy_unit_at_3_4 = self.get_enemy_units_by_pos(obs, 48, 32, 64, 48)
-        enemy_unit_at_4_1 = self.get_enemy_units_by_pos(obs, 0, 48, 16, 64)
-        enemy_unit_at_4_2 = self.get_enemy_units_by_pos(obs, 16, 48, 32, 64)
-        enemy_unit_at_4_3 = self.get_enemy_units_by_pos(obs, 32, 48, 48, 64)
-        enemy_unit_at_4_4 = self.get_enemy_units_by_pos(obs, 48, 48, 64, 64)
+        enemy_unit_location = [self.get_my_units_by_pos(obs, 
+                                                        i * SUB_ATTACK_OFFSET, 
+                                                        j * SUB_ATTACK_OFFSET, 
+                                                        (i + 1) * SUB_ATTACK_OFFSET, 
+                                                        (j + 1) * SUB_ATTACK_OFFSET) 
+                                                        for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
         armys = self.get_my_armys(obs)
 
@@ -341,47 +168,16 @@ class SubAgent_Battle(Agent):
             obs, units.Terran.Barracks)
         enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
 
-        return (int(self.base_top_left),
+        return tuple([self.base_top_left,
                 len(armys),
                 free_supply,
                 len(enemy_command_centers),
                 len(enemy_scvs),
                 len(enemy_supply_depots),
                 len(enemy_barrackses),
-                len(enemy_marines),
-                len(my_unit_at_1_1),
-                len(my_unit_at_1_2),
-                len(my_unit_at_1_3),
-                len(my_unit_at_1_4),
-                len(my_unit_at_2_1),
-                len(my_unit_at_2_2),
-                len(my_unit_at_2_3),
-                len(my_unit_at_2_4),
-                len(my_unit_at_3_1),
-                len(my_unit_at_3_2),
-                len(my_unit_at_3_3),
-                len(my_unit_at_3_4),
-                len(my_unit_at_4_1),
-                len(my_unit_at_4_2),
-                len(my_unit_at_4_3),
-                len(my_unit_at_4_4),
-                len(enemy_unit_at_1_1),
-                len(enemy_unit_at_1_2),
-                len(enemy_unit_at_1_3),
-                len(enemy_unit_at_1_4),
-                len(enemy_unit_at_2_1),
-                len(enemy_unit_at_2_2),
-                len(enemy_unit_at_2_3),
-                len(enemy_unit_at_2_4),
-                len(enemy_unit_at_3_1),
-                len(enemy_unit_at_3_2),
-                len(enemy_unit_at_3_3),
-                len(enemy_unit_at_3_4),
-                len(enemy_unit_at_4_1),
-                len(enemy_unit_at_4_2),
-                len(enemy_unit_at_4_3),
-                len(enemy_unit_at_4_4)
-                )
+                len(enemy_marines)]) + \
+                tuple([len(my_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
+                tuple([len(enemy_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
 
     def step(self, obs):
 
