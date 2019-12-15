@@ -1,11 +1,14 @@
-name: StarNoob
+name: test
+channels:
+- pytorch
 dependencies: 
 - python=3.6
 - matplotlib
 - pytorch
+- torchvision
+- cudatoolkit=10.1
 - pip
 - pip:
     - pysc2
     - pyvirtualdisplay
     - opencv-python
-    - torchvision
