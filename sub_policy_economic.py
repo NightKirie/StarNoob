@@ -9,10 +9,63 @@ from pysc2.env import sc2_env, run_loop
 from base_agent import QLearningTable
 import base_agent
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.transforms as T
+
+from collections import namedtuple
+from types import SimpleNamespace
+from functools import partial
+
 DATA_FILE = 'Sub_building_data'
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
+BATCH_SIZE = 128
+GAMMA = 0.999
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 200
+TARGET_UPDATE = 500
+
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'next_state', 'reward'))
+
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+
+    def push(self, *args):
+        """Saves a transition."""
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = Transition(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+
+class DQN(nn.Module):
+    def __init__(self, state_size, action_size):
+        super(DQN, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_size, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, action_size),
+        )
+
+    def forward(self, x):
+        return self.net(x)
 
 class Agent(base_agent.BaseAgent):
 
@@ -341,12 +394,19 @@ class Agent(base_agent.BaseAgent):
 class SubAgent_Economic(Agent):
 
     def __init__(self):
-        #print('in __init__')
         super(SubAgent_Economic, self).__init__()
-        self.qtable = QLearningTable(self.actions)
-        if os.path.isfile(DATA_FILE + '.gz'):
-            self.qtable.q_table = pd.read_pickle(
-                DATA_FILE + '.gz', compression='gzip')
+        #print('in __init__')
+        self.state_size = 55
+        self.action_size = len(self.actions)
+        self.policy_net = DQN(self.state_size, self.action_size)
+        self.target_net = DQN(self.state_size, self.action_size)
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        self.target_net.eval()
+
+        self.optimizer = optim.RMSprop(self.policy_net.parameters())
+        self.memory = ReplayMemory(10000)
+
+        self.episode = 0
         self.new_game()
 
     def reset(self):
@@ -508,12 +568,16 @@ class SubAgent_Economic(Agent):
                 )
 
     def step(self, obs):
-
-        if obs.last():
-            self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
         super(SubAgent_Economic, self).step(obs)
-        state = str(self.get_state(obs))
-        action = self.qtable.choose_action(state)
+
+        self.episode += 1
+        state = self.get_state(obs)
+        print(state)
+        action = self.select_action(state)
+        print('=======================')
+        print(action)
+        print('=======================')
+
         # print(action)
 
         total_value_units_score = obs.observation['score_cumulative'][3]
@@ -536,11 +600,18 @@ class SubAgent_Economic(Agent):
                 step_reward += MORE_VESPENE_USED_REWARD_RATE * \
                     (total_spent_vespene - self.previous_total_spent_vespene)
 
-            self.qtable.learn(self.previous_state,
-                              self.previous_action,
-                              obs.reward + step_reward,
-                              'terminal' if obs.last() else state)
+            if not obs.last:
+                self.memory.push(self.previous_state,
+                                 self.previous_action,
+                                 state,
+                                 obs.reward + step_reward)
 
+                self.optimize_model()
+            else:
+                pass
+        if self.episode % TARGET_UPDATE == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
@@ -549,11 +620,56 @@ class SubAgent_Economic(Agent):
         self.previous_action = action
         return getattr(self, action)(obs)
 
-    def save_module(self):
-        self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
 
     def set_top_left(self, obs):
         if obs.first():
             command_center = self.get_my_units_by_type(
                 obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32)
+    
+    def optimize_model(self):
+        if len(self.memory) < BATCH_SIZE:
+            return
+        transitions = self.memory.sample(BATCH_SIZE)
+        batch = Transition(*zip(*transitions))
+
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                                batch.next_state)), dtype=torch.uint8)
+
+        non_final_next_states = torch.cat([s for s in batch.next_state
+                                           if s is not None])
+        state_batch = torch.cat(batch.state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
+
+        state_action_values = self.policy_net(
+            state_batch).gather(1, action_batch)
+
+        next_state_values = torch.zeros(BATCH_SIZE)
+        next_state_values[non_final_mask] = self.target_net(
+            non_final_next_states)
+
+        expected_state_action_values = (
+            next_state_values * GAMMA) + reward_batch
+
+        loss = F.smooth_l1_loss(state_action_values,
+                                expected_state_action_values.unsqueeze(1))
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.policy_net.parameters():
+            param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
+
+    def select_action(self, state):
+        sample = random.random()
+        eps_threshold = 0.1
+        if sample > eps_threshold:
+            with torch.no_grad():
+                _, idx = self.policy_net(torch.Tensor(state)).max(0)
+                return self.actions[idx]
+        else:
+            return self.actions[random.randrange(self.action_size)]
+    
+    def save_module(self):
+        pass

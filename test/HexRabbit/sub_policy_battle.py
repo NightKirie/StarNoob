@@ -112,7 +112,8 @@ class SubAgent_Battle(Agent):
 
     def __init__(self):
         super(SubAgent_Battle, self).__init__()
-        self.state_size = 8 + 2 * (SUB_ATTACK_DIVISION ** SUB_ATTACK_DIVISION)
+        #self.state_size = 8 + 2 * (SUB_ATTACK_DIVISION ** SUB_ATTACK_DIVISION)
+        self.state_size = len(self.get_state)
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -138,14 +139,14 @@ class SubAgent_Battle(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
 
-    def get_state(self, obs):
+    def get_state(self, obs=None):
         
         my_unit_location = [self.get_my_units_by_pos(obs, 
-                                                     i * SUB_ATTACK_OFFSET, 
-                                                     j * SUB_ATTACK_OFFSET, 
-                                                     (i + 1) * SUB_ATTACK_OFFSET, 
-                                                     (j + 1) * SUB_ATTACK_OFFSET) 
-                                                     for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
+                                                    i * SUB_ATTACK_OFFSET, 
+                                                    j * SUB_ATTACK_OFFSET, 
+                                                    (i + 1) * SUB_ATTACK_OFFSET, 
+                                                    (j + 1) * SUB_ATTACK_OFFSET) 
+                                                    for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
         enemy_unit_location = [self.get_my_units_by_pos(obs, 
                                                         i * SUB_ATTACK_OFFSET, 
@@ -157,7 +158,7 @@ class SubAgent_Battle(Agent):
         armys = self.get_my_armys(obs)
 
         free_supply = (obs.observation.player.food_cap -
-                       obs.observation.player.food_used)
+                    obs.observation.player.food_used)
 
         enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
         enemy_command_centers = self.get_enemy_units_by_type(

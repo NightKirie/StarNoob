@@ -19,6 +19,11 @@ import torchvision.transforms as T
 
 import math
 from collections import namedtuple
+from types import SimpleNamespace
+from functools import partial
+from sub_policy_training import COMBAT_UNIT_NAME
+
+
 
 DATA_FILE = 'Sub_battle_data'
 KILL_UNIT_REWARD_RATE = 0.00002
@@ -63,8 +68,6 @@ class ReplayMemory(object):
 class DQN(nn.Module):
     def __init__(self, state_size, action_size):
         super(DQN, self).__init__()
-        print(state_size)
-        print(action_size)
         self.net = nn.Sequential(
             nn.Linear(state_size, 64),
             nn.ReLU(),
@@ -92,7 +95,7 @@ class Agent(base_agent.BaseAgent):
 
     def get_my_armys(self, obs):
         return [unit for unit in obs.observation.raw_units
-                if unit.unit_type in [units.Terran.Marine, units.Terran.Reaper, units.Terran.Marauder]
+                if unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
                 and unit.alliance == features.PlayerRelative.SELF]
 
     def do_nothing(self, obs):
@@ -112,7 +115,7 @@ class SubAgent_Battle(Agent):
 
     def __init__(self):
         super(SubAgent_Battle, self).__init__()
-        self.state_size = 8 + 2 * (SUB_ATTACK_DIVISION ** 2)
+        self.state_size = 40
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -138,14 +141,14 @@ class SubAgent_Battle(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
 
-    def get_state(self, obs):
+    def get_state(self, obs=None):
         
         my_unit_location = [self.get_my_units_by_pos(obs, 
-                                                     i * SUB_ATTACK_OFFSET, 
-                                                     j * SUB_ATTACK_OFFSET, 
-                                                     (i + 1) * SUB_ATTACK_OFFSET, 
-                                                     (j + 1) * SUB_ATTACK_OFFSET) 
-                                                     for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
+                                                    i * SUB_ATTACK_OFFSET, 
+                                                    j * SUB_ATTACK_OFFSET, 
+                                                    (i + 1) * SUB_ATTACK_OFFSET, 
+                                                    (j + 1) * SUB_ATTACK_OFFSET) 
+                                                    for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
         enemy_unit_location = [self.get_my_units_by_pos(obs, 
                                                         i * SUB_ATTACK_OFFSET, 
@@ -157,7 +160,7 @@ class SubAgent_Battle(Agent):
         armys = self.get_my_armys(obs)
 
         free_supply = (obs.observation.player.food_cap -
-                       obs.observation.player.food_used)
+                    obs.observation.player.food_used)
 
         enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
         enemy_command_centers = self.get_enemy_units_by_type(
