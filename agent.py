@@ -8,17 +8,17 @@ from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
-from base_agent import QLearningTable, log
-import base_agent
+from base_agent import *
 import sub_policy_battle
 import sub_policy_economic
 import sub_policy_training
 
+os.close(2)
 
 DATA_FILE = 'AI_agent_data'
 
 
-class Agent(base_agent.BaseAgent):
+class Agent(BaseAgent):
 
     battle_policy = sub_policy_battle.SubAgent_Battle()
     economic_policy = sub_policy_economic.SubAgent_Economic()
@@ -38,7 +38,6 @@ class Agent(base_agent.BaseAgent):
         log.debug('in choose battle')
         choose_action = self.battle_policy.step(obs)
         log.debug('out choose battle')
-        log.info(choose_action)
         return choose_action
 
     def choose_economic_policy(self, obs):
@@ -50,7 +49,6 @@ class Agent(base_agent.BaseAgent):
         log.debug('in choose economic')
         choose_action = self.economic_policy.step(obs)
         log.debug('out choose economic')
-        log.info(choose_action)
         return choose_action
 
     def choose_training_policy(self, obs):
@@ -62,7 +60,6 @@ class Agent(base_agent.BaseAgent):
         log.debug('in choose training')
         choose_action = self.training_policy.step(obs)
         log.debug('out choose training')
-        log.info(choose_action)
         return choose_action
 
     def step(self, obs):
@@ -96,7 +93,11 @@ class SmartAgent(Agent):
 
     def reset(self):
         log.debug('in reset')
+        if self.episodes != 0:
+            log.warning(
+                f"Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}")
         super(SmartAgent, self).reset()
+        log.warning(f"Starting episode {self.episodes}")
         self.new_game()
         self.battle_policy.reset()
         self.economic_policy.reset()
@@ -112,6 +113,8 @@ class SmartAgent(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
         self.previous_total_spent_minerals = 0
+
+        self.score = 0
 
     def get_state(self, obs):
         """
@@ -195,6 +198,9 @@ class SmartAgent(Agent):
 
         self.previous_state = state
         self.previous_action = action
+
+        # record score for episode ending use
+        self.score = obs.observation.score_cumulative.score
         log.debug('get out step')
         return getattr(self, action)(obs)
 
@@ -214,7 +220,7 @@ def main(unused_argv):
                 use_raw_units=True,
                 raw_resolution=64,
             ),
-            step_mul=None,
+            step_mul=48,
             disable_fog=False,
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
