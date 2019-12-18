@@ -8,8 +8,7 @@ from functools import partial
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
-#from base_agent import QLearningTable
-import base_agent
+from base_agent import *
 
 import torch
 import torch.nn as nn
@@ -54,43 +53,8 @@ TARGET_UPDATE = 500
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-class ReplayMemory(object):
 
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
-
-    def push(self, *args):
-        """Saves a transition."""
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = Transition(*args)
-        self.position = (self.position + 1) % self.capacity
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-class DQN(nn.Module):
-    def __init__(self, state_size, action_size):
-        super(DQN, self).__init__()
-        print(state_size)
-        print(action_size)
-        self.net = nn.Sequential(
-            nn.Linear(state_size, 64),
-            nn.ReLU(),
-            nn.Linear(64, 64),
-            nn.ReLU(),
-            nn.Linear(64, action_size),
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-class Agent(base_agent.BaseAgent):
+class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
         tuple([f"train_{unit.lower()}" for unit in COMBAT_UNIT_NAME])
@@ -163,12 +127,12 @@ class SubAgent_Training(Agent):
 
 
     def reset(self):
-        # print('in reset')
+        log.debug('in reset')
         super(SubAgent_Training, self).reset()
         self.new_game()
 
     def new_game(self):
-        # print('in new game')
+        log.debug('in new game')
         self.base_top_left = None
         self.previous_state = None
         self.previous_action = None
@@ -276,11 +240,9 @@ class SubAgent_Training(Agent):
 
         self.episode += 1
         state = self.get_state(obs)
-        print(state)
+        log.debug(state)
         action = self.select_action(state)
-        print('=======================')
-        print(action)
-        print('=======================')
+        log.info(action)
 
 
         # if obs.last():
