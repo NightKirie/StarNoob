@@ -2,12 +2,29 @@ import random
 import numpy as np
 import pandas as pd
 import os
+import logging
 from absl import app
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.transforms as T
 
 DATA_FILE = 'AI_agent_data'
+
+""" WARNING INFO DEBUG """
+log = logging.getLogger(name = "StarNoob")
+# log.basicConfig(level=logging.WARNING)
+log.setLevel(logging.WARNING)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s: %(message)s', datefmt='%m/%d %H:%M:%S')
+ch.setFormatter(formatter)
+
+log.addHandler(ch)
 
 
 class QLearningTable:
@@ -54,9 +71,40 @@ class QLearningTable:
                                                          index=self.q_table.columns,
                                                          name=state))
 
+class ReplayMemory(object):
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+
+    def push(self, *args):
+        """Saves a transition."""
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = Transition(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+
+class DQN(nn.Module):
+    def __init__(self, state_size, action_size):
+        super(DQN, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_size, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, action_size),
+        )
+    def forward(self, x):
+        return self.net(x)
 
 class BaseAgent(base_agent.BaseAgent):
-
     def get_my_units_by_type(self, obs, unit_type):
         """ get all user's units of a type
         Args: 

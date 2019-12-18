@@ -2,11 +2,13 @@ import random
 import numpy as np
 import pandas as pd
 import os
+import logging
+
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
-from base_agent import QLearningTable
+from base_agent import QLearningTable, log
 import base_agent
 import sub_policy_battle
 import sub_policy_economic
@@ -33,10 +35,10 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose battle')
+        log.debug('in choose battle')
         choose_action = self.battle_policy.step(obs)
-        #print('out choose battle')
-       # print(choose_action)
+        log.debug('out choose battle')
+        log.info(choose_action)
         return choose_action
 
     def choose_economic_policy(self, obs):
@@ -45,10 +47,10 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose economic')
+        log.debug('in choose economic')
         choose_action = self.economic_policy.step(obs)
-        #print('out choose economic')
-       # print(choose_action)
+        log.debug('out choose economic')
+        log.info(choose_action)
         return choose_action
 
     def choose_training_policy(self, obs):
@@ -57,10 +59,10 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose training')
+        log.debug('in choose training')
         choose_action = self.training_policy.step(obs)
-        #print('out choose training')
-       # print(choose_action)
+        log.debug('out choose training')
+        log.info(choose_action)
         return choose_action
 
     def step(self, obs):
@@ -84,7 +86,7 @@ class RandomAgent(Agent):
 class SmartAgent(Agent):
 
     def __init__(self):
-        #print('in __init__')
+        log.debug('in __init__')
         super(SmartAgent, self).__init__()
         self.qtable = QLearningTable(self.actions)
         if os.path.isfile(DATA_FILE + '.gz'):
@@ -93,7 +95,7 @@ class SmartAgent(Agent):
         self.new_game()
 
     def reset(self):
-        #print('in reset')
+        log.debug('in reset')
         super(SmartAgent, self).reset()
         self.new_game()
         self.battle_policy.reset()
@@ -101,7 +103,7 @@ class SmartAgent(Agent):
         self.training_policy.reset()
 
     def new_game(self):
-        #print('in new game')
+        log.debug('in new game')
         self.base_top_left = None
         self.previous_state = None
         self.previous_action = None
@@ -173,7 +175,7 @@ class SmartAgent(Agent):
         every step starcraft II will call this function
         return: getattr(self, action)(obs)
         """
-        #print('into step')
+        log.debug('into step')
         if obs.last():
             self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
             self.battle_policy.save_module()
@@ -182,7 +184,7 @@ class SmartAgent(Agent):
         super(SmartAgent, self).step(obs)
         state = str(self.get_state(obs))
         action = self.qtable.choose_action(state)
-       # print(action)
+        log.info(action)
 
         if self.previous_action is not None:
             step_reward = 0
@@ -193,7 +195,7 @@ class SmartAgent(Agent):
 
         self.previous_state = state
         self.previous_action = action
-        #print('get out step')
+        log.debug('get out step')
         return getattr(self, action)(obs)
 
 
