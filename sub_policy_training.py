@@ -21,8 +21,12 @@ from collections import namedtuple
 
 
 DATA_FILE = 'Sub_training_data'
+
+FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
+
+
 COMBAT_UNIT_NAME = [
     "Marine",
     "Reaper",
@@ -53,6 +57,8 @@ TARGET_UPDATE = 500
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
+
+
 
 class ReplayMemory(object):
 
@@ -157,7 +163,7 @@ class SubAgent_Training(Agent):
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
         self.memory = ReplayMemory(10000)
-
+        self.negative_reward = 0
         self.episode = 0
         self.new_game()
 
@@ -289,26 +295,12 @@ class SubAgent_Training(Agent):
         # state = str(self.get_state(obs))
         # action = self.qtable.choose_action(state)
         # print(action)
-
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
-        # print(obs.observation['score_cumulative'][11])
-        total_spent_minerals = obs.observation['score_cumulative'][11]
-        total_spent_vespene = obs.observation['score_cumulative'][12]
-
         if self.previous_action is not None:
-            step_reward = 0
-            if total_spent_minerals > self.previous_total_spent_minerals:
-                step_reward += MORE_MINERALS_USED_REWARD_RATE * \
-                    (total_spent_minerals - self.previous_total_spent_minerals)
-            if total_spent_vespene > self.previous_total_spent_vespene:
-                step_reward += MORE_VESPENE_USED_REWARD_RATE * \
-                    (total_spent_vespene - self.previous_total_spent_vespene)
-
             # self.qtable.learn(self.previous_state,
             #                   self.previous_action,
             #                   obs.reward + step_reward,
             #                   'terminal' if obs.last() else state)
+            step_reward = get_reward(obs, state)
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
@@ -322,13 +314,42 @@ class SubAgent_Training(Agent):
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
+
+        self.previous_state = state
+        self.previous_action = action
+        return getattr(self, action)(obs)
+
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation['score_cumulative'][3]
+        total_value_structures_score = obs.observation['score_cumulative'][4]
+        # print(obs.observation['score_cumulative'][11])
+        total_spent_minerals = obs.observation['score_cumulative'][11]
+        total_spent_vespene = obs.observation['score_cumulative'][12]
+
+        step_reward = 0
+        positive_reward = 0
+        ## Positive reward update in this step
+        # If use mineral, get positive reward
+        if total_spent_minerals > self.previous_total_spent_minerals:
+            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+                (total_spent_minerals - self.previous_total_spent_minerals)
+        # If use vespene, get positive reward
+        if total_spent_vespene > self.previous_total_spent_vespene:
+            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+                (total_spent_vespene - self.previous_total_spent_vespene)
+        
+        step_reward += positive_reward - self.negative_reward
+
+        ## Negative reward update in next step
+        
+
+
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
-        self.previous_state = state
-        self.previous_action = action
-        return getattr(self, action)(obs)
+        return step_reward
+        
 
     def set_top_left(self, obs):
         if obs.first():
