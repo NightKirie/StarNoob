@@ -2,22 +2,24 @@ import random
 import numpy as np
 import pandas as pd
 import os
+import logging
+
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
-from base_agent import QLearningTable
-import base_agent
+from base_agent import *
 import sub_policy_battle
 import sub_policy_economic
 import sub_policy_training
 import env_config as config
 
+os.close(2)
 
 DATA_FILE = 'AI_agent_data'
 
 
-class Agent(base_agent.BaseAgent):
+class Agent(BaseAgent):
 
     battle_policy = sub_policy_battle.SubAgent_Battle()
     economic_policy = sub_policy_economic.SubAgent_Economic()
@@ -34,10 +36,9 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose battle')
+        log.debug('in choose battle')
         choose_action = self.battle_policy.step(obs)
-        #print('out choose battle')
-       # print(choose_action)
+        log.debug('out choose battle')
         return choose_action
 
     def choose_economic_policy(self, obs):
@@ -46,10 +47,9 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose economic')
+        log.debug('in choose economic')
         choose_action = self.economic_policy.step(obs)
-        #print('out choose economic')
-       # print(choose_action)
+        log.debug('out choose economic')
         return choose_action
 
     def choose_training_policy(self, obs):
@@ -58,10 +58,9 @@ class Agent(base_agent.BaseAgent):
         Args:  observation
         Returns: action(string)
         """
-        #print('in choose training')
+        log.debug('in choose training')
         choose_action = self.training_policy.step(obs)
-        #print('out choose training')
-       # print(choose_action)
+        log.debug('out choose training')
         return choose_action
 
     def step(self, obs):
@@ -85,7 +84,7 @@ class RandomAgent(Agent):
 class SmartAgent(Agent):
 
     def __init__(self):
-        #print('in __init__')
+        log.debug('in __init__')
         super(SmartAgent, self).__init__()
         self.qtable = QLearningTable(self.actions)
         if os.path.isfile(DATA_FILE + '.gz'):
@@ -94,15 +93,19 @@ class SmartAgent(Agent):
         self.new_game()
 
     def reset(self):
-        #print('in reset')
+        log.debug('in reset')
+        if self.episodes != 0:
+            log.warning(
+                f"Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}")
         super(SmartAgent, self).reset()
+        log.warning(f"Starting episode {self.episodes}")
         self.new_game()
         self.battle_policy.reset()
         self.economic_policy.reset()
         self.training_policy.reset()
 
     def new_game(self):
-        #print('in new game')
+        log.debug('in new game')
         self.base_top_left = None
         self.previous_state = None
         self.previous_action = None
@@ -111,6 +114,8 @@ class SmartAgent(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
         self.previous_total_spent_minerals = 0
+
+        self.score = 0
 
     def get_state(self, obs):
         """
@@ -174,7 +179,7 @@ class SmartAgent(Agent):
         every step starcraft II will call this function
         return: getattr(self, action)(obs)
         """
-        #print('into step')
+        log.debug('into step')
         if obs.last():
             self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
             self.battle_policy.save_module()
@@ -183,7 +188,7 @@ class SmartAgent(Agent):
         super(SmartAgent, self).step(obs)
         state = str(self.get_state(obs))
         action = self.qtable.choose_action(state)
-       # print(action)
+        log.info(action)
 
         if self.previous_action is not None:
             step_reward = 0
@@ -194,7 +199,10 @@ class SmartAgent(Agent):
 
         self.previous_state = state
         self.previous_action = action
-        #print('get out step')
+
+        # record score for episode ending use
+        self.score = obs.observation.score_cumulative.score
+        log.debug('get out step')
         return getattr(self, action)(obs)
 
 

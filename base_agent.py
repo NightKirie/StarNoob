@@ -2,12 +2,34 @@ import random
 import numpy as np
 import pandas as pd
 import os
+import sys
+import logging
 from absl import app
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
 
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.transforms as T
 
 DATA_FILE = 'AI_agent_data'
+
+""" WARNING INFO DEBUG """
+log = logging.getLogger(name="StarNoob")
+log.addFilter(logging.Filter('StarNoob'))
+
+log.setLevel(logging.WARNING)  # global
+ch = logging.StreamHandler(sys.stdout)
+
+ch.setLevel(logging.INFO)     # starnoob logging
+formatter = logging.Formatter(
+    fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)5s: %(message)s',
+    datefmt='%m/%d %H:%M:%S')
+ch.setFormatter(formatter)
+
+log.addHandler(ch)
 
 
 class QLearningTable:
@@ -55,14 +77,49 @@ class QLearningTable:
                                                          name=state))
 
 
-class BaseAgent(base_agent.BaseAgent):
+class ReplayMemory(object):
 
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+
+    def push(self, *args):
+        """Saves a transition."""
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = Transition(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+
+
+class DQN(nn.Module):
+    def __init__(self, state_size, action_size):
+        super(DQN, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(state_size, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, action_size),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
+
+class BaseAgent(base_agent.BaseAgent):
     def get_my_units_by_type(self, obs, unit_type):
         """ get all user's units of a type
-        Args: 
+        Args:
             observation
             unit_type (int)
-        
+
         Returns:
             list: a list of units
         """
@@ -76,7 +133,7 @@ class BaseAgent(base_agent.BaseAgent):
         Args:
             observation
             unit_type (int)
-        
+
         Returns:
             list: a list of units
         """
@@ -86,7 +143,7 @@ class BaseAgent(base_agent.BaseAgent):
 
     def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
         """ get user's units in a position range
-        
+
         Args:
             observation
             pos1x (float): x of left-top side
@@ -104,7 +161,7 @@ class BaseAgent(base_agent.BaseAgent):
 
     def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
         """get enemy's units in a position range
-        
+
         Args:
             observation
             pos1x (float): x of left-top side
@@ -122,7 +179,7 @@ class BaseAgent(base_agent.BaseAgent):
 
     def get_my_completed_units_by_type(self, obs, unit_type):
         """ get a list of user's complete building of a type
-        
+
         Args:
             observation
             unit_type (int)
@@ -137,11 +194,11 @@ class BaseAgent(base_agent.BaseAgent):
 
     def get_enemy_completed_units_by_type(self, obs, unit_type):
         """ get a list of enemy's complete building of a type
-        
+
         Args:
             observation
             unit_type (int)
-        
+
         Returns:
             list: a list of units
         """

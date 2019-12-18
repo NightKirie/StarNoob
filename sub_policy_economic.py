@@ -6,20 +6,20 @@ from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
-from base_agent import QLearningTable
-import base_agent
+from base_agent import *
+
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-
 from collections import namedtuple
 from types import SimpleNamespace
 from functools import partial
 
 DATA_FILE = 'Sub_building_data'
+FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
@@ -33,41 +33,8 @@ TARGET_UPDATE = 500
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-class ReplayMemory(object):
 
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
-
-    def push(self, *args):
-        """Saves a transition."""
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = Transition(*args)
-        self.position = (self.position + 1) % self.capacity
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-class DQN(nn.Module):
-    def __init__(self, state_size, action_size):
-        super(DQN, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(state_size, 64),
-            nn.ReLU(),
-            nn.Linear(64, 64),
-            nn.ReLU(),
-            nn.Linear(64, action_size),
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-class Agent(base_agent.BaseAgent):
+class Agent(BaseAgent):
 
     actions = ("do_nothing",
                "harvest_minerals",
@@ -92,6 +59,19 @@ class Agent(base_agent.BaseAgent):
                "research_infantryarmor",
                "research_hiSecautotracking",
                "research_structurearmor",
+               "research_Combat_Shield",
+               "research_StimPack",
+               "research_ConcussiveShells",
+               "research_InfernalPreignite",
+               "research_CycloneLockOnDamage",
+               "research_DrillingClaws",
+               "research_SmartServos",
+               "research_RavenCorvidReactor",
+               "research_BansheeCloakingField",
+               "research_BansheeHyperflightRotors",
+               "research_TerranVehicleWeapons",
+               "research_TerranShipWeapons",
+               "research_TerranVehicleAndShipPlating"
                )
 
     def __init__(self):
@@ -392,14 +372,122 @@ class Agent(base_agent.BaseAgent):
             return actions.RAW_FUNCTIONS.Research_TerranStructureArmorUpgrade_quick(
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
+#Tech lab (barrack)
+    def research_Combat_Shield(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_CombatShield_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_StimPack(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_Stimpack_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_ConcussiveShells(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_ConcussiveShells_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Tech lab (factory)
+    def research_InfernalPreignite(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_InfernalPreigniter_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_CycloneLockOnDamage(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_CycloneLockOnDamage_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_DrillingClaws(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_DrillingClaws_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_SmartServos(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_SmartServos_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Tech lab (starport)
+
+    def research_RavenCorvidReactor(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_RavenCorvidReactor_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_BansheeCloakingField(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_BansheeCloakingField_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_BansheeHyperflightRotors(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_BansheeHyperflightRotors_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Armory
+    def research_TerranVehicleWeapons(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranVehicleWeapons_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_TerranShipWeapons(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranShipWeapons_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_TerranVehicleAndShipPlating(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranVehicleAndShipPlating_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
 
 
 class SubAgent_Economic(Agent):
 
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
-        #print('in __init__')
-        self.state_size = 55
+        log.debug('in __init__')
+        self.state_size = 75
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -413,12 +501,12 @@ class SubAgent_Economic(Agent):
         self.new_game()
 
     def reset(self):
-        #print('in reset')
+        log.debug('in reset')
         super(SubAgent_Economic, self).reset()
         self.new_game()
 
     def new_game(self):
-        #print('in new game')
+        log.debug('in new game')
         self.base_top_left = None
         self.previous_state = None
         self.previous_action = None
@@ -426,6 +514,86 @@ class SubAgent_Economic(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
+        self.negative_reward = 0
+
+    def get_negative_reward(self, obs, action):
+
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+        free_supply = (obs.observation.player.food_cap - obs.observation.player.food_used)
+
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
+
+        refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
+        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
+
+        completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+
+        supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
+        completed_supply_depots = self.get_my_completed_units_by_type(obs, units.Terran.SupplyDepot)
+
+        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
+        completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+        barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
+        barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
+
+        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
+
+        engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
+
+        factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
+        completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
+        factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
+        factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
+
+        armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
+
+        if action == "harvest_minerals":
+            if len(idle_scvs) == 0:
+                return FAILED_COMMAND
+        elif action == "build_supply_depot":
+            if len(supply_depots) >= 9 or len(scvs) <= 0 or player_mineral < 100:
+                return FAILED_COMMAND
+        elif action == "build_barracks":
+            if len(completed_supply_depots) <= 0 or len(barrackses) >= 2 or len(scvs) <= 0 or player_mineral < 150:
+                return FAILED_COMMAND
+        elif action == "build_refinery":
+            if len(refinery) >= 2 or len(scvs) <= 0 or player_mineral < 75:
+                return FAILED_COMMAND
+        elif action == "train_SCV":
+            if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
+                return FAILED_COMMAND
+        elif action == "harvest_gas":
+            if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
+                return FAILED_COMMAND
+        elif action == "build_barrack_techlab":
+            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 25:
+                return FAILED_COMMAND
+        elif action == "build_barrack_reactor":
+            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_ghostacademys":
+            if len(ghostacademys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_engineeringbays":
+            if len(engineeringbays) >= 1 or len(scvs) <= 0 or completed_commandcenters <= 0 or player_mineral < 125:
+                return FAILED_COMMAND
+        elif action == "build_factorys":
+            if len(factorys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "build_factory_techlab":
+            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 25:
+                return FAILED_COMMAND
+        elif action == "build_factory_reactor":
+            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_armorys":
+            if len(armorys) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
+                return FAILED_COMMAND
+
+
+        return 0
 
     def get_state(self, obs):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -436,6 +604,7 @@ class SubAgent_Economic(Agent):
         refinerys = self.get_my_units_by_type(obs, units.Terran.Refinery)
         completed_refinerys = self.get_my_completed_units_by_type(
             obs, units.Terran.Refinery)
+        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
 
         supply_depots = self.get_my_units_by_type(
             obs, units.Terran.SupplyDepot)
@@ -511,6 +680,30 @@ class SubAgent_Economic(Agent):
         have_research_hiSecautotracking = 5 in obs.observation.upgrades
         have_research_structurearmor = 6 in obs.observation.upgrades
 
+        have_research_Combat_Shield = 16 in obs.observation.upgrades
+        have_research_StimPack = 15 in obs.observation.upgrades
+        have_research_ConcussiveShells = 17 in obs.observation.upgrades
+
+        have_research_InfernalPreignite = 19 in obs.observation.upgrades
+        have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
+        have_research_DrillingClaws = 122 in obs.observation.upgrades
+        have_research_SmartServos = 289 in obs.observation.upgrades
+
+        have_research_RavenCorvidReactor = 22 in obs.observation.upgrades
+        have_research_BansheeCloakingField = 20 in obs.observation.upgrades
+        have_research_BansheeHyperflightRotors = 136 in obs.observation.upgrades
+
+        have_research_TerranVehicleWeapons_level_1 = 30 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_2 = 31 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_3 = 32 in obs.observation.upgrades
+
+        have_research_TerranShipWeapons_level_1 = 36 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_2 = 37 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_3 = 38 in obs.observation.upgrades
+
+        have_research_TerranVehicleAndShipPlating_level_1 = 116 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_2 = 117 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_3 = 118 in obs.observation.upgrades
 
 
         return (self.base_top_left,
@@ -519,6 +712,7 @@ class SubAgent_Economic(Agent):
                 len(idle_scvs),
                 len(refinerys),
                 len(completed_refinerys),
+                len(notfull_completed_refinerys),
                 len(supply_depots),
                 len(completed_supply_depots),
                 len(barrackses),
@@ -567,7 +761,26 @@ class SubAgent_Economic(Agent):
                 have_research_infantryarmor_level2,
                 have_research_infantryarmor_level3,
                 have_research_hiSecautotracking,
-                have_research_structurearmor
+                have_research_structurearmor,
+                have_research_Combat_Shield,
+                have_research_StimPack,
+                have_research_ConcussiveShells,
+                have_research_InfernalPreignite,
+                have_research_CycloneLockOnDamage,
+                have_research_DrillingClaws,
+                have_research_SmartServos,
+                have_research_RavenCorvidReactor,
+                have_research_BansheeCloakingField,
+                have_research_BansheeHyperflightRotors,
+                have_research_TerranVehicleWeapons_level_1,
+                have_research_TerranVehicleWeapons_level_2,
+                have_research_TerranVehicleWeapons_level_3,
+                have_research_TerranShipWeapons_level_1,
+                have_research_TerranShipWeapons_level_2,
+                have_research_TerranShipWeapons_level_3,
+                have_research_TerranVehicleAndShipPlating_level_1,
+                have_research_TerranVehicleAndShipPlating_level_2,
+                have_research_TerranVehicleAndShipPlating_level_3
                 )
 
     def step(self, obs):
@@ -575,13 +788,10 @@ class SubAgent_Economic(Agent):
 
         self.episode += 1
         state = self.get_state(obs)
-        print(state)
+        log.debug(f"state: {state}")
         action = self.select_action(state)
-        print('=======================')
-        print(action)
-        print('=======================')
+        log.info(action)
 
-        # print(action)
 
         total_value_units_score = obs.observation['score_cumulative'][3]
         total_value_structures_score = obs.observation['score_cumulative'][4]
@@ -602,6 +812,9 @@ class SubAgent_Economic(Agent):
             if total_spent_vespene > self.previous_total_spent_vespene:
                 step_reward += MORE_VESPENE_USED_REWARD_RATE * \
                     (total_spent_vespene - self.previous_total_spent_vespene)
+
+            #step_reward += self.negative_reward
+            #negative_reward = self.get_negative_reward(obs, previous_action)
 
             if not obs.last:
                 self.memory.push(self.previous_state,
