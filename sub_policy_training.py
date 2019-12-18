@@ -57,13 +57,6 @@ TARGET_UPDATE = 500
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-<<<<<<< HEAD
-
-
-class ReplayMemory(object):
-=======
->>>>>>> 9c65317666968c1d533cfea910ce5fc00c4439c4
-
 class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
