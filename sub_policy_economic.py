@@ -537,17 +537,64 @@ class SubAgent_Economic(Agent):
         completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
         barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
         barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
-
+        completed_barrackstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.BarracksTechLab)
+        
         ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
 
         engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
+        completed_engineeringbays = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
 
         factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
         completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
         factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
         factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
+        completed_factorytechlabs = self.get_my_completed_units_by_type(obs, units.Terran.FactoryTechLab)
 
         armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
+        completed_armorys = self.get_my_completed_units_by_type(obs, units.Terran.Armory)
+
+        starports = self.get_my_units_by_type(obs, units.Terran.Starport)
+        complete_starports = self.get_my_completed_units_by_type(obs, units.Terran.Starport)
+        starportstechlabs = self.get_my_units_by_type(obs, units.Terran.StarportTechLab)
+        starportsreactors = self.get_my_units_by_type(obs, units.Terran.StarportReactor)
+        completed_starportstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.StarportTechLab )
+
+        fusioncores = self.get_my_units_by_type(obs, units.Terran.FusionCore)
+
+        have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
+        have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
+        have_research_infantryweapons_level3 = 9 in obs.observation.upgrades
+        have_research_infantryarmor_level1 = 11 in obs.observation.upgrades
+        have_research_infantryarmor_level2 = 12 in obs.observation.upgrades
+        have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
+        have_research_hiSecautotracking = 5 in obs.observation.upgrades
+        have_research_structurearmor = 6 in obs.observation.upgrades
+
+        have_research_Combat_Shield = 16 in obs.observation.upgrades
+        have_research_StimPack = 15 in obs.observation.upgrades
+        have_research_ConcussiveShells = 17 in obs.observation.upgrades
+
+        have_research_InfernalPreignite = 19 in obs.observation.upgrades
+        have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
+        have_research_DrillingClaws = 122 in obs.observation.upgrades
+        have_research_SmartServos = 289 in obs.observation.upgrades
+
+        have_research_RavenCorvidReactor = 22 in obs.observation.upgrades
+        have_research_BansheeCloakingField = 20 in obs.observation.upgrades
+        have_research_BansheeHyperflightRotors = 136 in obs.observation.upgrades
+
+        have_research_TerranVehicleWeapons_level_1 = 30 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_2 = 31 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_3 = 32 in obs.observation.upgrades
+
+        have_research_TerranShipWeapons_level_1 = 36 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_2 = 37 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_3 = 38 in obs.observation.upgrades
+
+        have_research_TerranVehicleAndShipPlating_level_1 = 116 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_2 = 117 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_3 = 118 in obs.observation.upgrades
+
 
         if action == "harvest_minerals":
             if len(idle_scvs) == 0:
@@ -591,11 +638,116 @@ class SubAgent_Economic(Agent):
         elif action == "build_armorys":
             if len(armorys) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
                 return FAILED_COMMAND
-
-
+        elif action == "build_starports":
+            if len(starports) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene <100:
+                return FAILED_COMMAND
+        elif action == "build_starports_techlab":
+            if len(complete_starports) <= 0 or len(complete_starports) <= len(starportsreactors) + len(starportstechlabs) or player_mineral < 50 or player_vespene < 25:
+                return FAILED_COMMAND
+        elif action == "build_starports_reactor":
+            if len(complete_starports) <= 0 or len(complete_starports) <= len(starportsreactors) + len(starportstechlabs) or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_fusioncores":
+            if len(fusioncores) >= 1 or len(complete_starports) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 150:
+                return FAILED_COMMAND
+        elif action == "research_infantryweapons":
+            if len(completed_engineeringbays) <= 0 or have_research_infantryweapons_level3:
+                return FAILED_COMMAND
+            if have_research_infantryweapons_level2:
+                if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
+                    return FAILED_COMMAND
+            if have_research_infantryweapons_level1:
+                if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
+                    return FAILED_COMMAND
+            if player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_infantryarmor":
+            if len(completed_engineeringbays) <= 0 or have_research_infantryarmor_level3:
+                return FAILED_COMMAND
+            if have_research_infantryarmor_level2:
+                if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
+                    return FAILED_COMMAND
+            if have_research_infantryarmor_level1:
+                if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
+                    return FAILED_COMMAND
+            if player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_hiSecautotracking":
+            if len(completed_engineeringbays) <= 0 or have_research_hiSecautotracking or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_structurearmor":
+            if len(completed_engineeringbays) <= 0 or have_research_structurearmor or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_Combat_Shield":
+            if len(completed_barrackstechlabs) <= 0 or have_research_Combat_Shield or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_StimPack":
+            if len(completed_barrackstechlabs) <= 0 or have_research_StimPack or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_ConcussiveShells":
+            if len(completed_barrackstechlabs) <= 0 or have_research_ConcussiveShells or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "research_InfernalPreignite":
+            if len(completed_factorytechlabs) <= 0 or have_research_InfernalPreignite or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_CycloneLockOnDamage":
+            if len(completed_factorytechlabs) <= 0 or have_research_CycloneLockOnDamage or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_DrillingClaws":
+            if len(completed_factorytechlabs) <= 0 or have_research_DrillingClaws or player_mineral < 75 or player_vespene < 75:
+                return FAILED_COMMAND
+        elif action == "research_SmartServos":
+            if len(completed_factorytechlabs) <= 0 or have_research_SmartServos or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_RavenCorvidReactor":
+            if len(completed_starportstechlabs) <= 0 or have_research_RavenCorvidReactor or player_mineral < 150 or player_vespene < 150:
+                return FAILED_COMMAND
+        elif action == "research_BansheeCloakingField":
+            if len(completed_starportstechlabs) <= 0 or have_research_BansheeCloakingField or player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_BansheeHyperflightRotors":
+            if len(completed_starportstechlabs) <= 0 or have_research_BansheeHyperflightRotors or player_mineral < 150 or player_vespene < 150:
+                return FAILED_COMMAND
+        elif action == "research_TerranVehicleWeapons":
+            if len(completed_armorys) <= 0 or have_research_TerranVehicleWeapons_level_3:
+                return FAILED_COMMAND
+            if have_research_TerranVehicleWeapons_level_2:
+                if player_mineral < 250 or player_vespene < 250:
+                    return FAILED_COMMAND
+            if have_research_TerranVehicleWeapons_level_1:
+                if player_mineral < 175 or player_vespene < 175:
+                    return FAILED_COMMAND
+            if player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_TerranShipWeapons":
+            if len(completed_armorys) <= 0 or have_research_TerranShipWeapons_level_3:
+                return FAILED_COMMAND
+            if have_research_TerranShipWeapons_level_2:
+                if player_mineral < 250 or player_vespene < 250:
+                    return FAILED_COMMAND
+            if have_research_TerranShipWeapons_level_1:
+                if player_mineral < 175 or player_vespene < 175:
+                    return FAILED_COMMAND
+            if player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "research_TerranVehicleAndShipPlating":
+            if len(completed_armorys) <= 0 or have_research_TerranVehicleAndShipPlating_level_3:
+                return FAILED_COMMAND
+            if have_research_TerranVehicleAndShipPlating_level_2:
+                if player_mineral < 250 or player_vespene < 250:
+                    return FAILED_COMMAND
+            if have_research_TerranVehicleAndShipPlating_level_1:
+                if player_mineral < 175 or player_vespene < 175:
+                    return FAILED_COMMAND
+            if player_mineral < 100 or player_vespene < 100:
+                return FAILED_COMMAND
         return 0
 
     def get_state(self, obs):
+
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
         command_centers = self.get_my_units_by_type(
@@ -707,6 +859,8 @@ class SubAgent_Economic(Agent):
 
 
         return (self.base_top_left,
+                player_mineral,
+                player_vespene,
                 len(command_centers),
                 len(scvs),
                 len(idle_scvs),
@@ -813,8 +967,8 @@ class SubAgent_Economic(Agent):
                 step_reward += MORE_VESPENE_USED_REWARD_RATE * \
                     (total_spent_vespene - self.previous_total_spent_vespene)
 
-            #step_reward += self.negative_reward
-            #negative_reward = self.get_negative_reward(obs, previous_action)
+            step_reward += self.negative_reward
+            negative_reward = self.get_negative_reward(obs, previous_action)
 
             if not obs.last:
                 self.memory.push(self.previous_state,

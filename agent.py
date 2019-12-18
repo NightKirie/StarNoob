@@ -13,7 +13,6 @@ import sub_policy_economic
 import sub_policy_training
 import configs as configs
 
-os.close(2)
 
 DATA_FILE = 'AI_agent_data'
 
