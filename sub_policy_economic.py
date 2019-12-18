@@ -19,6 +19,7 @@ from types import SimpleNamespace
 from functools import partial
 
 DATA_FILE = 'Sub_building_data'
+FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
@@ -486,7 +487,7 @@ class SubAgent_Economic(Agent):
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
         log.debug('in __init__')
-        self.state_size = 74
+        self.state_size = 75
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -513,6 +514,86 @@ class SubAgent_Economic(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
+        self.negative_reward = 0
+
+    def get_negative_reward(self, obs, action):
+
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+        free_supply = (obs.observation.player.food_cap - obs.observation.player.food_used)
+
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
+
+        refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
+        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
+
+        completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+
+        supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
+        completed_supply_depots = self.get_my_completed_units_by_type(obs, units.Terran.SupplyDepot)
+
+        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
+        completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
+        barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
+        barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
+
+        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
+
+        engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
+
+        factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
+        completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
+        factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
+        factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
+
+        armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
+
+        if action == "harvest_minerals":
+            if len(idle_scvs) == 0:
+                return FAILED_COMMAND
+        elif action == "build_supply_depot":
+            if len(supply_depots) >= 9 or len(scvs) <= 0 or player_mineral < 100:
+                return FAILED_COMMAND
+        elif action == "build_barracks":
+            if len(completed_supply_depots) <= 0 or len(barrackses) >= 2 or len(scvs) <= 0 or player_mineral < 150:
+                return FAILED_COMMAND
+        elif action == "build_refinery":
+            if len(refinery) >= 2 or len(scvs) <= 0 or player_mineral < 75:
+                return FAILED_COMMAND
+        elif action == "train_SCV":
+            if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
+                return FAILED_COMMAND
+        elif action == "harvest_gas":
+            if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
+                return FAILED_COMMAND
+        elif action == "build_barrack_techlab":
+            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 25:
+                return FAILED_COMMAND
+        elif action == "build_barrack_reactor":
+            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_ghostacademys":
+            if len(ghostacademys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_engineeringbays":
+            if len(engineeringbays) >= 1 or len(scvs) <= 0 or completed_commandcenters <= 0 or player_mineral < 125:
+                return FAILED_COMMAND
+        elif action == "build_factorys":
+            if len(factorys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
+                return FAILED_COMMAND
+        elif action == "build_factory_techlab":
+            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 25:
+                return FAILED_COMMAND
+        elif action == "build_factory_reactor":
+            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 50:
+                return FAILED_COMMAND
+        elif action == "build_armorys":
+            if len(armorys) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
+                return FAILED_COMMAND
+
+
+        return 0
 
     def get_state(self, obs):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -523,6 +604,7 @@ class SubAgent_Economic(Agent):
         refinerys = self.get_my_units_by_type(obs, units.Terran.Refinery)
         completed_refinerys = self.get_my_completed_units_by_type(
             obs, units.Terran.Refinery)
+        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
 
         supply_depots = self.get_my_units_by_type(
             obs, units.Terran.SupplyDepot)
@@ -630,6 +712,7 @@ class SubAgent_Economic(Agent):
                 len(idle_scvs),
                 len(refinerys),
                 len(completed_refinerys),
+                len(notfull_completed_refinerys),
                 len(supply_depots),
                 len(completed_supply_depots),
                 len(barrackses),
@@ -729,6 +812,9 @@ class SubAgent_Economic(Agent):
             if total_spent_vespene > self.previous_total_spent_vespene:
                 step_reward += MORE_VESPENE_USED_REWARD_RATE * \
                     (total_spent_vespene - self.previous_total_spent_vespene)
+
+            #step_reward += self.negative_reward
+            #negative_reward = self.get_negative_reward(obs, previous_action)
 
             if not obs.last:
                 self.memory.push(self.previous_state,
