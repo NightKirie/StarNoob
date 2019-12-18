@@ -24,7 +24,7 @@ MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
 BATCH_SIZE = 128
-GAMMA = 0.999
+GAMMA = 0.9
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
@@ -93,6 +93,9 @@ class Agent(base_agent.BaseAgent):
                "research_hiSecautotracking",
                "research_structurearmor",
                )
+
+    def __init__(self):
+        super(Agent, self).__init__()
 
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]

@@ -11,6 +11,7 @@ import base_agent
 import sub_policy_battle
 import sub_policy_economic
 import sub_policy_training
+import env_config as config
 
 
 DATA_FILE = 'AI_agent_data'
@@ -202,18 +203,32 @@ def main(unused_argv):
     #agent2 = RandomAgent()
     try:
         with sc2_env.SC2Env(
-            map_name="Simple64",
-            players=[sc2_env.Agent(sc2_env.Race.terran),
-                     sc2_env.Bot(sc2_env.Race.terran,
-                                 sc2_env.Difficulty.very_easy)],
-            # sc2_env.Agent(sc2_env.Race.terran)],
-            agent_interface_format=features.AgentInterfaceFormat(
-                action_space=actions.ActionSpace.RAW,
-                use_raw_units=True,
-                raw_resolution=64,
+            map_name=config.FLAGS.map_name,
+            battle_net_map=config.FLAGS.battle_net_map,
+            players=config.FLAGS.players,
+            agent_interface_format=sc2_env.parse_agent_interface_format(
+                feature_screen=config.FLAGS.feature_screen_size,
+                feature_minimap=config.FLAGS.feature_minimap_size,
+                rgb_screen=config.FLAGS.rgb_screen_size,
+                rgb_minimap=config.FLAGS.rgb_minimap_size,
+                use_raw_units=config.FLAGS.use_raw_units,
+                use_raw_actions=config.FLAGS.use_raw_actions,
+                raw_resolution=config.FLAGS.raw_resolution,
             ),
-            step_mul=None,
-            disable_fog=False,
+            discount=config.FLAGS.discount,
+            discount_zero_after_timeout=config.FLAGS.discount_zero_after_timeout,
+            visualize=config.FLAGS.visualize,
+            step_mul=config.FLAGS.step_mul,
+            realtime=config.FLAGS.realtime,
+            save_replay_episodes=config.FLAGS.save_replay_episodes,
+            replay_dir=config.FLAGS.replay_dir,
+            replay_prefix=config.FLAGS.replay_prefix,
+            game_steps_per_episode=config.FLAGS.game_steps_per_episode,
+            score_index=config.FLAGS.score_index,
+            score_multiplier=config.FLAGS.score_multiplier,
+            random_seed=config.FLAGS.random_seed,
+            disable_fog=config.FLAGS.disable_fog,
+            ensure_available_actions=config.FLAGS.ensure_available_actions
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
             run_loop.run_loop([agent1], env, max_episodes=1000)

@@ -45,7 +45,7 @@ FACTORY = units.Terran.Factory
 STARPORT = units.Terran.Starport
 
 BATCH_SIZE = 128
-GAMMA = 0.999
+GAMMA = 0.9
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
