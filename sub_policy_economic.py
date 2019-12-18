@@ -744,6 +744,10 @@ class SubAgent_Economic(Agent):
         return 0
 
     def get_state(self, obs):
+
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
         command_centers = self.get_my_units_by_type(
@@ -855,6 +859,8 @@ class SubAgent_Economic(Agent):
 
 
         return (self.base_top_left,
+                player_mineral,
+                player_vespene,
                 len(command_centers),
                 len(scvs),
                 len(idle_scvs),
