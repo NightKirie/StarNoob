@@ -34,7 +34,7 @@ class CommandCenter(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 400
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 71
         self.food_supply = 15
 
@@ -54,7 +54,7 @@ class SupplyDepot(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 21
         self.food_supply = 8
 
@@ -74,7 +74,7 @@ class Barracks(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 46
         self.food_supply = 0
 
@@ -95,7 +95,7 @@ class OrbitalCommand(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 25
         self.food_supply = 15
 
@@ -115,7 +115,7 @@ class PlanetaryFortress(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 150
+        self.vespene_price = 150
         self.build_time = 36
         self.food_supply = 15
 
@@ -134,7 +134,7 @@ class Refinery(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 75
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 21
         self.food_supply = 0
 
@@ -153,7 +153,7 @@ class EngineerBay(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 125
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 25
         self.food_supply = 0
 
@@ -172,7 +172,7 @@ class Bunker(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 29
 
         self.hp = 400
@@ -189,7 +189,7 @@ class MissileTurret(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 18
 
         self.hp = 250
@@ -206,7 +206,7 @@ class SensorTower(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 125
-        self.gas_price = 100
+        self.vespene_price = 100
         self.build_time = 18
 
         self.hp = 200
@@ -222,7 +222,7 @@ class Factory(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 100
+        self.vespene_price = 100
         self.build_time = 43
 
         self.hp = 1250
@@ -238,7 +238,7 @@ class GhostAcademy(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 50
+        self.vespene_price = 50
         self.build_time = 29
 
         self.hp = 1250
@@ -254,7 +254,7 @@ class Armory(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 100
+        self.vespene_price = 100
         self.build_time = 46
 
         self.hp = 750
@@ -270,7 +270,7 @@ class Starport(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 100
+        self.vespene_price = 100
         self.build_time = 36
 
         self.hp = 1300
@@ -286,7 +286,7 @@ class FusionCore(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 150
+        self.vespene_price = 150
         self.build_time = 46
 
         self.hp = 750
@@ -302,7 +302,7 @@ class TechLab(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 50
-        self.gas_price = 25
+        self.vespene_price = 25
         self.build_time = 18
 
         self.hp = 400
@@ -318,7 +318,7 @@ class Reactor(TerranBuilding):
 
     def specialization(self):
         self.mineral_price = 50
-        self.gas_price = 50
+        self.vespene_price = 50
         self.build_time = 36
 
         self.hp = 400
@@ -334,7 +334,7 @@ class Marine(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 50
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 1
         self.build_time = 18
 
@@ -360,7 +360,7 @@ class SCV(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 50
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 1
         self.build_time = 12
 
@@ -385,7 +385,7 @@ class MULE(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 0
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 0
         self.build_time = 0
 
@@ -410,7 +410,7 @@ class Marauder(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 25
+        self.vespene_price = 25
         self.food_used = 2
         self.build_time = 21
 
@@ -435,7 +435,7 @@ class Reaper(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 50
-        self.gas_price = 50
+        self.vespene_price = 50
         self.food_used = 1
         self.build_time = 32
 
@@ -460,7 +460,7 @@ class Ghost(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 125
+        self.vespene_price = 125
         self.food_used = 2
         self.build_time = 29
 
@@ -485,7 +485,7 @@ class Hellion(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 2
         self.build_time = 21
 
@@ -510,7 +510,7 @@ class Hellbat(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 2
         self.build_time = 21
 
@@ -534,7 +534,7 @@ class WidowMine(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 75
-        self.gas_price = 25
+        self.vespene_price = 25
         self.food_used = 2
         self.build_time = 21
 
@@ -559,7 +559,7 @@ class SiegeTanktm(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 125
+        self.vespene_price = 125
         self.food_used = 3
         self.build_time = 32
 
@@ -584,7 +584,7 @@ class SiegeTanksm(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 125
+        self.vespene_price = 125
         self.food_used = 3
         self.build_time = 32
 
@@ -609,7 +609,7 @@ class Cyclone(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 100
+        self.vespene_price = 100
         self.food_used = 3
         self.build_time = 32
 
@@ -634,7 +634,7 @@ class ThorExplosive(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 300
-        self.gas_price = 200
+        self.vespene_price = 200
         self.food_used = 6
         self.build_time = 43
 
@@ -660,7 +660,7 @@ class ThorHighImpact(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 300
-        self.gas_price = 200
+        self.vespene_price = 200
         self.food_used = 6
         self.build_time = 43
 
@@ -685,7 +685,7 @@ class Vikingfm(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 75
+        self.vespene_price = 75
         self.food_used = 2
         self.build_time = 30
 
@@ -710,7 +710,7 @@ class Vikingam(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 75
+        self.vespene_price = 75
         self.food_used = 2
         self.build_time = 30
 
@@ -735,7 +735,7 @@ class Medivac(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 100
+        self.vespene_price = 100
         self.food_used = 2
         self.build_time = 30
 
@@ -760,7 +760,7 @@ class Liberatorfm(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 150
+        self.vespene_price = 150
         self.food_used = 3
         self.build_time = 43
 
@@ -785,7 +785,7 @@ class Liberatordm(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 150
+        self.vespene_price = 150
         self.food_used = 3
         self.build_time = 43
 
@@ -810,7 +810,7 @@ class Banshee(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 100
+        self.vespene_price = 100
         self.food_used = 3
         self.build_time = 43
 
@@ -835,7 +835,7 @@ class Raven(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 200
+        self.vespene_price = 200
         self.food_used = 2
         self.build_time = 43
 
@@ -860,7 +860,7 @@ class Battlecruiser(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 400
-        self.gas_price = 300
+        self.vespene_price = 300
         self.food_used = 6
         self.build_time = 64
 
@@ -885,7 +885,7 @@ class PlanetaryFortress(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 150
-        self.gas_price = 150
+        self.vespene_price = 150
         self.food_used = 0
         self.build_time = 36
 
@@ -910,7 +910,7 @@ class MissileTurret(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 100
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 0
         self.build_time = 18
 
@@ -935,7 +935,7 @@ class AutoTurret(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 0
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 0
         self.build_time = 0
 
@@ -960,7 +960,7 @@ class PointDefenseDrone(TerranCreature):
 
     def specialization(self):
         self.mineral_price = 0
-        self.gas_price = 0
+        self.vespene_price = 0
         self.food_used = 0
         self.build_time = 0
 

@@ -17,7 +17,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 
 from collections import namedtuple
-
+import unit.terran_unit as terran
 
 DATA_FILE = 'Sub_training_data'
 
@@ -176,22 +176,22 @@ class SubAgent_Training(Agent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        can_afford_marine = obs.observation.player.minerals >= 100
-        can_afford_reapers = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
-        can_afford_marauders = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 25
-        can_afford_ghosts = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 125
-        can_afford_hellionsv = obs.observation.player.minerals >= 100
-        can_afford_siegetanks = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 125
-        can_afford_widowmines = obs.observation.player.minerals >= 75 and obs.observation.player.vespene >= 25
-        can_afford_hellbats = obs.observation.player.minerals >= 100
-        can_afford_thors = obs.observation.player.minerals >= 300 and obs.observation.player.vespene >= 200
-        can_afford_liberators = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 150
-        can_afford_cyclones = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
-        can_afford_vikingfighters = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 75
-        can_afford_medivacs = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 100
-        can_afford_ravens = obs.observation.player.minerals >= 100 and obs.observation.player.vespene >= 200
-        can_afford_banshees = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
-        can_afford_battlecruisers = obs.observation.player.minerals >= 400 and obs.observation.player.vespene >= 300
+        can_afford_marine = can_afford_unit(obs, free_supply, terran.Marine)
+        can_afford_reaper = can_afford_unit(obs, free_supply, terran.Reaper)
+        can_afford_marauder = can_afford_unit(obs, free_supply, terran.Marauder)
+        can_afford_ghost = can_afford_unit(obs, free_supply, terran.Ghost)
+        can_afford_hellion = can_afford_unit(obs, free_supply, terran.Hellion)
+        can_afford_siegetank = can_afford_unit(obs, free_supply, terran.SiegeTanktm)
+        can_afford_widowmine = can_afford_unit(obs, free_supply, terran.WidowMine)
+        can_afford_hellbat = can_afford_unit(obs, free_supply, terran.Hellbat)
+        can_afford_thor = can_afford_unit(obs, free_supply, terran.ThorExplosive)
+        can_afford_liberator = can_afford_unit(obs, free_supply, terran.Liberatordm)
+        can_afford_cyclone = can_afford_unit(obs, free_supply, terran.Cyclone)
+        can_afford_vikingfighter = can_afford_unit(obs, free_supply, terran.Vikingam)
+        can_afford_medivac = can_afford_unit(obs, free_supply, terran.Medivac)
+        can_afford_raven = can_afford_unit(obs, free_supply, terran.Raven)
+        can_afford_banshee = can_afford_unit(obs, free_supply, terran.Banshee)
+        can_afford_battlecruiser = can_afford_unit(obs, free_supply, terran.Battlecruiser)
 
         
 
@@ -221,22 +221,36 @@ class SubAgent_Training(Agent):
                 len(battlecruisers),
                 free_supply,
                 can_afford_marine,
-                can_afford_reapers,
-                can_afford_marauders,
-                can_afford_ghosts,
-                can_afford_hellionsv,
-                can_afford_siegetanks,
-                can_afford_widowmines,
-                can_afford_hellbats,
-                can_afford_thors,
-                can_afford_liberators,
-                can_afford_cyclones,
-                can_afford_vikingfighters,
-                can_afford_medivacs,
-                can_afford_ravens,
-                can_afford_banshees,
-                can_afford_battlecruisers,
+                can_afford_reaper,
+                can_afford_marauder,
+                can_afford_ghost,
+                can_afford_hellion,
+                can_afford_siegetank,
+                can_afford_widowmine,
+                can_afford_hellbat,
+                can_afford_thor,
+                can_afford_liberator,
+                can_afford_cyclone,
+                can_afford_vikingfighter,
+                can_afford_medivac,
+                can_afford_raven,
+                can_afford_banshee,
+                can_afford_battlecruiser,
                 )
+    
+    def can_afford_unit(self, obs, free_supply, unit):
+        can_afford = False
+        if isinstance(unit, terran.TerranCreature):
+            if free_supply > 0 and \
+               obs.observation.player.minerals >= unit.mineral_price and \
+               obs.observation.player.vaspene >= unit.vespene_price and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[build_from].value)) for build_from in unit.build_from] and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:      
+                can_afford = True
+        return can_afford
+                    
+               
+
 
     def step(self, obs):
         super(SubAgent_Training, self).step(obs)
@@ -259,7 +273,7 @@ class SubAgent_Training(Agent):
             #                   self.previous_action,
             #                   obs.reward + step_reward,
             #                   'terminal' if obs.last() else state)
-            step_reward = get_reward(obs, state)
+            step_reward = self.get_reward(obs, state)
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
@@ -278,7 +292,7 @@ class SubAgent_Training(Agent):
         self.previous_action = action
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs):
+    def get_reward(self, obs, state):
         total_value_units_score = obs.observation['score_cumulative'][3]
         total_value_structures_score = obs.observation['score_cumulative'][4]
         # print(obs.observation['score_cumulative'][11])

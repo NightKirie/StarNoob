@@ -2,6 +2,8 @@ from absl import flags
 from pysc2.lib import point_flag, features, actions
 from pysc2.env import sc2_env
 
+### Environment flags config
+
 FLAGS = flags.FLAGS
 
 #flags.DEFINE_enum("_only_use_kwargs", None, "Don't pass args, only kwargs")
@@ -75,3 +77,5 @@ flags.DEFINE_bool("use_raw_actions", True,
                   "Whether to use raw actions as the interface. Same as specifying action_space=ActionSpace.RAW")
 flags.DEFINE_integer("raw_resolution", 64, 
                      "Discretize the `raw_units` observation's x,y to this resolution. Default is the map_size")                   
+
+

@@ -20,8 +20,8 @@ DATA_FILE = 'AI_agent_data'
 log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
 
-log.setLevel(logging.WARNING)  # global
-ch = logging.StreamHandler(sys.stdout)
+log.setLevel(logging.INFO)  # global
+ch = logging.StreamHandler()
 
 ch.setLevel(logging.INFO)     # starnoob logging
 formatter = logging.Formatter(
