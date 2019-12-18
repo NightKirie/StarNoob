@@ -92,6 +92,19 @@ class Agent(base_agent.BaseAgent):
                "research_infantryarmor",
                "research_hiSecautotracking",
                "research_structurearmor",
+               "research_Combat_Shield",
+               "research_StimPack",
+               "research_ConcussiveShells",
+               "research_InfernalPreignite",
+               "research_CycloneLockOnDamage",
+               "research_DrillingClaws",
+               "research_SmartServos",
+               "research_RavenCorvidReactor",
+               "research_BansheeCloakingField",
+               "research_BansheeHyperflightRotors",
+               "research_TerranVehicleWeapons",
+               "research_TerranShipWeapons",
+               "research_TerranVehicleAndShipPlating"
                )
 
     def __init__(self):
@@ -392,6 +405,114 @@ class Agent(base_agent.BaseAgent):
             return actions.RAW_FUNCTIONS.Research_TerranStructureArmorUpgrade_quick(
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
+#Tech lab (barrack)
+    def research_Combat_Shield(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_CombatShield_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_StimPack(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_Stimpack_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_ConcussiveShells(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.BarracksTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_ConcussiveShells_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Tech lab (factory)
+    def research_InfernalPreignite(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_InfernalPreigniter_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_CycloneLockOnDamage(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_CycloneLockOnDamage_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_DrillingClaws(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_DrillingClaws_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_SmartServos(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.FactoryTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_SmartServos_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Tech lab (starport)
+
+    def research_RavenCorvidReactor(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_RavenCorvidReactor_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_BansheeCloakingField(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_BansheeCloakingField_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_BansheeHyperflightRotors(self, obs):
+        completed_Tech_lab = self.get_my_completed_units_by_type(
+            obs, units.Terran.StarportTechLab)
+        if len(completed_Tech_lab) > 0:
+            return actions.RAW_FUNCTIONS.Research_BansheeHyperflightRotors_quick(
+                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
+        return actions.RAW_FUNCTIONS.no_op()
+
+#Armory
+    def research_TerranVehicleWeapons(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranVehicleWeapons_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_TerranShipWeapons(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranShipWeapons_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def research_TerranVehicleAndShipPlating(self, obs):
+        completed_armory = self.get_my_completed_units_by_type(
+            obs, units.Terran.Armory)
+        if len(completed_armory) > 0:
+            return actions.RAW_FUNCTIONS.Research_TerranVehicleAndShipPlating_quick(
+                "now", [armory.tag for armory in completed_armory])
+        return actions.RAW_FUNCTIONS.no_op()
 
 
 class SubAgent_Economic(Agent):
@@ -399,7 +520,7 @@ class SubAgent_Economic(Agent):
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
         #print('in __init__')
-        self.state_size = 55
+        self.state_size = 74
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -511,6 +632,30 @@ class SubAgent_Economic(Agent):
         have_research_hiSecautotracking = 5 in obs.observation.upgrades
         have_research_structurearmor = 6 in obs.observation.upgrades
 
+        have_research_Combat_Shield = 16 in obs.observation.upgrades
+        have_research_StimPack = 15 in obs.observation.upgrades
+        have_research_ConcussiveShells = 17 in obs.observation.upgrades
+
+        have_research_InfernalPreignite = 19 in obs.observation.upgrades
+        have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
+        have_research_DrillingClaws = 122 in obs.observation.upgrades
+        have_research_SmartServos = 289 in obs.observation.upgrades
+
+        have_research_RavenCorvidReactor = 22 in obs.observation.upgrades
+        have_research_BansheeCloakingField = 20 in obs.observation.upgrades
+        have_research_BansheeHyperflightRotors = 136 in obs.observation.upgrades
+
+        have_research_TerranVehicleWeapons_level_1 = 30 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_2 = 31 in obs.observation.upgrades
+        have_research_TerranVehicleWeapons_level_3 = 32 in obs.observation.upgrades
+
+        have_research_TerranShipWeapons_level_1 = 36 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_2 = 37 in obs.observation.upgrades
+        have_research_TerranShipWeapons_level_3 = 38 in obs.observation.upgrades
+
+        have_research_TerranVehicleAndShipPlating_level_1 = 116 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_2 = 117 in obs.observation.upgrades
+        have_research_TerranVehicleAndShipPlating_level_3 = 118 in obs.observation.upgrades
 
 
         return (self.base_top_left,
@@ -567,7 +712,26 @@ class SubAgent_Economic(Agent):
                 have_research_infantryarmor_level2,
                 have_research_infantryarmor_level3,
                 have_research_hiSecautotracking,
-                have_research_structurearmor
+                have_research_structurearmor,
+                have_research_Combat_Shield,
+                have_research_StimPack,
+                have_research_ConcussiveShells,
+                have_research_InfernalPreignite,
+                have_research_CycloneLockOnDamage,
+                have_research_DrillingClaws,
+                have_research_SmartServos,
+                have_research_RavenCorvidReactor,
+                have_research_BansheeCloakingField,
+                have_research_BansheeHyperflightRotors,
+                have_research_TerranVehicleWeapons_level_1,
+                have_research_TerranVehicleWeapons_level_2,
+                have_research_TerranVehicleWeapons_level_3,
+                have_research_TerranShipWeapons_level_1,
+                have_research_TerranShipWeapons_level_2,
+                have_research_TerranShipWeapons_level_3,
+                have_research_TerranVehicleAndShipPlating_level_1,
+                have_research_TerranVehicleAndShipPlating_level_2,
+                have_research_TerranVehicleAndShipPlating_level_3
                 )
 
     def step(self, obs):
