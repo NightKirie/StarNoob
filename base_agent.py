@@ -14,22 +14,27 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
+from absl import logging as absl_logging
 DATA_FILE = 'AI_agent_data'
 
 """ WARNING INFO DEBUG """
 log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
+log.propagate = False
 
 log.setLevel(logging.WARNING)  # global
 ch = logging.StreamHandler(sys.stdout)
 
-ch.setLevel(logging.INFO)     # starnoob logging
+ch.setLevel(logging.WARNING)     # starnoob logging
 formatter = logging.Formatter(
     fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)5s: %(message)s',
     datefmt='%m/%d %H:%M:%S')
 ch.setFormatter(formatter)
 
 log.addHandler(ch)
+
+# close pysc2 logging
+absl_logging.set_verbosity(absl_logging.FATAL)
 
 
 class QLearningTable:

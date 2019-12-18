@@ -2,7 +2,6 @@ import random
 import numpy as np
 import pandas as pd
 import os
-import logging
 
 from absl import app
 from pysc2.lib import actions, features, units
@@ -14,7 +13,6 @@ import sub_policy_economic
 import sub_policy_training
 import env_config as config
 
-os.close(2)
 
 DATA_FILE = 'AI_agent_data'
 
