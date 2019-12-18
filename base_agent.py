@@ -22,10 +22,10 @@ log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
 log.propagate = False
 
-log.setLevel(logging.INFO)  # global
+log.setLevel(logging.WARNING)  # global
 ch = logging.StreamHandler()
 
-ch.setLevel(logging.WARNING)     # starnoob logging
+ch.setLevel(logging.INFO)     # starnoob logging
 formatter = logging.Formatter(
     fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)5s: %(message)s',
     datefmt='%m/%d %H:%M:%S')

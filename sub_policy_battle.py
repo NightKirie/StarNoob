@@ -176,6 +176,7 @@ class SubAgent_Battle(Agent):
                 step_reward += KILL_BUILDING_REWARD_RATE * \
                     (killed_value_structures_score -
                      self.previous_killed_value_structures_score)
+            log.warning("battle reward = " + str(obs.reward +step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
@@ -205,7 +206,7 @@ class SubAgent_Battle(Agent):
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = 0.1
+        eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state)).max(0)

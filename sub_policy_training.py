@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from absl import app
 from functools import partial
+from types import SimpleNamespace
 
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
@@ -176,22 +177,22 @@ class SubAgent_Training(Agent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        can_afford_marine = can_afford_unit(obs, free_supply, terran.Marine)
-        can_afford_reaper = can_afford_unit(obs, free_supply, terran.Reaper)
-        can_afford_marauder = can_afford_unit(obs, free_supply, terran.Marauder)
-        can_afford_ghost = can_afford_unit(obs, free_supply, terran.Ghost)
-        can_afford_hellion = can_afford_unit(obs, free_supply, terran.Hellion)
-        can_afford_siegetank = can_afford_unit(obs, free_supply, terran.SiegeTanktm)
-        can_afford_widowmine = can_afford_unit(obs, free_supply, terran.WidowMine)
-        can_afford_hellbat = can_afford_unit(obs, free_supply, terran.Hellbat)
-        can_afford_thor = can_afford_unit(obs, free_supply, terran.ThorExplosive)
-        can_afford_liberator = can_afford_unit(obs, free_supply, terran.Liberatordm)
-        can_afford_cyclone = can_afford_unit(obs, free_supply, terran.Cyclone)
-        can_afford_vikingfighter = can_afford_unit(obs, free_supply, terran.Vikingam)
-        can_afford_medivac = can_afford_unit(obs, free_supply, terran.Medivac)
-        can_afford_raven = can_afford_unit(obs, free_supply, terran.Raven)
-        can_afford_banshee = can_afford_unit(obs, free_supply, terran.Banshee)
-        can_afford_battlecruiser = can_afford_unit(obs, free_supply, terran.Battlecruiser)
+        can_afford_marine = self.can_afford_unit(obs, free_supply, terran.Marine)
+        can_afford_reaper = self.can_afford_unit(obs, free_supply, terran.Reaper)
+        can_afford_marauder = self.can_afford_unit(obs, free_supply, terran.Marauder)
+        can_afford_ghost = self.can_afford_unit(obs, free_supply, terran.Ghost)
+        can_afford_hellion = self.can_afford_unit(obs, free_supply, terran.Hellion)
+        can_afford_siegetank = self.can_afford_unit(obs, free_supply, terran.SiegeTanktm)
+        can_afford_widowmine = self.can_afford_unit(obs, free_supply, terran.WidowMine)
+        can_afford_hellbat = self.can_afford_unit(obs, free_supply, terran.Hellbat)
+        can_afford_thor = self.can_afford_unit(obs, free_supply, terran.ThorExplosive)
+        can_afford_liberator = self.can_afford_unit(obs, free_supply, terran.Liberatordm)
+        can_afford_cyclone = self.can_afford_unit(obs, free_supply, terran.Cyclone)
+        can_afford_vikingfighter = self.can_afford_unit(obs, free_supply, terran.Vikingam)
+        can_afford_medivac = self.can_afford_unit(obs, free_supply, terran.Medivac)
+        can_afford_raven = self.can_afford_unit(obs, free_supply, terran.Raven)
+        can_afford_banshee = self.can_afford_unit(obs, free_supply, terran.Banshee)
+        can_afford_battlecruiser = self.can_afford_unit(obs, free_supply, terran.Battlecruiser)
 
         
 
@@ -274,6 +275,7 @@ class SubAgent_Training(Agent):
             #                   obs.reward + step_reward,
             #                   'terminal' if obs.last() else state)
             step_reward = self.get_reward(obs, state)
+            log.warning("training reward = " + str(obs.reward + step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
@@ -313,8 +315,12 @@ class SubAgent_Training(Agent):
         
         step_reward += positive_reward - self.negative_reward
 
+
         ## Negative reward update in next step
-        
+        if False in [state[i] for i in range(26, 41)]:
+            self.negative_reward = FAILED_COMMAND
+        else:
+            self.negative_reward = 0
 
 
         self.previous_total_value_units_score = total_value_units_score
@@ -332,7 +338,7 @@ class SubAgent_Training(Agent):
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = 0.1
+        eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state)).max(0)

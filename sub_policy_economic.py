@@ -36,7 +36,7 @@ Transition = namedtuple('Transition',
 
 class Agent(BaseAgent):
 
-    actions = ("do_nothing",
+    actions = (#"do_nothing",
                "harvest_minerals",
                "build_supply_depot",
                "build_barracks",
@@ -487,7 +487,7 @@ class SubAgent_Economic(Agent):
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
         log.debug('in __init__')
-        self.state_size = 75
+        self.state_size = 77
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -624,7 +624,7 @@ class SubAgent_Economic(Agent):
             if len(ghostacademys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 50:
                 return FAILED_COMMAND
         elif action == "build_engineeringbays":
-            if len(engineeringbays) >= 1 or len(scvs) <= 0 or completed_commandcenters <= 0 or player_mineral < 125:
+            if len(engineeringbays) >= 1 or len(scvs) <= 0 or len(completed_commandcenters) <= 0 or player_mineral < 125:
                 return FAILED_COMMAND
         elif action == "build_factorys":
             if len(factorys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
@@ -968,8 +968,9 @@ class SubAgent_Economic(Agent):
                     (total_spent_vespene - self.previous_total_spent_vespene)
 
             step_reward += self.negative_reward
-            negative_reward = self.get_negative_reward(obs, previous_action)
+            negative_reward = self.get_negative_reward(obs, self.previous_action)
 
+            log.warning("economic reward = " + str(obs.reward +step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
@@ -1033,7 +1034,7 @@ class SubAgent_Economic(Agent):
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = 0.1
+        eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state)).max(0)
