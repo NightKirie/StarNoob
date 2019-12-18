@@ -4,6 +4,8 @@ import pandas as pd
 import os
 import sys
 import logging
+import logging.handlers
+import time
 from absl import app
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
@@ -17,21 +19,28 @@ import torchvision.transforms as T
 from absl import logging as absl_logging
 DATA_FILE = 'AI_agent_data'
 
+
 """ WARNING INFO DEBUG """
 log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
 log.propagate = False
 
-log.setLevel(logging.WARNING)  # global
-ch = logging.StreamHandler()
+log.setLevel(logging.INFO)  # global
 
-ch.setLevel(logging.INFO)     # starnoob logging
 formatter = logging.Formatter(
     fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)5s: %(message)s',
     datefmt='%m/%d %H:%M:%S')
+log_filename = f'logs/{time.strftime("%Y_%m_%d_%H%M%S", time.localtime())}.log'
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)     # starnoob logging
 ch.setFormatter(formatter)
 
+fh = logging.handlers.RotatingFileHandler(log_filename, "w", 100000)
+fh.setFormatter(formatter)
+
 log.addHandler(ch)
+log.addHandler(fh)
 
 # close pysc2 logging
 absl_logging.set_verbosity(absl_logging.FATAL)
