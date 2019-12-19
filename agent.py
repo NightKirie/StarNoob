@@ -72,6 +72,7 @@ class Agent(BaseAgent):
             self.training_policy.set_top_left(obs)
 
 
+
 class RandomAgent(Agent):
     def step(self, obs):
         super(RandomAgent, self).step(obs)
@@ -93,10 +94,10 @@ class SmartAgent(Agent):
     def reset(self):
         log.debug('in reset')
         if self.episodes != 0:
-            log.warning(
-                f"Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}")
+            log.log(LOG_EPISODE,
+                    f"Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. Reward: {self.reward}")
         super(SmartAgent, self).reset()
-        log.warning(f"Starting episode {self.episodes}")
+        log.log(LOG_EPISODE, f"Starting episode {self.episodes}")
         self.new_game()
         self.battle_policy.reset()
         self.economic_policy.reset()

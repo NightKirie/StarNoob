@@ -176,7 +176,7 @@ class SubAgent_Battle(Agent):
                 step_reward += KILL_BUILDING_REWARD_RATE * \
                     (killed_value_structures_score -
                      self.previous_killed_value_structures_score)
-            log.warning("battle reward = " + str(obs.reward +step_reward))
+            log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,

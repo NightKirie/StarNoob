@@ -19,8 +19,12 @@ import torchvision.transforms as T
 from absl import logging as absl_logging
 DATA_FILE = 'AI_agent_data'
 
+LOG_EPISODE = 31
+LOG_REWARD = 25
+""" EPISODE WARNING REWARD INFO DEBUG """
 
-""" WARNING INFO DEBUG """
+logging.addLevelName(LOG_REWARD, "REWARD")
+logging.addLevelName(LOG_EPISODE, "EPISODE")
 log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
 log.propagate = False
@@ -28,15 +32,16 @@ log.propagate = False
 log.setLevel(logging.INFO)  # global
 
 formatter = logging.Formatter(
-    fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)5s: %(message)s',
+    fmt='%(asctime)s %(module)20s:%(lineno)-3d %(levelname)7s: %(message)s',
     datefmt='%m/%d %H:%M:%S')
 log_filename = f'logs/{time.strftime("%Y_%m_%d_%H%M%S", time.localtime())}.log'
 
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.INFO)     # starnoob logging
+ch = logging.StreamHandler()
+ch.setLevel(logging.WARNING)     # starnoob logging
 ch.setFormatter(formatter)
 
 fh = logging.handlers.RotatingFileHandler(log_filename, "w", 100000)
+fh.setLevel(logging.INFO)
 fh.setFormatter(formatter)
 
 log.addHandler(ch)

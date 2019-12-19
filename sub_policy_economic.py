@@ -970,7 +970,7 @@ class SubAgent_Economic(Agent):
             step_reward += self.negative_reward
             negative_reward = self.get_negative_reward(obs, self.previous_action)
 
-            log.warning("economic reward = " + str(obs.reward + step_reward))
+            log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,

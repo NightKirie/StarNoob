@@ -275,7 +275,7 @@ class SubAgent_Training(Agent):
             #                   obs.reward + step_reward,
             #                   'terminal' if obs.last() else state)
             step_reward = self.get_reward(obs, state)
-            log.warning("training reward = " + str(obs.reward + step_reward))
+            log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
                                  self.previous_action,
