@@ -140,7 +140,14 @@ class SmartAgent(Agent):
         my_building_num = self.get_my_building(obs, 0, 0, 64, 64)
         enemy_army_num = self.get_enemy_army(obs, 0, 0, 64, 64)
         enemy_building_num = self.get_enemy_building(obs, 0, 0, 64, 64)
-
+        """
+        print('------------------')
+        print(len(my_army_num))
+        print(len(my_building_num))
+        print(len(enemy_army_num))
+        print(len(enemy_building_num))
+        """
+        
         return (self.base_top_left,
                 player_mineral,
                 player_vespene,

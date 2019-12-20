@@ -277,6 +277,7 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
     def get_my_army(self, obs, pos1x, pos1y, pos2x, pos2y):
+        print()
         """ get a list of my army units in a position range
 
         Args:
@@ -291,7 +292,7 @@ class BaseAgent(base_agent.BaseAgent):
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
-                    and unit.unit_type in COMBAT_UNIT_NAME
+                    and unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
@@ -310,7 +311,7 @@ class BaseAgent(base_agent.BaseAgent):
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
-                    and unit.unit_type in COMBAT_UNIT_NAME
+                    and unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
@@ -329,7 +330,7 @@ class BaseAgent(base_agent.BaseAgent):
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
-                    and unit.unit_type in BUILDING_UNIT_NAME
+                    and unit.unit_type in [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
@@ -348,7 +349,7 @@ class BaseAgent(base_agent.BaseAgent):
         """
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
-                    and unit.unit_type in BUILDING_UNIT_NAME
+                    and unit.unit_type in [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 

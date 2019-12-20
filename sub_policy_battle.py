@@ -80,7 +80,7 @@ class SubAgent_Battle(Agent):
 
     def __init__(self):
         super(SubAgent_Battle, self).__init__()
-        self.state_size = 40
+        self.state_size = 39
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -122,28 +122,24 @@ class SubAgent_Battle(Agent):
                                                         (j + 1) * SUB_ATTACK_OFFSET) 
                                                         for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
-        armys = self.get_my_armys(obs)
+        my_armys = self.get_my_armys(obs)
+        enemy_armys = self.get_my_army(obs, 0, 0, 64, 64)
+
+        my_buildings = self.get_my_building(obs, 0, 0, 64, 64)
+        enemy_buildings = self.get_enemy_building(obs, 0, 0, 64, 64)
 
         free_supply = (obs.observation.player.food_cap -
                     obs.observation.player.food_used)
-
-        enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
-        enemy_command_centers = self.get_enemy_units_by_type(
-            obs, units.Terran.CommandCenter)
-        enemy_supply_depots = self.get_enemy_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        enemy_barrackses = self.get_enemy_units_by_type(
-            obs, units.Terran.Barracks)
-        enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
+        
+        player_food_army = obs.observation.player.food_army
 
         return tuple([self.base_top_left,
-                len(armys),
+                len(my_armys),
+                len(enemy_armys),
+                len(my_buildings),
+                len(enemy_buildings),
                 free_supply,
-                len(enemy_command_centers),
-                len(enemy_scvs),
-                len(enemy_supply_depots),
-                len(enemy_barrackses),
-                len(enemy_marines)]) + \
+                player_food_army]) + \
                 tuple([len(my_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
                 tuple([len(enemy_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
 
