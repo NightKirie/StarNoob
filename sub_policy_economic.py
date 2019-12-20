@@ -900,11 +900,7 @@ class SubAgent_Economic(Agent):
 
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
-
-        self.previous_total_value_units_score = total_value_units_score
-        self.previous_total_value_structures_score = total_value_structures_score
-        self.previous_total_spent_minerals = total_spent_minerals
-        self.previous_total_spent_vespene = total_spent_vespene
+            
         self.previous_state = state
         self.previous_action = action
         return getattr(self, action)(obs)
