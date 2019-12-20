@@ -487,14 +487,12 @@ class SubAgent_Economic(Agent):
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
         log.debug('in __init__')
-        self.state_size = 40
+        self.state_size = int()             # get at step
         self.action_size = len(self.actions)
-        self.policy_net = DQN(self.state_size, self.action_size)
-        self.target_net = DQN(self.state_size, self.action_size)
-        self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.target_net.eval()
+        self.policy_net = nn.Module()       # DQN init at step
+        self.target_net = nn.Module()       # DQN init at step
 
-        self.optimizer = optim.RMSprop(self.policy_net.parameters())
+        self.optimizer = None               # init at step
         self.memory = ReplayMemory(10000)
 
         self.episode = 0
@@ -897,6 +895,15 @@ class SubAgent_Economic(Agent):
                 self.optimize_model()
             else:
                 pass
+        else: # first step
+            self.state_size = len(state)
+            self.policy_net = DQN(self.state_size, self.action_size)
+            self.target_net = DQN(self.state_size, self.action_size)
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
+
+            self.optimizer = optim.RMSprop(self.policy_net.parameters())
+
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
             
