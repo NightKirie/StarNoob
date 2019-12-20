@@ -7,9 +7,11 @@ import logging
 import logging.handlers
 import time
 from absl import app
+from types import SimpleNamespace
 from pysc2.agents import base_agent
-from pysc2.lib import actions, features, units
+from pysc2.lib import actions, features, units, named_array
 from collections import namedtuple
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -325,3 +327,31 @@ class BaseAgent(base_agent.BaseAgent):
             command_center = self.get_my_units_by_type(
                 obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32)
+
+
+observation = SimpleNamespace(**{'single_select': np.zeros((0,7)),
+         'multi_select': np.zeros((0,7)),
+         'build_queue': np.zeros((0, 7)),
+         'cargo': np.zeros((0, 7)),
+         'production_queue': np.zeros((0, 2)),
+         'last_actions': [],
+         'cargo_slots_available': [0],
+         'home_race_requested': [1],
+         'away_race_requested': [1],
+         'map_name': 'Simple64',
+         'feature_screen': named_array.NamedNumpyArray(np.zeros((11,64,64)),[['height_map', 'visibility_map', 'creep', 'camera', 'player_id', 'player_relative', 'selected', 'unit_type', 'alerts', 'pathable', 'buildable'], None, None]),
+         'feature_minimap': named_array.NamedNumpyArray(np.zeros((11,64,64)),[['height_map', 'visibility_map', 'creep', 'camera', 'player_id', 'player_relative', 'selected', 'unit_type', 'alerts', 'pathable', 'buildable'], None, None]),
+         'action_result': [],
+         'alerts': [],
+         'game_loop': [0],
+         'score_cumulative':named_array.NamedNumpyArray(np.zeros((13,)),['score', 'idle_production_time', 'idle_worker_time', 'total_value_units', 'total_value_structures', 'killed_value_units', 'killed_value_structures', 'collected_minerals', 'collected_vespene', 'collection_rate_minerals', 'collection_rate_vespene', 'spent_minerals', 'spent_vespene']),
+         'score_by_category':named_array.NamedNumpyArray(np.zeros((11,5)),[['food_used', 'killed_minerals', 'killed_vespene', 'lost_minerals', 'lost_vespene', 'friendly_fire_minerals', 'friendly_fire_vespene', 'used_minerals', 'used_vespene', 'total_used_minerals', 'total_used_vespene'], ['none', 'army', 'economy', 'technology', 'upgrade']]),
+         'score_by_vital': named_array.NamedNumpyArray(np.zeros((3,3)),[['total_damage_dealt', 'total_damage_taken', 'total_healed'], ['life', 'shields', 'energy']]),
+         'player': named_array.NamedNumpyArray(np.zeros((11,)), ['player_id', 'minerals', 'vespene', 'food_used', 'food_cap', 'food_army', 'food_workers', 'idle_worker_count', 'army_count', 'warp_gate_count', 'larva_count']), 
+         'control_groups': np.zeros((10,2)),
+         'raw_units': named_array.NamedNumpyArray(np.zeros((55,46)), [None, ['unit_type', 'alliance', 'health', 'shield', 'energy', 'cargo_space_taken =', 'build_progress', "health_ratio", "shield_ratio", "energy_ratio", "display_type", "owner", "x", "y", "facing", "radius", "cloak", "is_selected", "is_blip", "is_powered", "mineral_contents", "vespene_contents", "cargo_space_max", "assigned_harvesters", "ideal_harvesters", "weapon_cooldown", "order_length", "order_id_0", "order_id_1", "tag", "hallucination", "buff_id_0", "buff_id_1", "addon_unit_type", "active", "is_on_screen", "order_progress_0", "order_progress_1", "order_id_2", "order_id_3", "is_in_cargo", 'buff_duration_remain', 'buff_duration_max', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']]),
+         'raw_effects': [],
+         'upgrades': [],
+         'radar':[]})
+
+MYOBS = SimpleNamespace(**{'observation': observation})

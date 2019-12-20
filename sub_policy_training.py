@@ -99,15 +99,25 @@ class SubAgent_Training(Agent):
 
     def __init__(self):
         super(SubAgent_Training, self).__init__()
-        self.state_size = int()             # get at step
-        self.action_size = len(self.actions)
-        self.policy_net = nn.Module()       # DQN init at step
-        self.target_net = nn.Module()       # DQN init at step
-
-        self.optimizer = None               # init at step
-        self.memory = ReplayMemory(10000)
-        self.episode = 0
         self.new_game()
+        self.state_size = len(self.get_state(MYOBS))
+        self.action_size = len(self.actions)
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+
+        self.memory = ReplayMemory(10000)
+
+        # if saved models exist
+        if self.policy_net.load() and self.target_net.load():
+            with open(SAVE_MEMORY, 'rb') as f:
+                self.memory = pickle.load(f)
+        else:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
+
+        self.optimizer = optim.RMSprop(self.policy_net.parameters())
+        
+        self.episode = 0
 
 
     def reset(self):
@@ -177,22 +187,6 @@ class SubAgent_Training(Agent):
                 self.optimize_model()
             else:
                 pass
-
-        else:
-            # initializaion (only execute once)
-            self.state_size = len(state)
-            self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
-            self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
-
-            # if saved models exist
-            if self.policy_net.load() and self.target_net.load():
-                with open(SAVE_MEMORY, 'rb') as f:
-                    self.memory = pickle.load(f)
-            else:
-                self.target_net.load_state_dict(self.policy_net.state_dict())
-                self.target_net.eval()
-
-            self.optimizer = optim.RMSprop(self.policy_net.parameters())
 
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
