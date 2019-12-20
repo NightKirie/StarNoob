@@ -5,7 +5,6 @@ class Color(Enum):
     green = 2
     blue = 3
 
-a = tuple(("1", "2", "3"))
-b = {test: test for test in a}
-b = SimpleNamespace(**b)
-print(b)
+a = (tuple(["1", "2", "3"]) + 
+    tuple(["4", "5", "6"]))
+print(a)

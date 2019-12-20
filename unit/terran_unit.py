@@ -42,7 +42,7 @@ class CommandCenter(TerranBuilding):
         self.attack = 0
         self.armor = 1
         self.range = 0
-
+        self.index = 18
         self.requirements = []
 
 
@@ -62,7 +62,7 @@ class SupplyDepot(TerranBuilding):
         self.attack = 0
         self.armor = 1
         self.range = 0
-
+        self.index = 19
         self.requirements = []
 
 
@@ -83,7 +83,7 @@ class Barracks(TerranBuilding):
         self.armor = 1
         self.range = 0
         self.movement = 1
-
+        self.index = 21
         self.requirements = ["SupplyDepot"]
 
 
@@ -103,7 +103,7 @@ class OrbitalCommand(TerranBuilding):
         self.attack = 0
         self.armor = 1
         self.range = 0
-
+        self.index = 132
         self.requirements = ["CommandCenter", "Barracks"]
 
 
@@ -123,7 +123,7 @@ class PlanetaryFortress(TerranBuilding):
         self.attack = 0
         self.armor = 3
         self.range = 6
-
+        self.index = 130
         self.requirements = ["CommandCenter", "EngineeringBay"]
 
 class Refinery(TerranBuilding):
@@ -142,7 +142,7 @@ class Refinery(TerranBuilding):
         self.attack = 0
         self.armor = 1
         self.range = 0
-
+        self.index = 20
         self.requirements = []
 
 class EngineerBay(TerranBuilding):
@@ -161,7 +161,7 @@ class EngineerBay(TerranBuilding):
         self.attack = 0
         self.armor = 1
         self.range = 0
-
+        self.index = 22
         self.requirements = ["CommandCenter"]
 
 class Bunker(TerranBuilding):
@@ -194,7 +194,7 @@ class MissileTurret(TerranBuilding):
 
         self.hp = 250
         self.armor = 0
-
+        self.index = 24
         self.requirements = ["EngineeringBay"]
 
 
@@ -211,7 +211,7 @@ class SensorTower(TerranBuilding):
 
         self.hp = 200
         self.armor = 0
-
+        self.index = 25
         self.requirements = ["EngineeringBay"]
 
 class Factory(TerranBuilding):
@@ -227,7 +227,7 @@ class Factory(TerranBuilding):
 
         self.hp = 1250
         self.armor = 1
-
+        self.index = 27
         self.requirements = ["Barracks"]
 
 class GhostAcademy(TerranBuilding):
@@ -243,7 +243,7 @@ class GhostAcademy(TerranBuilding):
 
         self.hp = 1250
         self.armor = 1
-
+        self.index = 26
         self.requirements = ["Barracks"]
 
 class Armory(TerranBuilding):
@@ -259,7 +259,7 @@ class Armory(TerranBuilding):
 
         self.hp = 750
         self.armor = 1
-
+        self.index = 29
         self.requirements = ["Factory"]
 
 class Starport(TerranBuilding):
@@ -275,7 +275,7 @@ class Starport(TerranBuilding):
 
         self.hp = 1300
         self.armor = 1
-
+        self.index = 28
         self.requirements = ["Factory"]
 
 class FusionCore(TerranBuilding):
@@ -291,7 +291,7 @@ class FusionCore(TerranBuilding):
 
         self.hp = 750
         self.armor = 1
-
+        self.index = 30
         self.requirements = ["Starport"]
 
 class TechLab(TerranBuilding):
@@ -307,7 +307,7 @@ class TechLab(TerranBuilding):
 
         self.hp = 400
         self.armor = 1
-
+        self.index = 5
         self.requirements = []
 
 class Reactor(TerranBuilding):
@@ -323,7 +323,7 @@ class Reactor(TerranBuilding):
 
         self.hp = 400
         self.armor = 1
-
+        self.index = 6
         self.requirements = []
 
 class Marine(TerranCreature):
@@ -347,7 +347,7 @@ class Marine(TerranCreature):
         self.dps = 9.8
         self.bonus_attack = {}
         self.movement = 3.15
-
+        self.index = 48
         self.build_from = ["Barracks"]
         self.requirements = []
 
@@ -373,7 +373,7 @@ class SCV(TerranCreature):
         self.dps = 4.7
         self.bonus_attack = {}
         self.movement = 3.94
-
+        self.index = 45
         self.build_from = ["CommandCenter"]
         self.requirements = []
 
@@ -398,7 +398,7 @@ class MULE(TerranCreature):
         self.dps = 0
         self.bonus_attack = {}
         self.movement = 3.94
-
+        self.index = 268
         self.build_from = []
         self.requirements = []
 
@@ -423,7 +423,7 @@ class Marauder(TerranCreature):
         self.dps = 9.3
         self.bonus_attack = {'A': 5}
         self.movement = 3.15
-
+        self.index = 51
         self.build_from = ["Barracks"]
         self.requirements = ["TechLab"]
 
@@ -448,7 +448,7 @@ class Reaper(TerranCreature):
         self.dps = 10.1
         self.bonus_attack = {}
         self.movement = 5.25
-
+        self.index = 49
         self.build_from = ["Barracks"]
         self.requirements = []
 
@@ -473,7 +473,7 @@ class Ghost(TerranCreature):
         self.dps = 9.3
         self.bonus_attack = {'L': 10}
         self.movement = 3.94
-
+        self.index = 50
         self.build_from = ["Barracks"]
         self.requirements = ["Ghost Academy", "TechLab"]
 
@@ -498,7 +498,7 @@ class Hellion(TerranCreature):
         self.dps = 4.5
         self.bonus_attack = {'L': 6}
         self.movement = 5.95
-
+        self.index = 53
         self.build_from = ["Factory"]
         self.requirements = []
 
@@ -522,7 +522,7 @@ class Hellbat(TerranCreature):
         self.range = 2
         self.dps = 12.6
         self.movement = 3.15
-
+        self.index = 484
         self.build_from = ["Factory"]
         self.requirements = ["Armory"]
 
@@ -547,7 +547,7 @@ class WidowMine(TerranCreature):
         self.dps = 9.3
         self.bonus_attack = {'Shield': 35}
         self.movement = 3.94
-
+        self.index = 498
         self.build_from = ["Factory"]
         self.requirements = []
 
@@ -572,7 +572,7 @@ class SiegeTanktm(TerranCreature):
         self.dps = 20.3
         self.bonus_attack = {'A': 10}
         self.movement = 3.15
-
+        self.index = 33
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab"]
 
@@ -597,7 +597,7 @@ class SiegeTanksm(TerranCreature):
         self.dps = 18.69
         self.bonus_attack = {'A': 30}
         self.movement = 0
-
+        self.index = 32
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab"]
 
@@ -622,7 +622,7 @@ class Cyclone(TerranCreature):
         self.dps = 30
         self.bonus_attack = {'A': 2}
         self.movement = 4.13
-
+        self.index = 692
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab"]
 
@@ -647,7 +647,7 @@ class ThorExplosive(TerranCreature):
         self.dps = 33
         self.bonus_attack = {'L Air': 6}
         self.movement = 2.62
-
+        self.index = 52
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab", "Armory"]
 
@@ -673,7 +673,7 @@ class ThorHighImpact(TerranCreature):
         self.dps = 33
         self.bonus_attack = {'A Air': 15}
         self.movement = 2.62
-
+        self.index = 691
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab", "Armory"]
 
@@ -698,7 +698,7 @@ class Vikingfm(TerranCreature):
         self.dps = 14
         self.bonus_attack = {'A': 4}
         self.movement = 3.85
-
+        self.index = 35
         self.build_from = ["Starport"]
         self.requirements = []
 
@@ -723,7 +723,7 @@ class Vikingam(TerranCreature):
         self.dps = 16.8
         self.bonus_attack = {'M': 8}
         self.movement = 3.15
-
+        self.index = 34
         self.build_from = ["Starport"]
         self.requirements = []
 
@@ -748,7 +748,7 @@ class Medivac(TerranCreature):
         self.dps = 0
         self.bonus_attack = {}
         self.movement = 3.5
-
+        self.index = 54
         self.build_from = ["Starport"]
         self.requirements = []
 
@@ -773,7 +773,7 @@ class Liberatorfm(TerranCreature):
         self.dps = 10.9
         self.bonus_attack = {}
         self.movement = 4.72
-
+        self.index = 689
         self.build_from = ["Starport"]
         self.requirements = []
 
@@ -798,7 +798,7 @@ class Liberatordm(TerranCreature):
         self.dps = 65.8
         self.bonus_attack = {}
         self.movement = 0
-
+        self.index = 734
         self.build_from = ["Starport"]
         self.requirements = []
 
@@ -823,7 +823,7 @@ class Banshee(TerranCreature):
         self.dps = 27
         self.bonus_attack = {}
         self.movement = 3.85
-
+        self.index = 55
         self.build_from = ["Starport"]
         self.requirements = ["TechLab"]
 
@@ -848,7 +848,7 @@ class Raven(TerranCreature):
         self.dps = 0
         self.bonus_attack = {}
         self.movement = 3.85
-
+        self.index = 56
         self.build_from = ["Starport"]
         self.requirements = ["TechLab"]
 
@@ -873,7 +873,7 @@ class Battlecruiser(TerranCreature):
         self.dps = 50
         self.bonus_attack = {}
         self.movement = 2.62
-
+        self.index = 57
         self.build_from = ["Starport"]
         self.requirements = ["TechLab"]
 
@@ -898,7 +898,7 @@ class PlanetaryFortress(TerranCreature):
         self.dps = 28
         self.bonus_attack = {}
         self.movement = 0
-
+        self.index = 130
         self.build_from = []
         self.requirements = ["CommandCenter", "EngineeringBay"]
 
@@ -923,7 +923,7 @@ class MissileTurret(TerranCreature):
         self.dps = 42.1
         self.bonus_attack = {}
         self.movement = 0
-
+        self.index = 23
         self.build_from = []
         self.requirements = ["EngineeringBay"]
 
@@ -948,7 +948,7 @@ class AutoTurret(TerranCreature):
         self.dps = 31.58
         self.bonus_attack = {}
         self.movement = 0
-
+        self.index = 31
         self.build_from = []
         self.requirements = []
 
@@ -973,6 +973,6 @@ class PointDefenseDrone(TerranCreature):
         self.dps = 0
         self.bonus_attack = {}
         self.movement = 0
-
+        self.index = 11
         self.build_from = []
         self.requirements = []

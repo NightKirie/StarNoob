@@ -116,7 +116,7 @@ class SubAgent_Training(Agent):
 
     def __init__(self):
         super(SubAgent_Training, self).__init__()
-        self.state_size = 41
+        self.state_size = 25
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -146,55 +146,57 @@ class SubAgent_Training(Agent):
         self.previous_total_spent_vespene = 0
 
     def get_state(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        scvs = self.get_my_units_by_type(obs, terran.SCV().index)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
         command_centers = self.get_my_units_by_type(
-            obs, units.Terran.CommandCenter)
+            obs, terran.CommandCenter().index)
         supply_depots = self.get_my_units_by_type(
-            obs, units.Terran.SupplyDepot)
+            obs, terran.SupplyDepot().index)
         completed_supply_depots = self.get_my_completed_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
+            obs, terran.SupplyDepot().index)
+        barrackses = self.get_my_units_by_type(obs, terran.Barracks().index)
         completed_barrackses = self.get_my_completed_units_by_type(
-            obs, units.Terran.Barracks)
+            obs, terran.Barracks().index)
 
-        marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-        reapers = self.get_my_units_by_type(obs, units.Terran.Reaper)
-        marauders = self.get_my_units_by_type(obs, units.Terran.Marauder)
-        ghosts = self.get_my_units_by_type(obs, units.Terran.Ghost)
-        hellions = self.get_my_units_by_type(obs, units.Terran.Hellion)
-        siegetanks = self.get_my_units_by_type(obs, units.Terran.SiegeTank)
-        widowmines = self.get_my_units_by_type(obs, units.Terran.WidowMine)
-        hellbats = self.get_my_units_by_type(obs, units.Terran.Hellbat)
-        thors = self.get_my_units_by_type(obs, units.Terran.Thor)
-        liberators = self.get_my_units_by_type(obs, units.Terran.Liberator)
-        cyclones = self.get_my_units_by_type(obs, units.Terran.Cyclone)
-        vikingfighters = self.get_my_units_by_type(obs, units.Terran.VikingFighter)
-        medivacs = self.get_my_units_by_type(obs, units.Terran.Medivac)
-        ravens = self.get_my_units_by_type(obs, units.Terran.Raven)
-        banshees = self.get_my_units_by_type(obs, units.Terran.Banshee)
-        battlecruisers = self.get_my_units_by_type(obs, units.Terran.Battlecruiser)
+        marines = self.get_my_units_by_type(obs, terran.Marine().index)
+        reapers = self.get_my_units_by_type(obs, terran.Reaper().index)
+        marauders = self.get_my_units_by_type(obs, terran.Marauder().index)
+        ghosts = self.get_my_units_by_type(obs, terran.Ghost().index)
+        hellions = self.get_my_units_by_type(obs, terran.Hellion().index)
+        siegetanks = self.get_my_units_by_type(obs, terran.SiegeTanktm().index)
+        widowmines = self.get_my_units_by_type(obs, terran.WidowMine().index)
+        hellbats = self.get_my_units_by_type(obs, terran.Hellbat().index)
+        thors = self.get_my_units_by_type(obs, terran.ThorExplosive().index)
+        liberators = self.get_my_units_by_type(obs, terran.Liberatorfm().index)
+        cyclones = self.get_my_units_by_type(obs, terran.Cyclone().index)
+        vikingfighters = self.get_my_units_by_type(obs, terran.Vikingfm().index)
+        medivacs = self.get_my_units_by_type(obs, terran.Medivac().index)
+        ravens = self.get_my_units_by_type(obs, terran.Raven().index)
+        banshees = self.get_my_units_by_type(obs, terran.Banshee().index)
+        battlecruisers = self.get_my_units_by_type(obs, terran.Battlecruiser().index)
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        can_afford_marine = self.can_afford_unit(obs, free_supply, terran.Marine)
-        can_afford_reaper = self.can_afford_unit(obs, free_supply, terran.Reaper)
-        can_afford_marauder = self.can_afford_unit(obs, free_supply, terran.Marauder)
-        can_afford_ghost = self.can_afford_unit(obs, free_supply, terran.Ghost)
-        can_afford_hellion = self.can_afford_unit(obs, free_supply, terran.Hellion)
-        can_afford_siegetank = self.can_afford_unit(obs, free_supply, terran.SiegeTanktm)
-        can_afford_widowmine = self.can_afford_unit(obs, free_supply, terran.WidowMine)
-        can_afford_hellbat = self.can_afford_unit(obs, free_supply, terran.Hellbat)
-        can_afford_thor = self.can_afford_unit(obs, free_supply, terran.ThorExplosive)
-        can_afford_liberator = self.can_afford_unit(obs, free_supply, terran.Liberatordm)
-        can_afford_cyclone = self.can_afford_unit(obs, free_supply, terran.Cyclone)
-        can_afford_vikingfighter = self.can_afford_unit(obs, free_supply, terran.Vikingam)
-        can_afford_medivac = self.can_afford_unit(obs, free_supply, terran.Medivac)
-        can_afford_raven = self.can_afford_unit(obs, free_supply, terran.Raven)
-        can_afford_banshee = self.can_afford_unit(obs, free_supply, terran.Banshee)
-        can_afford_battlecruiser = self.can_afford_unit(obs, free_supply, terran.Battlecruiser)
+        # unit_number = tuple([f"{unit.lower()}" for unit in COMBAT_UNIT_NAME])
 
-        
+        # can_afford_marine = self.can_afford_unit(obs, free_supply, terran.Marine)
+        # can_afford_reaper = self.can_afford_unit(obs, free_supply, terran.Reaper)
+        # can_afford_marauder = self.can_afford_unit(obs, free_supply, terran.Marauder)
+        # can_afford_ghost = self.can_afford_unit(obs, free_supply, terran.Ghost)
+        # can_afford_hellion = self.can_afford_unit(obs, free_supply, terran.Hellion)
+        # can_afford_siegetank = self.can_afford_unit(obs, free_supply, terran.SiegeTanktm)
+        # can_afford_widowmine = self.can_afford_unit(obs, free_supply, terran.WidowMine)
+        # can_afford_hellbat = self.can_afford_unit(obs, free_supply, terran.Hellbat)
+        # can_afford_thor = self.can_afford_unit(obs, free_supply, terran.ThorExplosive)
+        # can_afford_liberator = self.can_afford_unit(obs, free_supply, terran.Liberatordm)
+        # can_afford_cyclone = self.can_afford_unit(obs, free_supply, terran.Cyclone)
+        # can_afford_vikingfighter = self.can_afford_unit(obs, free_supply, terran.Vikingam)
+        # can_afford_medivac = self.can_afford_unit(obs, free_supply, terran.Medivac)
+        # can_afford_raven = self.can_afford_unit(obs, free_supply, terran.Raven)
+        # can_afford_banshee = self.can_afford_unit(obs, free_supply, terran.Banshee)
+        # can_afford_battlecruiser = self.can_afford_unit(obs, free_supply, terran.Battlecruiser)
+
+        # can_afford = tuple([f"can_afford_{unit.lower()}" for unit in COMBAT_UNIT_NAME])
 
         return (self.base_top_left,
                 len(command_centers),
@@ -221,22 +223,22 @@ class SubAgent_Training(Agent):
                 len(banshees),
                 len(battlecruisers),
                 free_supply,
-                can_afford_marine,
-                can_afford_reaper,
-                can_afford_marauder,
-                can_afford_ghost,
-                can_afford_hellion,
-                can_afford_siegetank,
-                can_afford_widowmine,
-                can_afford_hellbat,
-                can_afford_thor,
-                can_afford_liberator,
-                can_afford_cyclone,
-                can_afford_vikingfighter,
-                can_afford_medivac,
-                can_afford_raven,
-                can_afford_banshee,
-                can_afford_battlecruiser,
+                # can_afford_marine,
+                # can_afford_reaper,
+                # can_afford_marauder,
+                # can_afford_ghost,
+                # can_afford_hellion,
+                # can_afford_siegetank,
+                # can_afford_widowmine,
+                # can_afford_hellbat,
+                # can_afford_thor,
+                # can_afford_liberator,
+                # can_afford_cyclone,
+                # can_afford_vikingfighter,
+                # can_afford_medivac,
+                # can_afford_raven,
+                # can_afford_banshee,
+                # can_afford_battlecruiser,
                 )
     
     def can_afford_unit(self, obs, free_supply, unit):
@@ -317,7 +319,7 @@ class SubAgent_Training(Agent):
 
 
         ## Negative reward update in next step
-        if False in [state[i] for i in range(26, 41)]:
+        if False in [can_afford_unit(obs, state.free_supply, getattr(terran, unit)) for unit in COMBAT_UNIT_NAME]:
             self.negative_reward = FAILED_COMMAND
         else:
             self.negative_reward = 0
