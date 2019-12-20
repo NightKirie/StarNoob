@@ -968,7 +968,7 @@ class SubAgent_Economic(Agent):
                     (total_spent_vespene - self.previous_total_spent_vespene)
 
             step_reward += self.negative_reward
-            negative_reward = self.get_negative_reward(obs, self.previous_action)
+            self.negative_reward = self.get_negative_reward(obs, self.previous_action)
 
             log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
             if not obs.last:
