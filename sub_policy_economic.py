@@ -20,9 +20,9 @@ from types import SimpleNamespace
 from functools import partial
 
 DATA_FILE = 'Sub_building_data'
-FAILED_COMMAND = 0.00001
-MORE_MINERALS_USED_REWARD_RATE = 0.00001
-MORE_VESPENE_USED_REWARD_RATE = 0.00002
+FAILED_COMMAND = 0.0001
+MORE_MINERALS_USED_REWARD_RATE = 0.0001
+MORE_VESPENE_USED_REWARD_RATE = 0.0002
 
 BATCH_SIZE = 128
 GAMMA = 0.9
@@ -969,7 +969,7 @@ class SubAgent_Economic(Agent):
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = 0.9
+        eps_threshold = 0.5
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state)).max(0)

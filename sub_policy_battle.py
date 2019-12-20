@@ -27,11 +27,15 @@ from functools import partial
 
 
 DATA_FILE = 'Sub_battle_data'
-KILL_UNIT_REWARD_RATE = 0.00002
-KILL_BUILDING_REWARD_RATE = 0.00004
-DEAD_UNIT_REWARD_RATE = 0.00001 * 0
-DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
+KILL_UNIT_REWARD_RATE = 0.0002
+KILL_BUILDING_REWARD_RATE = 0.0004
+DEAD_UNIT_REWARD_RATE = 0.0001 * 0
+DEAD_BUILDING_REWARD_RATE = 0.0002 * 0
 DEALT_TAKEN_REWARD_RATE = 0.0001
+FOUND_ENEMY_RATE = 0.0001
+LOST_UNIT_RATE = 0.0003
+LOST_STRUCTURE_RATE = 0.006
+
 SUB_ATTACK_DIVISION = 4
 SUB_ATTACK_OFFSET = 16
 
@@ -114,6 +118,8 @@ class SubAgent_Battle(Agent):
         self.previous_total_killed_value_structures_score = 0
         self.previous_total_damage_dealt = 0
         self.previous_total_damage_taken = 0
+        self.previous_my_units = 0
+        self.previous_my_structures = 0
         self.now_reward = 0
 
     def get_state(self, obs=None):
@@ -125,7 +131,7 @@ class SubAgent_Battle(Agent):
                                                     (j + 1) * SUB_ATTACK_OFFSET)
                                                     for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
-        enemy_unit_location = [self.get_my_units_by_pos(obs,
+        enemy_unit_location = [self.get_enemy_units_by_pos(obs,
                                                         i * SUB_ATTACK_OFFSET,
                                                         j * SUB_ATTACK_OFFSET,
                                                         (i + 1) * SUB_ATTACK_OFFSET,
@@ -194,10 +200,11 @@ class SubAgent_Battle(Agent):
         total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures 
         total_damage_dealt = obs.observation.score_by_vital.total_damage_dealt[0]
         total_damage_taken = obs.observation.score_by_vital.total_damage_taken[0]
-        visiable_enemy_units = self.get_enemy_army(obs)
-        visiable_enemy_structures = self.get_enemy_building(obs)
-        print(len(visiable_enemy_units))
-        print(len(visiable_enemy_structures))
+        visiable_enemy_units = len(self.get_enemy_army(obs))
+        visiable_enemy_structures = len(self.get_enemy_building(obs))
+        my_units = len(self.get_my_army(obs))
+        my_structures = len(self.get_my_building(obs))
+
         prev_reward = 0
         ## Prev reward will update in this epoch
         # If kill a more valuable unit, get positive reward
@@ -224,9 +231,21 @@ class SubAgent_Battle(Agent):
                 ((total_damage_dealt - self.previous_total_damage_dealt) - 
                     (total_damage_taken - self.previous_total_damage_taken))
 
-        step_reward = prev_reward - self.now_reward
-        
+        # If in this epoch, found enemy, get positive reward
+        if visiable_enemy_units > 0 or visiable_enemy_structures > 0:
+            prev_reward += FOUND_ENEMY_RATE * \
+                (visiable_enemy_units + visiable_enemy_structures)
 
+        # If loss unit in battle, get negative reward
+        if my_units - self.previous_my_units < 0:
+            prev_reward -= LOST_UNIT_RATE * (self.previous_my_units - my_units)
+
+        # If loss stuctures in battle, get negative reward
+        if my_structures - self.previous_my_structures < 0:    
+            prev_reward -= LOST_STRUCTURE_RATE * (self.previous_my_structures - my_structures)
+        
+        ## Update reward
+        step_reward = prev_reward - self.now_reward
 
         ## Now reward will update in next epoch
 
@@ -236,6 +255,8 @@ class SubAgent_Battle(Agent):
         self.previous_total_killed_value_structures_score = total_killed_value_structures_score
         self.previous_total_damage_dealt = total_damage_dealt
         self.previous_total_damage_taken = total_damage_taken
+        self.previous_my_units = my_units
+        self.previous_my_structures = my_structures
         return step_reward
 
     def set_top_left(self, obs):
