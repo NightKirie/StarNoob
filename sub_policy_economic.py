@@ -487,7 +487,7 @@ class SubAgent_Economic(Agent):
     def __init__(self):
         super(SubAgent_Economic, self).__init__()
         log.debug('in __init__')
-        self.state_size = 77
+        self.state_size = 40
         self.action_size = len(self.actions)
         self.policy_net = DQN(self.state_size, self.action_size)
         self.target_net = DQN(self.state_size, self.action_size)
@@ -807,56 +807,10 @@ class SubAgent_Economic(Agent):
         fusioncores = self.get_my_units_by_type(obs, units.Terran.FusionCore)
         complete_fusioncores = self.get_my_completed_units_by_type(obs, units.Terran.FusionCore)
 
+        player_food_used = obs.observation.player.food_used
+        player_food_cap = obs.observation.player.food_cap
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
-
-        can_afford_SCV = obs.observation.player.minerals >= 50
-        can_afford_supply_depot = obs.observation.player.minerals >= 100
-        can_afford_refinery = obs.observation.player.minerals >= 75
-        can_afford_barracks = obs.observation.player.minerals >= 150
-        can_afford_reactor = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 50
-        can_afford_techlab = obs.observation.player.minerals >= 50 and obs.observation.player.vespene >= 25
-        can_afford_ghostacademys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 50
-        can_afford_engineeringbays = obs.observation.player.minerals >= 125
-        can_afford_factorys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
-        can_afford_armorys = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
-        can_afford_starports = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 100
-        can_afford_fusioncores = obs.observation.player.minerals >= 150 and obs.observation.player.vespene >= 150
-
-        have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
-        have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
-        have_research_infantryweapons_level3 = 9 in obs.observation.upgrades
-        have_research_infantryarmor_level1 = 11 in obs.observation.upgrades
-        have_research_infantryarmor_level2 = 12 in obs.observation.upgrades
-        have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
-        have_research_hiSecautotracking = 5 in obs.observation.upgrades
-        have_research_structurearmor = 6 in obs.observation.upgrades
-
-        have_research_Combat_Shield = 16 in obs.observation.upgrades
-        have_research_StimPack = 15 in obs.observation.upgrades
-        have_research_ConcussiveShells = 17 in obs.observation.upgrades
-
-        have_research_InfernalPreignite = 19 in obs.observation.upgrades
-        have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
-        have_research_DrillingClaws = 122 in obs.observation.upgrades
-        have_research_SmartServos = 289 in obs.observation.upgrades
-
-        have_research_RavenCorvidReactor = 22 in obs.observation.upgrades
-        have_research_BansheeCloakingField = 20 in obs.observation.upgrades
-        have_research_BansheeHyperflightRotors = 136 in obs.observation.upgrades
-
-        have_research_TerranVehicleWeapons_level_1 = 30 in obs.observation.upgrades
-        have_research_TerranVehicleWeapons_level_2 = 31 in obs.observation.upgrades
-        have_research_TerranVehicleWeapons_level_3 = 32 in obs.observation.upgrades
-
-        have_research_TerranShipWeapons_level_1 = 36 in obs.observation.upgrades
-        have_research_TerranShipWeapons_level_2 = 37 in obs.observation.upgrades
-        have_research_TerranShipWeapons_level_3 = 38 in obs.observation.upgrades
-
-        have_research_TerranVehicleAndShipPlating_level_1 = 116 in obs.observation.upgrades
-        have_research_TerranVehicleAndShipPlating_level_2 = 117 in obs.observation.upgrades
-        have_research_TerranVehicleAndShipPlating_level_3 = 118 in obs.observation.upgrades
-
 
         return (self.base_top_left,
                 player_mineral,
@@ -896,45 +850,8 @@ class SubAgent_Economic(Agent):
                 len(fusioncores),
                 len(complete_fusioncores),
                 free_supply,
-                can_afford_SCV,
-                can_afford_supply_depot,
-                can_afford_refinery,
-                can_afford_barracks,
-                can_afford_reactor,
-                can_afford_techlab,
-                can_afford_ghostacademys,
-                can_afford_engineeringbays,
-                can_afford_factorys,
-                can_afford_armorys,
-                can_afford_starports,
-                can_afford_fusioncores,
-                have_research_infantryweapons_level1,
-                have_research_infantryweapons_level2,
-                have_research_infantryweapons_level3,
-                have_research_infantryarmor_level1,
-                have_research_infantryarmor_level2,
-                have_research_infantryarmor_level3,
-                have_research_hiSecautotracking,
-                have_research_structurearmor,
-                have_research_Combat_Shield,
-                have_research_StimPack,
-                have_research_ConcussiveShells,
-                have_research_InfernalPreignite,
-                have_research_CycloneLockOnDamage,
-                have_research_DrillingClaws,
-                have_research_SmartServos,
-                have_research_RavenCorvidReactor,
-                have_research_BansheeCloakingField,
-                have_research_BansheeHyperflightRotors,
-                have_research_TerranVehicleWeapons_level_1,
-                have_research_TerranVehicleWeapons_level_2,
-                have_research_TerranVehicleWeapons_level_3,
-                have_research_TerranShipWeapons_level_1,
-                have_research_TerranShipWeapons_level_2,
-                have_research_TerranShipWeapons_level_3,
-                have_research_TerranVehicleAndShipPlating_level_1,
-                have_research_TerranVehicleAndShipPlating_level_2,
-                have_research_TerranVehicleAndShipPlating_level_3
+                player_food_used,
+                player_food_cap
                 )
 
     def step(self, obs):
