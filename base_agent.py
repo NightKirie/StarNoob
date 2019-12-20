@@ -277,7 +277,6 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
     def get_my_army(self, obs, pos1x, pos1y, pos2x, pos2y):
-        print()
         """ get a list of my army units in a position range
 
         Args:
