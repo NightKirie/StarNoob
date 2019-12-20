@@ -20,7 +20,7 @@ import torchvision.transforms as T
 
 from collections import namedtuple
 import unit.terran_unit as terran
-
+from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME, TRAINABLE_BUILDING
 DATA_FILE = 'Sub_training_data'
 
 FAILED_COMMAND = 0.00001
@@ -30,29 +30,6 @@ MORE_VESPENE_USED_REWARD_RATE = 0.00002
 SAVE_POLICY_NET = 'model/training_dqn_policy'
 SAVE_TARGET_NET = 'model/training_dqn_target'
 SAVE_MEMORY = 'model/training_memory'
-
-COMBAT_UNIT_NAME = [
-    "Marine",
-    "Reaper",
-    "Marauder",
-    "Ghost",
-    "Hellion",
-    "SiegeTank",
-    "WidowMine",
-    "Hellbat",
-    "Thor",
-    "Liberator",
-    "Cyclone",
-    "VikingFighter",
-    "Medivac",
-    "Raven",
-    "Banshee",
-    "Battlecruiser"]
-
-TRAINABLE_BUILDING = ["Barracks", "Factory", "Starport"]
-BARRACKS = units.Terran.Barracks
-FACTORY = units.Terran.Factory
-STARPORT = units.Terran.Starport
 
 BATCH_SIZE = 128
 GAMMA = 0.9
@@ -105,11 +82,11 @@ class Agent(BaseAgent):
     def train_unit(self, obs, unit=None):
         building_tag = False
         if unit in ["Marine", "Reaper", "Marauder", "Ghost"]:
-            building_tag = self.get_building(obs, BARRACKS)
+            building_tag = self.get_building(obs, units.Terran.Barracks)
         elif unit in ["Hellion", "SiegeTank", "WidowMine", "Hellbat", "Thor", "Liberator"]:
-            building_tag = self.get_building(obs, FACTORY)
+            building_tag = self.get_building(obs, units.Terran.Factory)
         elif unit in ["Cyclone", "VikingFighter", "Medivac", "Raven", "Banshee", "Battlecruiser"]:
-            building_tag = self.get_building(obs, STARPORT)
+            building_tag = self.get_building(obs, units.Terran.Starport)
 
         if building_tag:
             return actions.RAW_FUNCTIONS.__getattr__(

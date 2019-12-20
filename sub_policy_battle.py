@@ -31,7 +31,7 @@ KILL_UNIT_REWARD_RATE = 0.00002
 KILL_BUILDING_REWARD_RATE = 0.00004
 DEAD_UNIT_REWARD_RATE = 0.00001 * 0
 DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
-DEALT_TAKEN_RATE = 0.00001
+DEALT_TAKEN_REWARD_RATE = 0.0001
 SUB_ATTACK_DIVISION = 4
 SUB_ATTACK_OFFSET = 16
 
@@ -199,6 +199,10 @@ class SubAgent_Battle(Agent):
         total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures 
         total_damage_dealt = obs.observation.score_by_vital.total_damage_dealt[0]
         total_damage_taken = obs.observation.score_by_vital.total_damage_taken[0]
+        visiable_enemy_units = self.get_enemy_army(obs)
+        visiable_enemy_structures = self.get_enemy_building(obs)
+        print(len(visiable_enemy_units))
+        print(len(visiable_enemy_structures))
         prev_reward = 0
         ## Prev reward will update in this epoch
         # If kill a more valuable unit, get positive reward
@@ -215,17 +219,19 @@ class SubAgent_Battle(Agent):
 
         # If in this epoch, dealt damage is more than taken damage, get positive reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
-            prev_reward += DEALT_TAKEN_RATE * \
+            prev_reward += DEALT_TAKEN_REWARD_RATE * \
                 ((total_damage_dealt - self.previous_total_damage_dealt) - 
                     (total_damage_taken - self.previous_total_damage_taken))
         
         # If in this epoch, dealt damage is less than taken damage, get negative reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
-            prev_reward -= DEALT_TAKEN_RATE * \
+            prev_reward -= DEALT_TAKEN_REWARD_RATE * \
                 ((total_damage_dealt - self.previous_total_damage_dealt) - 
                     (total_damage_taken - self.previous_total_damage_taken))
 
         step_reward = prev_reward - self.now_reward
+        
+
 
         ## Now reward will update in next epoch
 

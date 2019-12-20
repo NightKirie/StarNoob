@@ -9,13 +9,13 @@ import time
 from absl import app
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units
-
+from collections import namedtuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-
+from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME
 from absl import logging as absl_logging
 DATA_FILE = 'AI_agent_data'
 
@@ -50,56 +50,8 @@ log.addHandler(fh)
 # close pysc2 logging
 absl_logging.set_verbosity(absl_logging.FATAL)
 
-COMBAT_UNIT_NAME = [
-    "Marine",
-    "Reaper",
-    "Marauder",
-    "Ghost",
-    "Hellion",
-    "SiegeTank",
-    "WidowMine",
-    "Hellbat",
-    "Thor",
-    "Liberator",
-    "Cyclone",
-    "VikingFighter",
-    "Medivac",
-    "Raven",
-    "Banshee",
-    "Battlecruiser"]
-
-BUILDING_UNIT_NAME = [
-    "Armory",
-    "Barracks",
-    "BarracksFlying",
-    "BarracksReactor",
-    "BarracksTechLab",
-    "Bunker",
-    "CommandCenter",
-    "CommandCenterFlying",
-    "EngineeringBay",
-    "Factory",
-    "FactoryFlying",
-    "FactoryReactor",
-    "FactoryTechLab",
-    "FusionCore",
-    "GhostAcademy",
-    "MissileTurret",
-    "OrbitalCommand",
-    "OrbitalCommandFlying",
-    "PlanetaryFortress",
-    "Reactor",
-    "Refinery",
-    "RefineryRich",
-    "SensorTower",
-    "Starport",
-    "StarportFlying",
-    "StarportReactor",
-    "StarportTechLab",
-    "SupplyDepot",
-    "SupplyDepotLowered",
-    "TechLab",
-]
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'next_state', 'reward'))
 
 class QLearningTable:
     def __init__(self, actions, learning_rate=0.01, reward_decay=0.9):

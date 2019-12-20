@@ -79,3 +79,59 @@ flags.DEFINE_integer("raw_resolution", 64,
                      "Discretize the `raw_units` observation's x,y to this resolution. Default is the map_size")                   
 
 
+COMBAT_UNIT_NAME = [
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
+
+BUILDING_UNIT_NAME = [
+    "Armory",
+    "Barracks",
+    "BarracksFlying",
+    "BarracksReactor",
+    "BarracksTechLab",
+    "Bunker",
+    "CommandCenter",
+    "CommandCenterFlying",
+    "EngineeringBay",
+    "Factory",
+    "FactoryFlying",
+    "FactoryReactor",
+    "FactoryTechLab",
+    "FusionCore",
+    "GhostAcademy",
+    "MissileTurret",
+    "OrbitalCommand",
+    "OrbitalCommandFlying",
+    "PlanetaryFortress",
+    "Reactor",
+    "Refinery",
+    "RefineryRich",
+    "SensorTower",
+    "Starport",
+    "StarportFlying",
+    "StarportReactor",
+    "StarportTechLab",
+    "SupplyDepot",
+    "SupplyDepotLowered",
+    "TechLab",
+]
+
+TRAINABLE_BUILDING = [
+    "Barracks", 
+    "Factory", 
+    "Starport"
+]
