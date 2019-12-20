@@ -4,12 +4,8 @@ import pandas as pd
 import os
 from types import SimpleNamespace
 from functools import partial
-<<<<<<< HEAD
-import pprint
-=======
 import pickle
 
->>>>>>> 4c951553e7cb60d0d7d4330731141047f3ab2186
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop

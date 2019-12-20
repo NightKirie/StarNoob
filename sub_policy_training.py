@@ -157,12 +157,8 @@ class SubAgent_Training(Agent):
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
-<<<<<<< HEAD
-        return tuple([self.base_top_left, 
-=======
 
         return tuple([self.base_top_left,
->>>>>>> 4c951553e7cb60d0d7d4330731141047f3ab2186
                     len(completed_supply_depots),
                     free_supply] +
                     complete_trainable_building +
@@ -177,13 +173,8 @@ class SubAgent_Training(Agent):
             if free_supply > 0 and \
                obs.observation.player.minerals >= unit.mineral_price and \
                obs.observation.player.vespene >= unit.vespene_price and \
-<<<<<<< HEAD
                0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
                0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirements)().index)) for requirements in unit.requirements]:      
-=======
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[build_from].value)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:
->>>>>>> 4c951553e7cb60d0d7d4330731141047f3ab2186
                 can_afford = True
         return can_afford
 
@@ -251,14 +242,8 @@ class SubAgent_Training(Agent):
         if total_spent_vespene > self.previous_total_spent_vespene:
             prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
-<<<<<<< HEAD
         
         step_reward = prev_reward - self.now_reward
-=======
-
-        step_reward += positive_reward - self.negative_reward
-
->>>>>>> 4c951553e7cb60d0d7d4330731141047f3ab2186
 
         ## Now reward will update in next epoch
         # If trying to train a unit, but there's no building to train it, get negative reward
