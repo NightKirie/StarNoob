@@ -14,7 +14,7 @@ import sub_policy_training
 import configs as configs
 
 
-DATA_FILE = 'AI_agent_data'
+DATA_FILE = 'model/AI_agent_data.gz'
 
 
 class Agent(BaseAgent):
@@ -86,9 +86,12 @@ class SmartAgent(Agent):
         log.debug('in __init__')
         super(SmartAgent, self).__init__()
         self.qtable = QLearningTable(self.actions)
-        if os.path.isfile(DATA_FILE + '.gz'):
+
+        if os.path.isfile(DATA_FILE):
+            log.debug('Load saved qtable')
             self.qtable.q_table = pd.read_pickle(
-                DATA_FILE + '.gz', compression='gzip')
+                DATA_FILE, compression='gzip')
+
         self.new_game()
 
     def reset(self):
@@ -171,7 +174,7 @@ class SmartAgent(Agent):
         """
         log.debug('into step')
         if obs.last():
-            self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
+            self.qtable.q_table.to_pickle(DATA_FILE, 'gzip')
             self.battle_policy.save_module()
             self.economic_policy.save_module()
             self.training_policy.save_module()
