@@ -5,6 +5,7 @@ import os
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
+import pickle
 
 from base_agent import *
 
@@ -32,6 +33,10 @@ TARGET_UPDATE = 500
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
+
+SAVE_POLICY_NET = 'model/economic_dqn_policy'
+SAVE_TARGET_NET = 'model/economic_dqn_target'
+SAVE_MEMORY = 'model/economic_memory'
 
 
 class Agent(BaseAgent):
@@ -162,15 +167,15 @@ class Agent(BaseAgent):
             if (len(supply_depots) == 3 and len(scvs) > 0):
                 supply_depot_xy = (17, 26) if self.base_top_left else (40, 42)
             if (len(supply_depots) == 4 and len(scvs) > 0):
-                supply_depot_xy = (12, 18) if self.base_top_left else (46, 42)   
+                supply_depot_xy = (12, 18) if self.base_top_left else (46, 42)
             if (len(supply_depots) == 5 and len(scvs) > 0):
-                supply_depot_xy = (12, 20) if self.base_top_left else (46, 44)   
+                supply_depot_xy = (12, 20) if self.base_top_left else (46, 44)
             if (len(supply_depots) == 6 and len(scvs) > 0):
-                supply_depot_xy = (12, 22) if self.base_top_left else (46, 46)   
+                supply_depot_xy = (12, 22) if self.base_top_left else (46, 46)
             if (len(supply_depots) == 7 and len(scvs) > 0):
-                supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)   
+                supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)
             if (len(supply_depots) == 8 and len(scvs) > 0):
-                supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)   
+                supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)
             distances = self.get_distances(obs, scvs, supply_depot_xy)
             scv = scvs[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
@@ -489,13 +494,20 @@ class SubAgent_Economic(Agent):
         self.new_game()
         self.state_size = len(self.get_state(MYOBS))
         self.action_size = len(self.actions)
-        self.policy_net = DQN(self.state_size, self.action_size)
-        self.target_net = DQN(self.state_size, self.action_size)
-        self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.target_net.eval()
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+
+        self.memory = ReplayMemory(10000)
+        
+        # if saved models exist
+        if self.policy_net.load() and self.target_net.load():
+            with open(SAVE_MEMORY, 'rb') as f:
+                self.memory = pickle.load(f)
+        else:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
-        self.memory = ReplayMemory(10000)
 
         self.episode = 0
 
@@ -537,7 +549,7 @@ class SubAgent_Economic(Agent):
         barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
         barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
         completed_barrackstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.BarracksTechLab)
-        
+
         ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
 
         engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
@@ -838,7 +850,7 @@ class SubAgent_Economic(Agent):
                 len(completed_factorytechlabs),
                 len(factoryreactors),
                 len(completed_factoryreactors),
-                len(armorys), 
+                len(armorys),
                 len(completed_armorys),
                 len(starports),
                 len(complete_starports),
@@ -863,28 +875,10 @@ class SubAgent_Economic(Agent):
         log.info(action)
 
 
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
-        total_spent_minerals = obs.observation['score_cumulative'][11]
-        total_spent_vespene = obs.observation['score_cumulative'][12]
+        
 
         if self.previous_action is not None:
-            step_reward = 0
-            # if total_value_units_score < self.previous_total_value_units_score:
-            #  step_reward -= DEAD_UNIT_REWARD_RATE * (self.previous_total_value_units_score - total_value_units_score)
-
-            # if total_value_structures_score < self.previous_total_value_structures_score:
-            #  step_reward -= DEAD_BUILDING_REWARD_RATE * (self.previous_total_value_structures_score - total_value_structures_score)
-
-            if total_spent_minerals > self.previous_total_spent_minerals:
-                step_reward += MORE_MINERALS_USED_REWARD_RATE * \
-                    (total_spent_minerals - self.previous_total_spent_minerals)
-            if total_spent_vespene > self.previous_total_spent_vespene:
-                step_reward += MORE_VESPENE_USED_REWARD_RATE * \
-                    (total_spent_vespene - self.previous_total_spent_vespene)
-
-            step_reward += self.negative_reward
-            self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+            step_reward = self.get_reward(obs)
 
             log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
             if not obs.last:
@@ -902,21 +896,43 @@ class SubAgent_Economic(Agent):
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
             
-        self.previous_total_value_units_score = total_value_units_score
-        self.previous_total_value_structures_score = total_value_structures_score
-        self.previous_total_spent_minerals = total_spent_minerals
-        self.previous_total_spent_vespene = total_spent_vespene
         self.previous_state = state
         self.previous_action = action
         return getattr(self, action)(obs)
 
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation.score_cumulative.total_value_units
+        total_value_structures_score = obs.observation.score_cumulative.total_value_structures
+        total_spent_minerals = obs.observation.score_cumulative.spent_minerals
+        total_spent_vespene = obs.observation.score_cumulative.spent_vespene
+        
+        positive_reward = 0
+        ## Positive reward update in this step
+
+        ## Negative reward update in next step
+
+        if total_spent_minerals > self.previous_total_spent_minerals:
+            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+                (total_spent_minerals - self.previous_total_spent_minerals)
+        if total_spent_vespene > self.previous_total_spent_vespene:
+            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+                (total_spent_vespene - self.previous_total_spent_vespene)
+
+        step_reward = positive_reward - self.negative_reward
+        self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+
+        self.previous_total_value_units_score = total_value_units_score
+        self.previous_total_value_structures_score = total_value_structures_score
+        self.previous_total_spent_minerals = total_spent_minerals
+        self.previous_total_spent_vespene = total_spent_vespene
+        return step_reward
 
     def set_top_left(self, obs):
         if obs.first():
             command_center = self.get_my_units_by_type(
                 obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32)
-    
+
     def optimize_model(self):
         if len(self.memory) < BATCH_SIZE:
             return
@@ -960,6 +976,9 @@ class SubAgent_Economic(Agent):
                 return self.actions[idx]
         else:
             return self.actions[random.randrange(self.action_size)]
-    
+
     def save_module(self):
-        pass
+        self.policy_net.save()
+        self.target_net.save()
+        with open(SAVE_MEMORY, 'wb') as f:
+            pickle.dump(self.memory, f)

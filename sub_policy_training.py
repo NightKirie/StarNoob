@@ -5,6 +5,7 @@ import os
 from absl import app
 from functools import partial
 from types import SimpleNamespace
+import pickle
 
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
@@ -25,6 +26,28 @@ DATA_FILE = 'Sub_training_data'
 FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
+
+SAVE_POLICY_NET = 'model/training_dqn_policy'
+SAVE_TARGET_NET = 'model/training_dqn_target'
+SAVE_MEMORY = 'model/training_memory'
+
+COMBAT_UNIT_NAME = [
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
 
 TRAINABLE_BUILDING = ["Barracks", "Factory", "Starport"]
 BARRACKS = units.Terran.Barracks
@@ -102,14 +125,21 @@ class SubAgent_Training(Agent):
         self.new_game()
         self.state_size = len(self.get_state(MYOBS))
         self.action_size = len(self.actions)
-        self.policy_net = DQN(self.state_size, self.action_size)
-        self.target_net = DQN(self.state_size, self.action_size)
-        self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.target_net.eval()
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+
+        self.memory = ReplayMemory(10000)
+
+        # if saved models exist
+        if self.policy_net.load() and self.target_net.load():
+            with open(SAVE_MEMORY, 'rb') as f:
+                self.memory = pickle.load(f)
+        else:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
-        self.memory = ReplayMemory(10000)
-        self.negative_reward = 0
+        
         self.episode = 0
 
 
@@ -127,6 +157,7 @@ class SubAgent_Training(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
+        self.now_reward = 0
 
     def get_state(self, obs):
         complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
@@ -137,13 +168,13 @@ class SubAgent_Training(Agent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        return tuple([self.base_top_left, 
+        return tuple([self.base_top_left,
                     len(completed_supply_depots),
                     free_supply] +
                     complete_trainable_building +
                     complete_unit)
 
-    
+
     def can_afford_unit(self, obs, unit):
         can_afford = False
         free_supply = (obs.observation.player.food_cap -
@@ -152,11 +183,12 @@ class SubAgent_Training(Agent):
             if free_supply > 0 and \
                obs.observation.player.minerals >= unit.mineral_price and \
                obs.observation.player.vespene >= unit.vespene_price and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[build_from].value)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:      
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirements)().index)) for requirements in unit.requirements]:      
                 can_afford = True
         return can_afford
-                    
+
+
     def step(self, obs):
         super(SubAgent_Training, self).step(obs)
 
@@ -167,7 +199,7 @@ class SubAgent_Training(Agent):
         log.info(action)
 
         if self.previous_action is not None:
-            step_reward = self.get_reward(obs, state)
+            step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
@@ -178,8 +210,7 @@ class SubAgent_Training(Agent):
                 self.optimize_model()
             else:
                 pass
-        else: # first step
-            pass 
+
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
@@ -188,33 +219,32 @@ class SubAgent_Training(Agent):
         self.previous_action = action
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs, state):
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation.score_cumulative.total_value_units
+        total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         # print(obs.observation['score_cumulative'][11])
-        total_spent_minerals = obs.observation['score_cumulative'][11]
-        total_spent_vespene = obs.observation['score_cumulative'][12]
+        total_spent_minerals = obs.observation.score_cumulative.spent_minerals 
+        total_spent_vespene = obs.observation.score_cumulative.spent_vespene  
 
-        step_reward = 0
-        positive_reward = 0
-        ## Positive reward update in this step
+        prev_reward = 0
+        ## Prev reward will update in this epoch
         # If use mineral, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
-            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+            prev_reward += MORE_MINERALS_USED_REWARD_RATE * \
                 (total_spent_minerals - self.previous_total_spent_minerals)
         # If use vespene, get positive reward
         if total_spent_vespene > self.previous_total_spent_vespene:
-            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+            prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
         
-        step_reward += positive_reward - self.negative_reward
+        step_reward = prev_reward - self.now_reward
 
-
-        ## Negative reward update in next step
-        if False in [self.can_afford_unit(obs, getattr(terran, "Marine")()) for unit in COMBAT_UNIT_NAME]:
-            self.negative_reward = FAILED_COMMAND
+        ## Now reward will update in next epoch
+        # If trying to train a unit, but there's no building to train it, get negative reward
+        if False in [self.can_afford_unit(obs, getattr(terran, unit)()) for unit in COMBAT_UNIT_NAME]:
+            self.now_reward = FAILED_COMMAND
         else:
-            self.negative_reward = 0
+            self.now_reward = 0
 
 
         self.previous_total_value_units_score = total_value_units_score
@@ -222,7 +252,7 @@ class SubAgent_Training(Agent):
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
         return step_reward
-        
+
 
     def set_top_left(self, obs):
         if obs.first():
@@ -240,8 +270,8 @@ class SubAgent_Training(Agent):
         else:
             return self.actions[random.randrange(self.action_size)]
 
-    
-    
+
+
     def optimize_model(self):
         if len(self.memory) < BATCH_SIZE:
             return
@@ -276,6 +306,8 @@ class SubAgent_Training(Agent):
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
-
     def save_module(self):
-        pass#self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
+        self.policy_net.save()
+        self.target_net.save()
+        with open(SAVE_MEMORY, 'wb') as f:
+            pickle.dump(self.memory, f)

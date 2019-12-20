@@ -475,7 +475,7 @@ class Ghost(TerranCreature):
         self.movement = 3.94
         self.index = 50
         self.build_from = ["Barracks"]
-        self.requirements = ["Ghost Academy", "TechLab"]
+        self.requirements = ["GhostAcademy", "TechLab"]
 
 class Hellion(TerranCreature):
 
@@ -574,7 +574,7 @@ class SiegeTank(TerranCreature):
         self.movement = 3.15
         self.index = 33
         self.build_from = ["Factory"]
-        self.requirements = ["Tech Lab"]
+        self.requirements = ["TechLab"]
 
 class SiegeTankSieged(TerranCreature):
 
@@ -599,7 +599,7 @@ class SiegeTankSieged(TerranCreature):
         self.movement = 0
         self.index = 32
         self.build_from = ["Factory"]
-        self.requirements = ["Tech Lab"]
+        self.requirements = ["TechLab"]
 
 class Cyclone(TerranCreature):
 
@@ -624,7 +624,7 @@ class Cyclone(TerranCreature):
         self.movement = 4.13
         self.index = 692
         self.build_from = ["Factory"]
-        self.requirements = ["Tech Lab"]
+        self.requirements = ["TechLab"]
 
 class Thor(TerranCreature):
 
@@ -649,7 +649,7 @@ class Thor(TerranCreature):
         self.movement = 2.62
         self.index = 52
         self.build_from = ["Factory"]
-        self.requirements = ["Tech Lab", "Armory"]
+        self.requirements = ["TechLab", "Armory"]
 
 
 class ThorHighImpactMode(TerranCreature):
@@ -675,7 +675,7 @@ class ThorHighImpactMode(TerranCreature):
         self.movement = 2.62
         self.index = 691
         self.build_from = ["Factory"]
-        self.requirements = ["Tech Lab", "Armory"]
+        self.requirements = ["TechLab", "Armory"]
 
 class VikingFighter(TerranCreature):
 
