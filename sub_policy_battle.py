@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from types import SimpleNamespace
 from functools import partial
+import pickle
 
 from absl import app
 from pysc2.lib import actions, features, units
@@ -43,12 +44,15 @@ TARGET_UPDATE = 500
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
+SAVE_POLICY_NET = 'model/battle_dqn_policy'
+SAVE_TARGET_NET = 'model/battle_dqn_target'
+SAVE_MEMORY = 'model/battle_memory'
 
 
 class Agent(BaseAgent):
     actions = tuple(["do_nothing"]) + \
         tuple([f"attack_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
-    
+
     def __init__(self):
         super().__init__()
 
@@ -100,19 +104,19 @@ class SubAgent_Battle(Agent):
         self.previous_killed_value_structures_score = 0
 
     def get_state(self, obs=None):
-        
-        my_unit_location = [self.get_my_units_by_pos(obs, 
-                                                    i * SUB_ATTACK_OFFSET, 
-                                                    j * SUB_ATTACK_OFFSET, 
-                                                    (i + 1) * SUB_ATTACK_OFFSET, 
-                                                    (j + 1) * SUB_ATTACK_OFFSET) 
+
+        my_unit_location = [self.get_my_units_by_pos(obs,
+                                                    i * SUB_ATTACK_OFFSET,
+                                                    j * SUB_ATTACK_OFFSET,
+                                                    (i + 1) * SUB_ATTACK_OFFSET,
+                                                    (j + 1) * SUB_ATTACK_OFFSET)
                                                     for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
-        enemy_unit_location = [self.get_my_units_by_pos(obs, 
-                                                        i * SUB_ATTACK_OFFSET, 
-                                                        j * SUB_ATTACK_OFFSET, 
-                                                        (i + 1) * SUB_ATTACK_OFFSET, 
-                                                        (j + 1) * SUB_ATTACK_OFFSET) 
+        enemy_unit_location = [self.get_my_units_by_pos(obs,
+                                                        i * SUB_ATTACK_OFFSET,
+                                                        j * SUB_ATTACK_OFFSET,
+                                                        (i + 1) * SUB_ATTACK_OFFSET,
+                                                        (j + 1) * SUB_ATTACK_OFFSET)
                                                         for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
         my_armys = self.get_my_army(obs)
@@ -123,7 +127,7 @@ class SubAgent_Battle(Agent):
         
         free_supply = (obs.observation.player.food_cap -
                     obs.observation.player.food_used)
-        
+
         player_food_army = obs.observation.player.food_army
 
         return tuple([self.base_top_left,
@@ -175,12 +179,19 @@ class SubAgent_Battle(Agent):
                 self.optimize_model()
             else:
                 pass
-        else: # first step
+        else:
+            # initializaion (only execute once)
             self.state_size = len(state)
-            self.policy_net = DQN(self.state_size, self.action_size)
-            self.target_net = DQN(self.state_size, self.action_size)
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-            self.target_net.eval()
+            self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
+            self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+
+            # if saved models exist
+            if self.policy_net.load() and self.target_net.load():
+                with open(SAVE_MEMORY, 'rb') as f:
+                    self.memory = pickle.load(f)
+            else:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
+                self.target_net.eval()
 
             self.optimizer = optim.RMSprop(self.policy_net.parameters())
 
@@ -210,9 +221,6 @@ class SubAgent_Battle(Agent):
                 return self.actions[idx]
         else:
             return self.actions[random.randrange(self.action_size)]
-
-    def save_module(self):
-        pass
 
     def optimize_model(self):
         if len(self.memory) < BATCH_SIZE:
@@ -247,3 +255,9 @@ class SubAgent_Battle(Agent):
         for param in self.policy_net.parameters():
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
+
+    def save_module(self):
+        self.policy_net.save()
+        self.target_net.save()
+        with open(SAVE_MEMORY, 'wb') as f:
+            pickle.dump(self.memory, f)

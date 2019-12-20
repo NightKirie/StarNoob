@@ -147,7 +147,7 @@ class SmartAgent(Agent):
         print(len(enemy_army_num))
         print(len(enemy_building_num))
         """
-        
+
         return (self.base_top_left,
                 player_mineral,
                 player_vespene,

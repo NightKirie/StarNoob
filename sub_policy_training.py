@@ -5,6 +5,7 @@ import os
 from absl import app
 from functools import partial
 from types import SimpleNamespace
+import pickle
 
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
@@ -25,6 +26,28 @@ DATA_FILE = 'Sub_training_data'
 FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
+
+SAVE_POLICY_NET = 'model/training_dqn_policy'
+SAVE_TARGET_NET = 'model/training_dqn_target'
+SAVE_MEMORY = 'model/training_memory'
+
+COMBAT_UNIT_NAME = [
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
 
 TRAINABLE_BUILDING = ["Barracks", "Factory", "Starport"]
 BARRACKS = units.Terran.Barracks
@@ -135,13 +158,13 @@ class SubAgent_Training(Agent):
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        return tuple([self.base_top_left, 
+        return tuple([self.base_top_left,
                     len(completed_supply_depots),
                     free_supply] +
                     complete_trainable_building +
                     complete_unit)
 
-    
+
     def can_afford_unit(self, obs, unit):
         can_afford = False
         free_supply = (obs.observation.player.food_cap -
@@ -151,10 +174,11 @@ class SubAgent_Training(Agent):
                obs.observation.player.minerals >= unit.mineral_price and \
                obs.observation.player.vespene >= unit.vespene_price and \
                0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[build_from].value)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:      
+               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:
                 can_afford = True
         return can_afford
-                    
+
+
     def step(self, obs):
         super(SubAgent_Training, self).step(obs)
 
@@ -176,15 +200,23 @@ class SubAgent_Training(Agent):
                 self.optimize_model()
             else:
                 pass
-        else: # first step
+
+        else:
+            # initializaion (only execute once)
             self.state_size = len(state)
-            self.policy_net = DQN(self.state_size, self.action_size)
-            self.target_net = DQN(self.state_size, self.action_size)
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-            self.target_net.eval()
+            self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
+            self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+
+            # if saved models exist
+            if self.policy_net.load() and self.target_net.load():
+                with open(SAVE_MEMORY, 'rb') as f:
+                    self.memory = pickle.load(f)
+            else:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
+                self.target_net.eval()
 
             self.optimizer = optim.RMSprop(self.policy_net.parameters())
-        
+
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
@@ -211,7 +243,7 @@ class SubAgent_Training(Agent):
         if total_spent_vespene > self.previous_total_spent_vespene:
             positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
-        
+
         step_reward += positive_reward - self.negative_reward
 
 
@@ -227,7 +259,7 @@ class SubAgent_Training(Agent):
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
         return step_reward
-        
+
 
     def set_top_left(self, obs):
         if obs.first():
@@ -245,8 +277,8 @@ class SubAgent_Training(Agent):
         else:
             return self.actions[random.randrange(self.action_size)]
 
-    
-    
+
+
     def optimize_model(self):
         if len(self.memory) < BATCH_SIZE:
             return
@@ -281,6 +313,8 @@ class SubAgent_Training(Agent):
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
-
     def save_module(self):
-        pass#self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
+        self.policy_net.save()
+        self.target_net.save()
+        with open(SAVE_MEMORY, 'wb') as f:
+            pickle.dump(self.memory, f)
