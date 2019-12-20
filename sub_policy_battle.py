@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from types import SimpleNamespace
 from functools import partial
-
+import pprint
 from absl import app
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
@@ -30,6 +30,7 @@ KILL_UNIT_REWARD_RATE = 0.00002
 KILL_BUILDING_REWARD_RATE = 0.00004
 DEAD_UNIT_REWARD_RATE = 0.00001 * 0
 DEAD_BUILDING_REWARD_RATE = 0.00002 * 0
+DEALT_TAKEN_RATE = 0.00001
 SUB_ATTACK_DIVISION = 4
 SUB_ATTACK_OFFSET = 16
 
@@ -96,8 +97,11 @@ class SubAgent_Battle(Agent):
         self.previous_action = None
         self.previous_total_value_units_score = 0
         self.previous_total_value_structures_score = 0
-        self.previous_killed_value_units_score = 0
-        self.previous_killed_value_structures_score = 0
+        self.previous_total_killed_value_units_score = 0
+        self.previous_total_killed_value_structures_score = 0
+        self.previous_total_damage_dealt = 0
+        self.previous_total_damage_taken = 0
+        self.now_reward = 0
 
     def get_state(self, obs=None):
         
@@ -146,25 +150,10 @@ class SubAgent_Battle(Agent):
         action = self.select_action(state)
         log.info(action)
 
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
-        killed_value_units_score = obs.observation['score_cumulative'][5]
-        killed_value_structures_score = obs.observation['score_cumulative'][6]
-        self.previous_total_value_units = 0
-        self.previous_total_value_structures = 0
+        
 
         if self.previous_action is not None:
-            step_reward = 0
-
-            if killed_value_units_score > self.previous_killed_value_units_score:
-                step_reward += KILL_UNIT_REWARD_RATE * \
-                    (killed_value_units_score -
-                     self.previous_killed_value_units_score)
-
-            if killed_value_structures_score > self.previous_killed_value_structures_score:
-                step_reward += KILL_BUILDING_REWARD_RATE * \
-                    (killed_value_structures_score -
-                     self.previous_killed_value_structures_score)
+            step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
@@ -187,13 +176,55 @@ class SubAgent_Battle(Agent):
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.previous_total_value_units_score = total_value_units_score
-        self.previous_total_value_structures_score = total_value_structures_score
-        self.previous_killed_unit_score = killed_value_units_score
-        self.previous_killed_value_structures_score = killed_value_structures_score
+        
         self.previous_state = state
         self.previous_action = action
         return getattr(self, action)(obs)
+
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation.score_cumulative.total_value_units
+        total_value_structures_score = obs.observation.score_cumulative.total_value_structures
+        total_killed_value_units_score = obs.observation.score_cumulative.killed_value_units 
+        total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures 
+        total_damage_dealt = obs.observation.score_by_vital.total_damage_dealt[0]
+        total_damage_taken = obs.observation.score_by_vital.total_damage_taken[0]
+        prev_reward = 0
+        ## Prev reward will update in this epoch
+        # If kill a more valuable unit, get positive reward
+        if total_killed_value_units_score > self.previous_total_killed_value_units_score:
+            prev_reward += KILL_UNIT_REWARD_RATE * \
+                (total_killed_value_units_score -
+                    self.previous_total_killed_value_units_score)
+                    
+        # If kill a more valuable structure, get positive reward
+        if total_killed_value_structures_score > self.previous_total_killed_value_structures_score:
+            prev_reward += KILL_BUILDING_REWARD_RATE * \
+                (total_killed_value_structures_score -
+                    self.previous_total_killed_value_structures_score)
+
+        # If in this epoch, dealt damage is more than taken damage, get positive reward
+        if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
+            prev_reward += DEALT_TAKEN_RATE * \
+                ((total_damage_dealt - self.previous_total_damage_dealt) - 
+                    (total_damage_taken - self.previous_total_damage_taken))
+        
+        # If in this epoch, dealt damage is less than taken damage, get negative reward
+        if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
+            prev_reward -= DEALT_TAKEN_RATE * \
+                ((total_damage_dealt - self.previous_total_damage_dealt) - 
+                    (total_damage_taken - self.previous_total_damage_taken))
+
+        step_reward = prev_reward - self.now_reward
+
+        ## Now reward will update in next epoch
+
+        self.previous_total_value_units_score = total_value_units_score
+        self.previous_total_value_structures_score = total_value_structures_score
+        self.previous_killed_unit_score = total_killed_value_units_score
+        self.previous_total_killed_value_structures_score = total_killed_value_structures_score
+        self.previous_total_damage_dealt = total_damage_dealt
+        self.previous_total_damage_taken = total_damage_taken
+        return step_reward
 
     def set_top_left(self, obs):
         if obs.first():

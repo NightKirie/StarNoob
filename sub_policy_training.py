@@ -106,7 +106,6 @@ class SubAgent_Training(Agent):
 
         self.optimizer = None               # init at step
         self.memory = ReplayMemory(10000)
-        self.negative_reward = 0
         self.episode = 0
         self.new_game()
 
@@ -125,6 +124,7 @@ class SubAgent_Training(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
+        self.now_reward = 0
 
     def get_state(self, obs):
         complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
@@ -134,7 +134,6 @@ class SubAgent_Training(Agent):
 
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
-
         return tuple([self.base_top_left, 
                     len(completed_supply_depots),
                     free_supply] +
@@ -150,8 +149,8 @@ class SubAgent_Training(Agent):
             if free_supply > 0 and \
                obs.observation.player.minerals >= unit.mineral_price and \
                obs.observation.player.vespene >= unit.vespene_price and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[build_from].value)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, units.Terran[requirements].value)) for requirements in unit.requirements]:      
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirements)().index)) for requirements in unit.requirements]:      
                 can_afford = True
         return can_afford
                     
@@ -165,7 +164,7 @@ class SubAgent_Training(Agent):
         log.info(action)
 
         if self.previous_action is not None:
-            step_reward = self.get_reward(obs, state)
+            step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
             if not obs.last:
                 self.memory.push(self.previous_state,
@@ -193,33 +192,32 @@ class SubAgent_Training(Agent):
         self.previous_action = action
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs, state):
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation.score_cumulative.total_value_units
+        total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         # print(obs.observation['score_cumulative'][11])
-        total_spent_minerals = obs.observation['score_cumulative'][11]
-        total_spent_vespene = obs.observation['score_cumulative'][12]
+        total_spent_minerals = obs.observation.score_cumulative.spent_minerals 
+        total_spent_vespene = obs.observation.score_cumulative.spent_vespene  
 
-        step_reward = 0
-        positive_reward = 0
-        ## Positive reward update in this step
+        prev_reward = 0
+        ## Prev reward will update in this epoch
         # If use mineral, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
-            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+            prev_reward += MORE_MINERALS_USED_REWARD_RATE * \
                 (total_spent_minerals - self.previous_total_spent_minerals)
         # If use vespene, get positive reward
         if total_spent_vespene > self.previous_total_spent_vespene:
-            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+            prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
         
-        step_reward += positive_reward - self.negative_reward
+        step_reward = prev_reward - self.now_reward
 
-
-        ## Negative reward update in next step
-        if False in [self.can_afford_unit(obs, getattr(terran, "Marine")()) for unit in COMBAT_UNIT_NAME]:
-            self.negative_reward = FAILED_COMMAND
+        ## Now reward will update in next epoch
+        # If trying to train a unit, but there's no building to train it, get negative reward
+        if False in [self.can_afford_unit(obs, getattr(terran, unit)()) for unit in COMBAT_UNIT_NAME]:
+            self.now_reward = FAILED_COMMAND
         else:
-            self.negative_reward = 0
+            self.now_reward = 0
 
 
         self.previous_total_value_units_score = total_value_units_score

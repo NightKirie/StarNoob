@@ -862,28 +862,10 @@ class SubAgent_Economic(Agent):
         log.info(action)
 
 
-        total_value_units_score = obs.observation['score_cumulative'][3]
-        total_value_structures_score = obs.observation['score_cumulative'][4]
-        total_spent_minerals = obs.observation['score_cumulative'][11]
-        total_spent_vespene = obs.observation['score_cumulative'][12]
+        
 
         if self.previous_action is not None:
-            step_reward = 0
-            # if total_value_units_score < self.previous_total_value_units_score:
-            #  step_reward -= DEAD_UNIT_REWARD_RATE * (self.previous_total_value_units_score - total_value_units_score)
-
-            # if total_value_structures_score < self.previous_total_value_structures_score:
-            #  step_reward -= DEAD_BUILDING_REWARD_RATE * (self.previous_total_value_structures_score - total_value_structures_score)
-
-            if total_spent_minerals > self.previous_total_spent_minerals:
-                step_reward += MORE_MINERALS_USED_REWARD_RATE * \
-                    (total_spent_minerals - self.previous_total_spent_minerals)
-            if total_spent_vespene > self.previous_total_spent_vespene:
-                step_reward += MORE_VESPENE_USED_REWARD_RATE * \
-                    (total_spent_vespene - self.previous_total_spent_vespene)
-
-            step_reward += self.negative_reward
-            self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+            step_reward = self.get_reward(obs)
 
             log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
             if not obs.last:
@@ -907,14 +889,37 @@ class SubAgent_Economic(Agent):
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
             
-        self.previous_total_value_units_score = total_value_units_score
-        self.previous_total_value_structures_score = total_value_structures_score
-        self.previous_total_spent_minerals = total_spent_minerals
-        self.previous_total_spent_vespene = total_spent_vespene
+        
         self.previous_state = state
         self.previous_action = action
         return getattr(self, action)(obs)
 
+    def get_reward(self, obs):
+        total_value_units_score = obs.observation.score_cumulative.total_value_units
+        total_value_structures_score = obs.observation.score_cumulative.total_value_structures
+        total_spent_minerals = obs.observation.score_cumulative.spent_minerals
+        total_spent_vespene = obs.observation.score_cumulative.spent_vespene
+        
+        positive_reward = 0
+        ## Positive reward update in this step
+
+        ## Negative reward update in next step
+
+        if total_spent_minerals > self.previous_total_spent_minerals:
+            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+                (total_spent_minerals - self.previous_total_spent_minerals)
+        if total_spent_vespene > self.previous_total_spent_vespene:
+            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+                (total_spent_vespene - self.previous_total_spent_vespene)
+
+        step_reward = positive_reward - self.negative_reward
+        self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+
+        self.previous_total_value_units_score = total_value_units_score
+        self.previous_total_value_structures_score = total_value_structures_score
+        self.previous_total_spent_minerals = total_spent_minerals
+        self.previous_total_spent_vespene = total_spent_vespene
+        return step_reward
 
     def set_top_left(self, obs):
         if obs.first():
