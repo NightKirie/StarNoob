@@ -26,24 +26,7 @@ FAILED_COMMAND = 0.00001
 MORE_MINERALS_USED_REWARD_RATE = 0.00001
 MORE_VESPENE_USED_REWARD_RATE = 0.00002
 
-
-COMBAT_UNIT_NAME = [
-    "Marine",
-    "Reaper",
-    "Marauder",
-    "Ghost",
-    "Hellion",
-    "SiegeTank",
-    "WidowMine",
-    "Hellbat",
-    "Thor",
-    "Liberator",
-    "Cyclone",
-    "VikingFighter",
-    "Medivac",
-    "Raven",
-    "Banshee",
-    "Battlecruiser"]
+TRAINABLE_BUILDING = ["Barracks", "Factory", "Starport"]
 BARRACKS = units.Terran.Barracks
 FACTORY = units.Terran.Factory
 STARPORT = units.Terran.Starport
@@ -144,64 +127,20 @@ class SubAgent_Training(Agent):
         self.previous_total_spent_vespene = 0
 
     def get_state(self, obs):
-        scvs = self.get_my_units_by_type(obs, terran.SCV().index)
-        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        command_centers = self.get_my_units_by_type(
-            obs, terran.CommandCenter().index)
-        supply_depots = self.get_my_units_by_type(
-            obs, terran.SupplyDepot().index)
+        complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
+        complete_unit = [len(self.get_my_units_by_type(obs, getattr(terran, unit)().index)) for unit in COMBAT_UNIT_NAME]
         completed_supply_depots = self.get_my_completed_units_by_type(
             obs, terran.SupplyDepot().index)
-        barrackses = self.get_my_units_by_type(obs, terran.Barracks().index)
-        completed_barrackses = self.get_my_completed_units_by_type(
-            obs, terran.Barracks().index)
 
-        marines = self.get_my_units_by_type(obs, terran.Marine().index)
-        reapers = self.get_my_units_by_type(obs, terran.Reaper().index)
-        marauders = self.get_my_units_by_type(obs, terran.Marauder().index)
-        ghosts = self.get_my_units_by_type(obs, terran.Ghost().index)
-        hellions = self.get_my_units_by_type(obs, terran.Hellion().index)
-        siegetanks = self.get_my_units_by_type(obs, terran.SiegeTank().index)
-        widowmines = self.get_my_units_by_type(obs, terran.WidowMine().index)
-        hellbats = self.get_my_units_by_type(obs, terran.Hellbat().index)
-        thors = self.get_my_units_by_type(obs, terran.Thor().index)
-        liberators = self.get_my_units_by_type(obs, terran.Liberatorfm().index)
-        cyclones = self.get_my_units_by_type(obs, terran.Cyclone().index)
-        vikingfighters = self.get_my_units_by_type(obs, terran.VikingFighter().index)
-        medivacs = self.get_my_units_by_type(obs, terran.Medivac().index)
-        ravens = self.get_my_units_by_type(obs, terran.Raven().index)
-        banshees = self.get_my_units_by_type(obs, terran.Banshee().index)
-        battlecruisers = self.get_my_units_by_type(obs, terran.Battlecruiser().index)
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-       
-        return (self.base_top_left,
-                len(command_centers),
-                len(scvs),
-                len(idle_scvs),
-                len(supply_depots),
-                len(completed_supply_depots),
-                len(barrackses),
-                len(completed_barrackses),
-                len(marines),
-                len(reapers),
-                len(marauders),
-                len(ghosts),
-                len(hellions),
-                len(siegetanks),
-                len(widowmines),
-                len(hellbats),
-                len(thors),
-                len(liberators),
-                len(cyclones),
-                len(vikingfighters),
-                len(medivacs),
-                len(ravens),
-                len(banshees),
-                len(battlecruisers),
-                free_supply,
-                )
+        return tuple([self.base_top_left, 
+                    len(completed_supply_depots),
+                    free_supply] +
+                    complete_trainable_building +
+                    complete_unit)
+
     
     def can_afford_unit(self, obs, unit):
         can_afford = False
@@ -216,9 +155,6 @@ class SubAgent_Training(Agent):
                 can_afford = True
         return can_afford
                     
-               
-
-
     def step(self, obs):
         super(SubAgent_Training, self).step(obs)
 
@@ -228,18 +164,7 @@ class SubAgent_Training(Agent):
         action = self.select_action(state)
         log.info(action)
 
-
-        # if obs.last():
-        #     self.qtable.q_table.to_pickle(DATA_FILE + '.gz', 'gzip')
-        # super(SubAgent_Training, self).step(obs)
-        # state = str(self.get_state(obs))
-        # action = self.qtable.choose_action(state)
-        # print(action)
         if self.previous_action is not None:
-            # self.qtable.learn(self.previous_state,
-            #                   self.previous_action,
-            #                   obs.reward + step_reward,
-            #                   'terminal' if obs.last() else state)
             step_reward = self.get_reward(obs, state)
             log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
             if not obs.last:

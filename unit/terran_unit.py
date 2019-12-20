@@ -752,7 +752,7 @@ class Medivac(TerranCreature):
         self.build_from = ["Starport"]
         self.requirements = []
 
-class Liberatorfm(TerranCreature):
+class Liberator(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -777,7 +777,7 @@ class Liberatorfm(TerranCreature):
         self.build_from = ["Starport"]
         self.requirements = []
 
-class Liberatordm(TerranCreature):
+class LiberatorAG(TerranCreature):
 
     def __init__(self):
         super().__init__()

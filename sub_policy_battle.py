@@ -21,7 +21,7 @@ import math
 from collections import namedtuple
 from types import SimpleNamespace
 from functools import partial
-from sub_policy_training import COMBAT_UNIT_NAME
+
 
 
 
