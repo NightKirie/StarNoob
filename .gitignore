@@ -122,3 +122,5 @@ dmypy.json
 
 # vscode temp file
 .vscode/
+
+model/

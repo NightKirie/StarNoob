@@ -168,8 +168,10 @@ class ReplayMemory(object):
 
 
 class DQN(nn.Module):
-    def __init__(self, state_size, action_size):
+    def __init__(self, state_size, action_size, savepath):
         super(DQN, self).__init__()
+
+        self.savepath = savepath
         self.net = nn.Sequential(
             nn.Linear(state_size, 64),
             nn.ReLU(),
@@ -180,6 +182,16 @@ class DQN(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+    def save(self):
+        torch.save(self.state_dict(), self.savepath)
+
+    def load(self):
+        if os.path.isfile(self.savepath):
+            self.load_state_dict(torch.load(self.savepath))
+            return True
+        else:
+            return False
 
 
 class BaseAgent(base_agent.BaseAgent):
