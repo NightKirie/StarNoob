@@ -50,6 +50,56 @@ log.addHandler(fh)
 # close pysc2 logging
 absl_logging.set_verbosity(absl_logging.FATAL)
 
+COMBAT_UNIT_NAME = [
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
+
+BUILDING_UNIT_NAME = [
+    "Armory",
+    "Barracks",
+    "BarracksFlying",
+    "BarracksReactor",
+    "BarracksTechLab",
+    "Bunker",
+    "CommandCenter",
+    "CommandCenterFlying",
+    "EngineeringBay",
+    "Factory",
+    "FactoryFlying",
+    "FactoryReactor",
+    "FactoryTechLab",
+    "FusionCore",
+    "GhostAcademy",
+    "MissileTurret",
+    "OrbitalCommand",
+    "OrbitalCommandFlying",
+    "PlanetaryFortress",
+    "Reactor",
+    "Refinery",
+    "RefineryRich",
+    "SensorTower",
+    "Starport",
+    "StarportFlying",
+    "StarportReactor",
+    "StarportTechLab",
+    "SupplyDepot",
+    "SupplyDepotLowered",
+    "TechLab",
+]
 
 class QLearningTable:
     def __init__(self, actions, learning_rate=0.01, reward_decay=0.9):
@@ -225,6 +275,82 @@ class BaseAgent(base_agent.BaseAgent):
                 if unit.unit_type == unit_type
                 and unit.build_progress == 100
                 and unit.alliance == features.PlayerRelative.ENEMY]
+
+    def get_my_army(self, obs, pos1x, pos1y, pos2x, pos2y):
+        """ get a list of my army units in a position range
+
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of army units
+        """
+        return [unit for unit in obs.observation.raw_units
+                if unit.alliance == features.PlayerRelative.SELF
+                    and unit.unit_type in COMBAT_UNIT_NAME
+                    and unit.x >= pos1x and unit.x < pos2x
+                    and unit.y >= pos1y and unit.y < pos2y]
+
+    def get_enemy_army(self, obs, pos1x, pos1y, pos2x, pos2y):
+        """ get a list of my army units in a position range
+
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of army units
+        """
+        return [unit for unit in obs.observation.raw_units
+                if unit.alliance == features.PlayerRelative.ENEMY
+                    and unit.unit_type in COMBAT_UNIT_NAME
+                    and unit.x >= pos1x and unit.x < pos2x
+                    and unit.y >= pos1y and unit.y < pos2y]
+
+    def get_my_building(self, obs, pos1x, pos1y, pos2x, pos2y):
+        """ get a list of my building units in a position range
+
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of building units
+        """
+        return [unit for unit in obs.observation.raw_units
+                if unit.alliance == features.PlayerRelative.SELF
+                    and unit.unit_type in BUILDING_UNIT_NAME
+                    and unit.x >= pos1x and unit.x < pos2x
+                    and unit.y >= pos1y and unit.y < pos2y]
+
+    def get_enemy_building(self, obs, pos1x, pos1y, pos2x, pos2y):
+        """ get a list of enemy building units in a position range
+
+        Args:
+            observation
+            pos1x (float): x of left-top side
+            pos1y (float): y of left-top side
+            pos2x (float): x of right-bottom side
+            pos2y (float): y of right-bottom side
+
+        Returns:
+            list: a list of building units
+        """
+        return [unit for unit in obs.observation.raw_units
+                if unit.alliance == features.PlayerRelative.ENEMY
+                    and unit.unit_type in BUILDING_UNIT_NAME
+                    and unit.x >= pos1x and unit.x < pos2x
+                    and unit.y >= pos1y and unit.y < pos2y]
 
     def do_nothing(self, obs):
         return actions.RAW_FUNCTIONS.no_op()

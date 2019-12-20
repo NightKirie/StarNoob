@@ -122,55 +122,39 @@ class SmartAgent(Agent):
         Args:  observation
         Returns: state(list)
         """
+
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        command_centers = self.get_my_units_by_type(
-            obs, units.Terran.CommandCenter)
-        supply_depots = self.get_my_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        completed_supply_depots = self.get_my_completed_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
-        completed_barrackses = self.get_my_completed_units_by_type(
-            obs, units.Terran.Barracks)
 
-        marines = self.get_my_units_by_type(obs, units.Terran.Marine)
-
+        player_food_used = obs.observation.player.food_used
+        player_food_cap = obs.observation.player.food_cap
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
-        can_afford_supply_depot = obs.observation.player.minerals >= 100
-        can_afford_barracks = obs.observation.player.minerals >= 150
-        can_afford_marine = obs.observation.player.minerals >= 100
+        player_food_army = obs.observation.player.food_army
+        player_food_workers = obs.observation.player.food_workers
 
-        enemy_scvs = self.get_enemy_units_by_type(obs, units.Terran.SCV)
-        enemy_command_centers = self.get_enemy_units_by_type(
-            obs, units.Terran.CommandCenter)
-        enemy_supply_depots = self.get_enemy_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        enemy_barrackses = self.get_enemy_units_by_type(
-            obs, units.Terran.Barracks)
-        enemy_marines = self.get_enemy_units_by_type(obs, units.Terran.Marine)
-        enemy_unit_num = self.get_enemy_units_by_pos(obs, 0, 0, 64, 64)
+        my_army_num = self.get_my_army(obs, 0, 0, 64, 64)
+        my_building_num = self.get_my_building(obs, 0, 0, 64, 64)
+        enemy_army_num = self.get_enemy_army(obs, 0, 0, 64, 64)
+        enemy_building_num = self.get_enemy_building(obs, 0, 0, 64, 64)
 
         return (self.base_top_left,
-                len(command_centers),
+                player_mineral,
+                player_vespene,
+                player_food_used,
+                player_food_cap,
+                free_supply,
+                player_food_army,
+                player_food_workers,
                 len(scvs),
                 len(idle_scvs),
-                len(supply_depots),
-                len(completed_supply_depots),
-                len(barrackses),
-                len(completed_barrackses),
-                len(marines),
-                free_supply,
-                can_afford_supply_depot,
-                can_afford_barracks,
-                can_afford_marine,
-                len(enemy_command_centers),
-                len(enemy_scvs),
-                len(enemy_supply_depots),
-                len(enemy_barrackses),
-                len(enemy_marines),
-                len(enemy_unit_num)
+                len(my_army_num),
+                len(my_building_num),
+                len(enemy_army_num),
+                len(enemy_building_num)
                 )
 
     def step(self, obs):
