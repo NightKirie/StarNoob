@@ -9,6 +9,6 @@ if os.path.exists("Sub_training_data.gz"):
     os.remove("Sub_training_data.gz")
 
 import unit.terran_unit as terran
+import inspect
 
-print(terran.SCV.hp)
-print(terran.SCV().hp)
+print(terran.Armory.index)

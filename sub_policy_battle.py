@@ -58,16 +58,11 @@ class Agent(BaseAgent):
                     f"attack_{i}_{j}", partial(
                         self.attack, range=SimpleNamespace(**{'x': i, 'y': j}), offset=SUB_ATTACK_OFFSET))
 
-    def get_my_armys(self, obs):
-        return [unit for unit in obs.observation.raw_units
-                if unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
-                and unit.alliance == features.PlayerRelative.SELF]
-
     def do_nothing(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
 
     def attack(self, obs, range, offset):
-        armys = self.get_my_armys(obs)
+        armys = self.get_my_army(obs)
         if len(armys) > 0:
             attack = SimpleNamespace(**{'x': range.x * offset, 'y': range.y * offset})
             offset = SimpleNamespace(**{'x': random.randint(0, offset), 'y': random.randint(0, offset)})
@@ -120,12 +115,12 @@ class SubAgent_Battle(Agent):
                                                         (j + 1) * SUB_ATTACK_OFFSET) 
                                                         for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
 
-        my_armys = self.get_my_armys(obs)
-        enemy_armys = self.get_my_army(obs, 0, 0, 64, 64)
+        my_armys = self.get_my_army(obs)
+        enemy_armys = self.get_enemy_army(obs)
 
-        my_buildings = self.get_my_building(obs, 0, 0, 64, 64)
-        enemy_buildings = self.get_enemy_building(obs, 0, 0, 64, 64)
-
+        my_buildings = self.get_my_building(obs)
+        enemy_buildings = self.get_enemy_building(obs)
+        
         free_supply = (obs.observation.player.food_cap -
                     obs.observation.player.food_used)
         

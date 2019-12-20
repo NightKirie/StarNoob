@@ -276,7 +276,7 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.build_progress == 100
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
-    def get_my_army(self, obs, pos1x, pos1y, pos2x, pos2y):
+    def get_my_army(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my army units in a position range
 
         Args:
@@ -295,7 +295,7 @@ class BaseAgent(base_agent.BaseAgent):
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_enemy_army(self, obs, pos1x, pos1y, pos2x, pos2y):
+    def get_enemy_army(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my army units in a position range
 
         Args:
@@ -314,7 +314,7 @@ class BaseAgent(base_agent.BaseAgent):
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_my_building(self, obs, pos1x, pos1y, pos2x, pos2y):
+    def get_my_building(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my building units in a position range
 
         Args:
@@ -333,7 +333,7 @@ class BaseAgent(base_agent.BaseAgent):
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_enemy_building(self, obs, pos1x, pos1y, pos2x, pos2y):
+    def get_enemy_building(self, obs, pos1x=0, pos1y=0, pos2x=4, pos2y=4):
         """ get a list of enemy building units in a position range
 
         Args:

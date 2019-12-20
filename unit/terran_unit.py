@@ -551,7 +551,7 @@ class WidowMine(TerranCreature):
         self.build_from = ["Factory"]
         self.requirements = []
 
-class SiegeTanktm(TerranCreature):
+class SiegeTank(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -576,7 +576,7 @@ class SiegeTanktm(TerranCreature):
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab"]
 
-class SiegeTanksm(TerranCreature):
+class SiegeTankSieged(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -626,7 +626,7 @@ class Cyclone(TerranCreature):
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab"]
 
-class ThorExplosive(TerranCreature):
+class Thor(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -652,7 +652,7 @@ class ThorExplosive(TerranCreature):
         self.requirements = ["Tech Lab", "Armory"]
 
 
-class ThorHighImpact(TerranCreature):
+class ThorHighImpactMode(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -677,7 +677,7 @@ class ThorHighImpact(TerranCreature):
         self.build_from = ["Factory"]
         self.requirements = ["Tech Lab", "Armory"]
 
-class Vikingfm(TerranCreature):
+class VikingFighter(TerranCreature):
 
     def __init__(self):
         super().__init__()
@@ -702,7 +702,7 @@ class Vikingfm(TerranCreature):
         self.build_from = ["Starport"]
         self.requirements = []
 
-class Vikingam(TerranCreature):
+class Viking(TerranCreature):
 
     def __init__(self):
         super().__init__()
