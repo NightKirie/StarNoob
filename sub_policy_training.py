@@ -1,26 +1,13 @@
-import random
-import numpy as np
-import pandas as pd
-import os
-from absl import app
 from functools import partial
-from types import SimpleNamespace
 import pickle
 
-from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env, run_loop
 
 from base_agent import *
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torchvision.transforms as T
-
-from collections import namedtuple
 import unit.terran_unit as terran
-from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME, TRAINABLE_BUILDING
+from configs import TRAINABLE_BUILDING
+
 DATA_FILE = 'Sub_training_data'
 
 FAILED_COMMAND = 0.0001
@@ -102,8 +89,8 @@ class SubAgent_Training(Agent):
         self.new_game()
         self.state_size = len(self.get_state(MYOBS))
         self.action_size = len(self.actions)
-        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET)
-        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET)
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET).to(device)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET).to(device)
 
         self.memory = ReplayMemory(10000)
 
@@ -111,9 +98,11 @@ class SubAgent_Training(Agent):
         if self.policy_net.load() and self.target_net.load():
             with open(SAVE_MEMORY, 'rb') as f:
                 self.memory = pickle.load(f)
+                log.log(LOG_MODEL, "Load memory " + SAVE_MEMORY)
         else:
             self.target_net.load_state_dict(self.policy_net.state_dict())
             self.target_net.eval()
+            log.log(LOG_MODEL, "Memory " + SAVE_MEMORY + " not found")
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
         
@@ -242,7 +231,7 @@ class SubAgent_Training(Agent):
         eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
-                _, idx = self.policy_net(torch.Tensor(state)).max(0)
+                _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
                 return self.actions[idx]
         else:
             return self.actions[random.randrange(self.action_size)]
@@ -256,7 +245,7 @@ class SubAgent_Training(Agent):
         batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), dtype=torch.uint8)
+                                                batch.next_state)), dtype=torch.uint8).to(device)
 
         non_final_next_states = torch.cat([s for s in batch.next_state
                                            if s is not None])
@@ -267,7 +256,7 @@ class SubAgent_Training(Agent):
         state_action_values = self.policy_net(
             state_batch).gather(1, action_batch)
 
-        next_state_values = torch.zeros(BATCH_SIZE)
+        next_state_values = torch.zeros(BATCH_SIZE, device=device)
         next_state_values[non_final_mask] = self.target_net(
             non_final_next_states)
 
@@ -288,3 +277,4 @@ class SubAgent_Training(Agent):
         self.target_net.save()
         with open(SAVE_MEMORY, 'wb') as f:
             pickle.dump(self.memory, f)
+            log.log(LOG_MODEL, "Save memory training")

@@ -7,6 +7,7 @@ import logging
 import logging.handlers
 import time
 from absl import app
+from absl import logging as absl_logging
 from types import SimpleNamespace
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units, named_array
@@ -18,15 +19,17 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME
-from absl import logging as absl_logging
+
 DATA_FILE = 'AI_agent_data'
 
 LOG_EPISODE = 31
 LOG_REWARD = 25
+LOG_MODEL = 30
 """ EPISODE WARNING REWARD INFO DEBUG """
 
 logging.addLevelName(LOG_REWARD, "REWARD")
 logging.addLevelName(LOG_EPISODE, "EPISODE")
+logging.addLevelName(LOG_MODEL, "MODEL")
 log = logging.getLogger(name="StarNoob")
 log.addFilter(logging.Filter('StarNoob'))
 log.propagate = False
@@ -54,6 +57,9 @@ absl_logging.set_verbosity(absl_logging.FATAL)
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
+
+# Use cpu or gpu
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class QLearningTable:
     def __init__(self, actions, learning_rate=0.01, reward_decay=0.9):
@@ -139,12 +145,15 @@ class DQN(nn.Module):
 
     def save(self):
         torch.save(self.state_dict(), self.savepath)
+        log.log(LOG_MODEL, "Save model " + self.savepath)
 
     def load(self):
         if os.path.isfile(self.savepath):
-            self.load_state_dict(torch.load(self.savepath))
+            self.load_state_dict(torch.load(self.savepath, map_location=device))
+            log.log(LOG_MODEL, "Load model " + self.savepath)
             return True
         else:
+            log.log(LOG_MODEL, "Model " + self.savepath + " not found")
             return False
 
 
