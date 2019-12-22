@@ -46,10 +46,8 @@ class Agent(BaseAgent):
         units_xy = [(unit.x, unit.y) for unit in units]
         return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
 
-    def get_least_busy_building(self, building):
-        return min(building, key=lambda building: building.order_length)
 
-    def get_building(self, obs, unit_type):
+    def get_least_busy_building(self, obs, unit_type):
         """ get least busy building
         Args:
           obs
@@ -62,22 +60,52 @@ class Agent(BaseAgent):
         completed_buildinges = self.get_my_completed_units_by_type(
             obs, unit_type)
         if len(completed_buildinges) > 0:
-            return self.get_least_busy_building(completed_buildinges).tag
+            return min(completed_buildinges, key=lambda building: building.order_length)
         else:
             return False
 
-    def train_unit(self, obs, unit=None):
-        building_tag = False
-        if unit in ["Marine", "Reaper", "Marauder", "Ghost"]:
-            building_tag = self.get_building(obs, units.Terran.Barracks)
-        elif unit in ["Hellion", "SiegeTank", "WidowMine", "Hellbat", "Thor", "Liberator"]:
-            building_tag = self.get_building(obs, units.Terran.Factory)
-        elif unit in ["Cyclone", "VikingFighter", "Medivac", "Raven", "Banshee", "Battlecruiser"]:
-            building_tag = self.get_building(obs, units.Terran.Starport)
+    def can_afford_unit(self, obs, unit):
+        """ Check if all condition can afford to this unit
+        Args:
+          obs
+          unit_type (object): from unit.terran_unit.XXX
+        Returns:
+          True: if can afford
+          or
+          False: if can not afford
+        """
+        can_afford = False
+        free_supply = (obs.observation.player.food_cap -
+                       obs.observation.player.food_used)
+        if isinstance(unit, terran.TerranCreature):
+            if free_supply > 0 and \
+               obs.observation.player.minerals >= unit.mineral_price and \
+               obs.observation.player.vespene >= unit.vespene_price and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in unit.requirements]:      
+                can_afford = True
+        return can_afford
 
-        if building_tag:
+    def train_unit(self, obs, unit=None):
+        """ Try to train specific unit
+        Args:
+          obs
+          unit (string): can pass to unit.terran_unit.XXX to get unit information
+        Returns:
+          train unit action: if can train
+          or
+          no-op: if can not train
+        """
+        unit = getattr(terran, unit)()
+        
+        building_tag = False
+        requirement_flag = False
+
+        # Get if all condition match to train the target unit
+        if self.can_afford_unit(obs, unit):
+            building_tag =  [self.get_least_busy_building(obs, getattr(terran, build_from)().index) for build_from in unit.build_from][0].tag
             return actions.RAW_FUNCTIONS.__getattr__(
-                f"Train_{unit}_quick")("now", building_tag)
+                f"Train_{unit.name}_quick")("now", building_tag)
         else:
             return actions.RAW_FUNCTIONS.no_op()
 
@@ -141,18 +169,6 @@ class SubAgent_Training(Agent):
                     complete_unit)
 
 
-    def can_afford_unit(self, obs, unit):
-        can_afford = False
-        free_supply = (obs.observation.player.food_cap -
-                       obs.observation.player.food_used)
-        if isinstance(unit, terran.TerranCreature):
-            if free_supply > 0 and \
-               obs.observation.player.minerals >= unit.mineral_price and \
-               obs.observation.player.vespene >= unit.vespene_price and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirements)().index)) for requirements in unit.requirements]:      
-                can_afford = True
-        return can_afford
 
 
     def step(self, obs):
@@ -245,7 +261,7 @@ class SubAgent_Training(Agent):
         batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), dtype=torch.uint8).to(device)
+                                                batch.next_state)), dtype=torch.uint8, device=device)
 
         non_final_next_states = torch.cat([s for s in batch.next_state
                                            if s is not None])

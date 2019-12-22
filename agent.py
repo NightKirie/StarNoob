@@ -132,17 +132,10 @@ class SmartAgent(Agent):
         player_food_army = obs.observation.player.food_army
         player_food_workers = obs.observation.player.food_workers
 
-        my_army_num = self.get_my_army(obs, 0, 0, 64, 64)
-        my_building_num = self.get_my_building(obs, 0, 0, 64, 64)
-        enemy_army_num = self.get_enemy_army(obs, 0, 0, 64, 64)
-        enemy_building_num = self.get_enemy_building(obs, 0, 0, 64, 64)
-        """
-        print('------------------')
-        print(len(my_army_num))
-        print(len(my_building_num))
-        print(len(enemy_army_num))
-        print(len(enemy_building_num))
-        """
+        my_army_num = self.get_my_army_by_pos(obs, 0, 0, 64, 64)
+        my_building_num = self.get_my_building_by_pos(obs, 0, 0, 64, 64)
+        enemy_army_num = self.get_enemy_army_by_pos(obs, 0, 0, 64, 64)
+        enemy_building_num = self.get_enemy_building_by_pos(obs, 0, 0, 64, 64)
 
         return (self.base_top_left,
                 player_mineral,

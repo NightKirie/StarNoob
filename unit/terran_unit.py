@@ -32,7 +32,8 @@ class CommandCenter(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "CommandCenter"
         self.mineral_price = 400
         self.vespene_price = 0
         self.build_time = 71
@@ -52,7 +53,8 @@ class SupplyDepot(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "SupplyDepot"      
         self.mineral_price = 100
         self.vespene_price = 0
         self.build_time = 21
@@ -72,7 +74,8 @@ class Barracks(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Barracks"
         self.mineral_price = 150
         self.vespene_price = 0
         self.build_time = 46
@@ -93,7 +96,8 @@ class OrbitalCommand(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "OrbitalCommand"
         self.mineral_price = 150
         self.vespene_price = 0
         self.build_time = 25
@@ -113,7 +117,8 @@ class PlanetaryFortress(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "PlanetaryFortress"
         self.mineral_price = 150
         self.vespene_price = 150
         self.build_time = 36
@@ -132,7 +137,8 @@ class Refinery(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Refinery"
         self.mineral_price = 75
         self.vespene_price = 0
         self.build_time = 21
@@ -151,7 +157,8 @@ class EngineerBay(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "EngineerBay"
         self.mineral_price = 125
         self.vespene_price = 0
         self.build_time = 25
@@ -170,7 +177,8 @@ class Bunker(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Bunker"
         self.mineral_price = 100
         self.vespene_price = 0
         self.build_time = 29
@@ -187,7 +195,8 @@ class MissileTurret(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "MissileTurret"
         self.mineral_price = 100
         self.vespene_price = 0
         self.build_time = 18
@@ -204,7 +213,8 @@ class SensorTower(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "SensorTower"
         self.mineral_price = 125
         self.vespene_price = 100
         self.build_time = 18
@@ -220,7 +230,8 @@ class Factory(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Factory"
         self.mineral_price = 150
         self.vespene_price = 100
         self.build_time = 43
@@ -236,7 +247,8 @@ class GhostAcademy(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "GhostAcademy"
         self.mineral_price = 150
         self.vespene_price = 50
         self.build_time = 29
@@ -252,7 +264,8 @@ class Armory(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Armory"
         self.mineral_price = 150
         self.vespene_price = 100
         self.build_time = 46
@@ -268,7 +281,8 @@ class Starport(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Starport"
         self.mineral_price = 150
         self.vespene_price = 100
         self.build_time = 36
@@ -284,7 +298,8 @@ class FusionCore(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "FusionCore"
         self.mineral_price = 150
         self.vespene_price = 150
         self.build_time = 46
@@ -300,7 +315,8 @@ class TechLab(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "TechLab"
         self.mineral_price = 50
         self.vespene_price = 25
         self.build_time = 18
@@ -316,7 +332,8 @@ class Reactor(TerranBuilding):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Reactor"
         self.mineral_price = 50
         self.vespene_price = 50
         self.build_time = 36
@@ -332,7 +349,8 @@ class Marine(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Marine"
         self.mineral_price = 50
         self.vespene_price = 0
         self.food_used = 1
@@ -358,7 +376,8 @@ class SCV(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "SCV"
         self.mineral_price = 50
         self.vespene_price = 0
         self.food_used = 1
@@ -383,7 +402,8 @@ class MULE(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "MULE"
         self.mineral_price = 0
         self.vespene_price = 0
         self.food_used = 0
@@ -408,7 +428,8 @@ class Marauder(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Marauder"
         self.mineral_price = 100
         self.vespene_price = 25
         self.food_used = 2
@@ -433,7 +454,8 @@ class Reaper(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Reaper"
         self.mineral_price = 50
         self.vespene_price = 50
         self.food_used = 1
@@ -458,7 +480,8 @@ class Ghost(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Ghost"
         self.mineral_price = 150
         self.vespene_price = 125
         self.food_used = 2
@@ -483,7 +506,8 @@ class Hellion(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Hellion"
         self.mineral_price = 100
         self.vespene_price = 0
         self.food_used = 2
@@ -508,7 +532,8 @@ class Hellbat(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Hellbat"
         self.mineral_price = 100
         self.vespene_price = 0
         self.food_used = 2
@@ -532,7 +557,8 @@ class WidowMine(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "WidowMine"
         self.mineral_price = 75
         self.vespene_price = 25
         self.food_used = 2
@@ -557,7 +583,8 @@ class SiegeTank(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "SiegeTank"
         self.mineral_price = 150
         self.vespene_price = 125
         self.food_used = 3
@@ -582,7 +609,8 @@ class SiegeTankSieged(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "SiegeTankSieged"
         self.mineral_price = 150
         self.vespene_price = 125
         self.food_used = 3
@@ -607,7 +635,8 @@ class Cyclone(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Cyclone"
         self.mineral_price = 150
         self.vespene_price = 100
         self.food_used = 3
@@ -632,7 +661,8 @@ class Thor(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Thor"
         self.mineral_price = 300
         self.vespene_price = 200
         self.food_used = 6
@@ -658,7 +688,8 @@ class ThorHighImpactMode(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "ThorHighImpactMode"
         self.mineral_price = 300
         self.vespene_price = 200
         self.food_used = 6
@@ -683,7 +714,8 @@ class VikingFighter(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "VikingFighter"
         self.mineral_price = 150
         self.vespene_price = 75
         self.food_used = 2
@@ -708,7 +740,8 @@ class Viking(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Viking"
         self.mineral_price = 150
         self.vespene_price = 75
         self.food_used = 2
@@ -733,7 +766,8 @@ class Medivac(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Medivac"
         self.mineral_price = 100
         self.vespene_price = 100
         self.food_used = 2
@@ -758,7 +792,8 @@ class Liberator(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Liberator"
         self.mineral_price = 150
         self.vespene_price = 150
         self.food_used = 3
@@ -783,7 +818,8 @@ class LiberatorAG(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "LiberatorAG"
         self.mineral_price = 150
         self.vespene_price = 150
         self.food_used = 3
@@ -808,7 +844,8 @@ class Banshee(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Banshee"
         self.mineral_price = 150
         self.vespene_price = 100
         self.food_used = 3
@@ -833,7 +870,8 @@ class Raven(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Raven"
         self.mineral_price = 100
         self.vespene_price = 200
         self.food_used = 2
@@ -858,7 +896,8 @@ class Battlecruiser(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "Battlecruiser"
         self.mineral_price = 400
         self.vespene_price = 300
         self.food_used = 6
@@ -883,7 +922,8 @@ class PlanetaryFortress(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "PlanetaryFortress"
         self.mineral_price = 150
         self.vespene_price = 150
         self.food_used = 0
@@ -908,7 +948,8 @@ class MissileTurret(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "MissileTurret"
         self.mineral_price = 100
         self.vespene_price = 0
         self.food_used = 0
@@ -933,7 +974,8 @@ class AutoTurret(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "AutoTurret"
         self.mineral_price = 0
         self.vespene_price = 0
         self.food_used = 0
@@ -958,7 +1000,8 @@ class PointDefenseDrone(TerranCreature):
         super().__init__()
         self.specialization()
 
-    def specialization(self):
+    def specialization(self): 
+        self.name = "PointDefenseDrone"
         self.mineral_price = 0
         self.vespene_price = 0
         self.food_used = 0

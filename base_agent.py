@@ -135,7 +135,11 @@ class DQN(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(state_size, 64),
             nn.ReLU(),
-            nn.Linear(64, 64),
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, action_size),
         )
@@ -185,42 +189,6 @@ class BaseAgent(base_agent.BaseAgent):
                 if unit.unit_type == unit_type
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
-    def get_my_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-        """ get user's units in a position range
-
-        Args:
-            observation
-            pos1x (float): x of left-top side
-            pos1y (float): y of left-top side
-            pos2x (float): x of right-bottom side
-            pos2y (float): y of right-bottom side
-
-        Returns:
-            list: a list of units
-        """
-        return [unit for unit in obs.observation.raw_units
-                if unit.alliance == features.PlayerRelative.SELF
-                and unit.x >= pos1x and unit.x < pos2x
-                and unit.y >= pos1y and unit.y < pos2y]
-
-    def get_enemy_units_by_pos(self, obs, pos1x, pos1y, pos2x, pos2y):
-        """get enemy's units in a position range
-
-        Args:
-            observation
-            pos1x (float): x of left-top side
-            pos1y (float): y of left-top side
-            pos2x (float): x of right-bottom side
-            pos2y (float): y of right-bottom side
-
-        Returns:
-            list: a list of units
-        """
-        return [unit for unit in obs.observation.raw_units
-                if unit.alliance == features.PlayerRelative.ENEMY
-                and unit.x >= pos1x and unit.x < pos2x
-                and unit.y >= pos1y and unit.y < pos2y]
-
     def get_my_completed_units_by_type(self, obs, unit_type):
         """ get a list of user's complete building of a type
 
@@ -251,7 +219,7 @@ class BaseAgent(base_agent.BaseAgent):
                 and unit.build_progress == 100
                 and unit.alliance == features.PlayerRelative.ENEMY]
 
-    def get_my_army(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
+    def get_my_army_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my army units in a position range
 
         Args:
@@ -264,13 +232,14 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
+        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
-                    and unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+                    and unit.unit_type in army_type_list
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_enemy_army(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
+    def get_enemy_army_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my army units in a position range
 
         Args:
@@ -283,13 +252,14 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
+        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
-                    and unit.unit_type in [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+                    and unit.unit_type in army_type_list
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_my_building(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
+    def get_my_building_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of my building units in a position range
 
         Args:
@@ -302,13 +272,14 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
+        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
-                    and unit.unit_type in [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+                    and unit.unit_type in building_type_list
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_enemy_building(self, obs, pos1x=0, pos1y=0, pos2x=4, pos2y=4):
+    def get_enemy_building_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=4, pos2y=4):
         """ get a list of enemy building units in a position range
 
         Args:
@@ -321,9 +292,10 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
+        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
-                    and unit.unit_type in [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+                    and unit.unit_type in building_type_list
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 

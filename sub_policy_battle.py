@@ -22,8 +22,11 @@ FOUND_ENEMY_RATE = 0.0001
 LOST_UNIT_RATE = 0.0003
 LOST_STRUCTURE_RATE = 0.006
 
-SUB_ATTACK_DIVISION = 4
-SUB_ATTACK_OFFSET = 16
+SUB_ATTACK_DIVISION = 64
+SUB_ATTACK_SIZE = 1
+
+SUB_LOCATION_DIVISION = 4
+SUB_LOCATION_SIZE = 16
 
 BATCH_SIZE = 128
 GAMMA = 0.9
@@ -50,18 +53,14 @@ class Agent(BaseAgent):
             for j in range(0, SUB_ATTACK_DIVISION):
                 self.__setattr__(
                     f"attack_{i}_{j}", partial(
-                        self.attack, range=SimpleNamespace(**{'x': i, 'y': j}), offset=SUB_ATTACK_OFFSET))
+                        self.attack, range=SimpleNamespace(**{'x': i, 'y': j}), size=SUB_ATTACK_SIZE))
 
-    def do_nothing(self, obs):
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def attack(self, obs, range, offset):
-        armys = self.get_my_army(obs)
+    def attack(self, obs, range, size):
+        armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0:
-            attack = SimpleNamespace(**{'x': range.x * offset, 'y': range.y * offset})
-            offset = SimpleNamespace(**{'x': random.randint(0, offset), 'y': random.randint(0, offset)})
+            attack = SimpleNamespace(**{'x': range.x * SUB_ATTACK_SIZE, 'y': range.y * SUB_ATTACK_SIZE})
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack.x + offset.x, attack.y + offset.y))
+                "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -111,25 +110,31 @@ class SubAgent_Battle(Agent):
 
     def get_state(self, obs=None):
 
-        my_unit_location = [self.get_my_units_by_pos(obs,
-                                                    i * SUB_ATTACK_OFFSET,
-                                                    j * SUB_ATTACK_OFFSET,
-                                                    (i + 1) * SUB_ATTACK_OFFSET,
-                                                    (j + 1) * SUB_ATTACK_OFFSET)
-                                                    for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
+        my_army_location = [self.get_my_army_by_pos(obs,
+                                                    i * SUB_LOCATION_SIZE,
+                                                    j * SUB_LOCATION_SIZE,
+                                                    (i + 1) * SUB_LOCATION_SIZE,
+                                                    (j + 1) * SUB_LOCATION_SIZE)
+                                                    for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]
+        my_building_location = [self.get_my_building_by_pos(obs,
+                                                    i * SUB_LOCATION_SIZE,
+                                                    j * SUB_LOCATION_SIZE,
+                                                    (i + 1) * SUB_LOCATION_SIZE,
+                                                    (j + 1) * SUB_LOCATION_SIZE)
+                                                    for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]
 
-        enemy_unit_location = [self.get_enemy_units_by_pos(obs,
-                                                        i * SUB_ATTACK_OFFSET,
-                                                        j * SUB_ATTACK_OFFSET,
-                                                        (i + 1) * SUB_ATTACK_OFFSET,
-                                                        (j + 1) * SUB_ATTACK_OFFSET)
-                                                        for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]
-
-        my_armys = self.get_my_army(obs)
-        enemy_armys = self.get_enemy_army(obs)
-
-        my_buildings = self.get_my_building(obs)
-        enemy_buildings = self.get_enemy_building(obs)
+        enemy_army_location = [self.get_enemy_army_by_pos(obs,
+                                                    i * SUB_LOCATION_SIZE,
+                                                    j * SUB_LOCATION_SIZE,
+                                                    (i + 1) * SUB_LOCATION_SIZE,
+                                                    (j + 1) * SUB_LOCATION_SIZE)
+                                                    for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]
+        enemy_building_location = [self.get_enemy_building_by_pos(obs,
+                                                    i * SUB_LOCATION_SIZE,
+                                                    j * SUB_LOCATION_SIZE,
+                                                    (i + 1) * SUB_LOCATION_SIZE,
+                                                    (j + 1) * SUB_LOCATION_SIZE)
+                                                    for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]
         
         free_supply = (obs.observation.player.food_cap -
                     obs.observation.player.food_used)
@@ -137,14 +142,12 @@ class SubAgent_Battle(Agent):
         player_food_army = obs.observation.player.food_army
 
         return tuple([self.base_top_left,
-                len(my_armys),
-                len(enemy_armys),
-                len(my_buildings),
-                len(enemy_buildings),
-                free_supply,
-                player_food_army]) + \
-                tuple([len(my_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
-                tuple([len(enemy_unit_location[i * SUB_ATTACK_DIVISION + j]) for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
+                    free_supply,
+                    player_food_army]) + \
+                    tuple([len(my_army_location[i * SUB_LOCATION_DIVISION + j]) for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]) + \
+                    tuple([len(my_building_location[i * SUB_LOCATION_DIVISION + j]) for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]) + \
+                    tuple([len(enemy_army_location[i * SUB_LOCATION_DIVISION + j]) for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]) + \
+                    tuple([len(enemy_building_location[i * SUB_LOCATION_DIVISION + j]) for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)])
 
     def step(self, obs):
 
@@ -187,10 +190,10 @@ class SubAgent_Battle(Agent):
         total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures 
         total_damage_dealt = obs.observation.score_by_vital.total_damage_dealt[0]
         total_damage_taken = obs.observation.score_by_vital.total_damage_taken[0]
-        visiable_enemy_units = len(self.get_enemy_army(obs))
-        visiable_enemy_structures = len(self.get_enemy_building(obs))
-        my_units = len(self.get_my_army(obs))
-        my_structures = len(self.get_my_building(obs))
+        visiable_enemy_army = len(self.get_enemy_army_by_pos(obs))
+        visiable_enemy_structures = len(self.get_enemy_building_by_pos(obs))
+        my_army = len(self.get_my_army_by_pos(obs))
+        my_structures = len(self.get_my_building_by_pos(obs))
 
         prev_reward = 0
         ## Prev reward will update in this epoch
@@ -219,13 +222,13 @@ class SubAgent_Battle(Agent):
                     (total_damage_taken - self.previous_total_damage_taken))
 
         # If in this epoch, found enemy, get positive reward
-        if visiable_enemy_units > 0 or visiable_enemy_structures > 0:
+        if visiable_enemy_army > 0 or visiable_enemy_structures > 0:
             prev_reward += FOUND_ENEMY_RATE * \
-                (visiable_enemy_units + visiable_enemy_structures)
+                (visiable_enemy_army + visiable_enemy_structures)
 
         # If loss unit in battle, get negative reward
-        if my_units - self.previous_my_units < 0:
-            prev_reward -= LOST_UNIT_RATE * (self.previous_my_units - my_units)
+        if my_army - self.previous_my_units < 0:
+            prev_reward -= LOST_UNIT_RATE * (self.previous_my_units - my_army)
 
         # If loss stuctures in battle, get negative reward
         if my_structures - self.previous_my_structures < 0:    
@@ -242,7 +245,7 @@ class SubAgent_Battle(Agent):
         self.previous_total_killed_value_structures_score = total_killed_value_structures_score
         self.previous_total_damage_dealt = total_damage_dealt
         self.previous_total_damage_taken = total_damage_taken
-        self.previous_my_units = my_units
+        self.previous_my_units = my_army
         self.previous_my_structures = my_structures
         return step_reward
 
@@ -269,7 +272,7 @@ class SubAgent_Battle(Agent):
         batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), device=device).to(device)
+                                                batch.next_state)), dtype=torch.uint8, device=device)
 
         non_final_next_states = torch.cat([s for s in batch.next_state
                                            if s is not None])

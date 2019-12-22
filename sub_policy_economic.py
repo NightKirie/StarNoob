@@ -26,7 +26,7 @@ SAVE_MEMORY = 'model/economic_memory'
 
 class Agent(BaseAgent):
 
-    actions = (#"do_nothing",
+    actions = ("do_nothing",
                "harvest_minerals",
                "build_supply_depot",
                "build_barracks",
@@ -145,21 +145,21 @@ class Agent(BaseAgent):
         else:
             if (len(supply_depots) == 0 and len(scvs) > 0):
                 supply_depot_xy = (22, 26) if self.base_top_left else (35, 42)
-            if (len(supply_depots) == 1 and len(scvs) > 0):
+            elif (len(supply_depots) == 1 and len(scvs) > 0):
                 supply_depot_xy = (21, 26) if self.base_top_left else (36, 42)
-            if (len(supply_depots) == 2 and len(scvs) > 0):
+            elif (len(supply_depots) == 2 and len(scvs) > 0):
                 supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
-            if (len(supply_depots) == 3 and len(scvs) > 0):
+            elif (len(supply_depots) == 3 and len(scvs) > 0):
                 supply_depot_xy = (17, 26) if self.base_top_left else (40, 42)
-            if (len(supply_depots) == 4 and len(scvs) > 0):
+            elif (len(supply_depots) == 4 and len(scvs) > 0):
                 supply_depot_xy = (12, 18) if self.base_top_left else (46, 42)
-            if (len(supply_depots) == 5 and len(scvs) > 0):
+            elif (len(supply_depots) == 5 and len(scvs) > 0):
                 supply_depot_xy = (12, 20) if self.base_top_left else (46, 44)
-            if (len(supply_depots) == 6 and len(scvs) > 0):
+            elif (len(supply_depots) == 6 and len(scvs) > 0):
                 supply_depot_xy = (12, 22) if self.base_top_left else (46, 46)
-            if (len(supply_depots) == 7 and len(scvs) > 0):
+            elif (len(supply_depots) == 7 and len(scvs) > 0):
                 supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)
-            if (len(supply_depots) == 8 and len(scvs) > 0):
+            elif (len(supply_depots) == 8 and len(scvs) > 0):
                 supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)
             else: 
                 return actions.RAW_FUNCTIONS.no_op()
@@ -929,7 +929,7 @@ class SubAgent_Economic(Agent):
         batch = Transition(*zip(*transitions))
 
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), dtype=torch.uint8).to(device)
+                                                batch.next_state)), dtype=torch.uint8, device=device)
 
         non_final_next_states = torch.cat([s for s in batch.next_state
                                            if s is not None])
