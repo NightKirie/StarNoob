@@ -1,9 +1,4 @@
-from pysc2.env import sc2_env, run_loop
-import pickle
-
 from base_agent import *
-
-from functools import partial
 
 DATA_FILE = 'Sub_building_data'
 FAILED_COMMAND = 0.0001
@@ -958,7 +953,7 @@ class SubAgent_Economic(Agent):
 
     def select_action(self, state):
         sample = random.random()
-        eps_threshold = 0.5
+        eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)

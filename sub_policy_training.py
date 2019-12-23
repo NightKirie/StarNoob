@@ -1,8 +1,3 @@
-from functools import partial
-import pickle
-
-from pysc2.env import sc2_env, run_loop
-
 from base_agent import *
 
 import unit.terran_unit as terran

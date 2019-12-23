@@ -12,6 +12,9 @@ from types import SimpleNamespace
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features, units, named_array
 from collections import namedtuple
+import pickle
+from functools import partial
+from pysc2.env import sc2_env, run_loop
 
 import torch
 import torch.nn as nn

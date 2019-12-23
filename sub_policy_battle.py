@@ -1,16 +1,4 @@
-from functools import partial
-import pickle
-
-from pysc2.env import sc2_env, run_loop
-
 from base_agent import *
-
-import math
-from collections import namedtuple
-from functools import partial
-
-
-
 
 DATA_FILE = 'Sub_battle_data'
 KILL_UNIT_REWARD_RATE = 0.0002

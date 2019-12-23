@@ -9,6 +9,20 @@ import configs as configs
 
 DATA_FILE = 'model/AI_agent_data.gz'
 
+BATCH_SIZE = 128
+GAMMA = 0.9
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 200
+TARGET_UPDATE = 500
+
+Transition = namedtuple('Transition',
+                        ('state', 'action', 'next_state', 'reward'))
+
+SAVE_POLICY_NET = 'model/agent_dqn_policy'
+SAVE_TARGET_NET = 'model/agent_dqn_target'
+SAVE_MEMORY = 'model/agent_memory'
+
 
 class Agent(BaseAgent):
 
@@ -66,11 +80,11 @@ class Agent(BaseAgent):
 
 
 
-class RandomAgent(Agent):
-    def step(self, obs):
-        super(RandomAgent, self).step(obs)
-        action = random.choice(self.actions)
-        return getattr(self, action)(obs)
+# class RandomAgent(Agent):
+#     def step(self, obs):
+#         super(RandomAgent, self).step(obs)
+#         action = random.choice(self.actions)
+#         return getattr(self, action)(obs)
 
 
 class SmartAgent(Agent):
@@ -78,14 +92,29 @@ class SmartAgent(Agent):
     def __init__(self):
         log.debug('in __init__')
         super(SmartAgent, self).__init__()
-        self.qtable = QLearningTable(self.actions)
-
-        if os.path.isfile(DATA_FILE):
-            log.debug('Load saved qtable')
-            self.qtable.q_table = pd.read_pickle(
-                DATA_FILE, compression='gzip')
-
         self.new_game()
+        self.state_size = len(self.get_state(MYOBS))
+        self.action_size = len(self.actions)
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET).to(device)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET).to(device)
+
+        self.memory = ReplayMemory(10000)
+
+        # if saved models exist
+        if self.policy_net.load() and self.target_net.load():
+            with open(SAVE_MEMORY, 'rb') as f:
+                self.memory = pickle.load(f)
+                log.log(LOG_MODEL, "Load memory " + SAVE_MEMORY)
+        else:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
+            log.log(LOG_MODEL, "Memory " + SAVE_MEMORY + " not found")
+
+        self.optimizer = optim.RMSprop(self.policy_net.parameters())
+
+        self.episode = 0
+
+        
 
     def reset(self):
         log.debug('in reset')
@@ -159,22 +188,27 @@ class SmartAgent(Agent):
         return: getattr(self, action)(obs)
         """
         log.debug('into step')
-        if obs.last():
-            self.qtable.q_table.to_pickle(DATA_FILE, 'gzip')
-            self.battle_policy.save_module()
-            self.economic_policy.save_module()
-            self.training_policy.save_module()
         super(SmartAgent, self).step(obs)
-        state = str(self.get_state(obs))
-        action = self.qtable.choose_action(state)
+        self.episode += 1
+        state = self.get_state(obs)
+        log.debug(f"state: {state}")
+        action = self.select_action(state)
         log.info(action)
 
         if self.previous_action is not None:
             step_reward = 0
-            self.qtable.learn(self.previous_state,
-                              self.previous_action,
-                              obs.reward + step_reward,
-                              'terminal' if obs.last() else state)
+            log.log(LOG_REWARD, "agent reward = " + str(obs.reward +step_reward))
+            if not obs.last:
+                self.memory.push(self.previous_state,
+                                 self.previous_action,
+                                 state,
+                                 obs.reward + step_reward)
+
+                self.optimize_model()
+            else:
+                pass
+        else:
+            pass
 
         self.previous_state = state
         self.previous_action = action
@@ -183,6 +217,57 @@ class SmartAgent(Agent):
         self.score = obs.observation.score_cumulative.score
         log.debug('get out step')
         return getattr(self, action)(obs)
+    
+    def select_action(self, state):
+        sample = random.random()
+        eps_threshold = 0.9
+        if sample > eps_threshold:
+            with torch.no_grad():
+                _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
+                return self.actions[idx]
+        else:
+            return self.actions[random.randrange(self.action_size)]
+
+    def optimize_model(self):
+        if len(self.memory) < BATCH_SIZE:
+            return
+        transitions = self.memory.sample(BATCH_SIZE)
+        batch = Transition(*zip(*transitions))
+
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                                batch.next_state)), dtype=torch.uint8, device=device)
+
+        non_final_next_states = torch.cat([s for s in batch.next_state
+                                           if s is not None])
+        state_batch = torch.cat(batch.state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
+
+        state_action_values = self.policy_net(
+            state_batch).gather(1, action_batch)
+
+        next_state_values = torch.zeros(BATCH_SIZE, device=device)
+        next_state_values[non_final_mask] = self.target_net(
+            non_final_next_states)
+
+        expected_state_action_values = (
+            next_state_values * GAMMA) + reward_batch
+
+        loss = F.smooth_l1_loss(state_action_values,
+                                expected_state_action_values.unsqueeze(1))
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.policy_net.parameters():
+            param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
+
+    def save_module(self):
+        self.policy_net.save()
+        self.target_net.save()
+        with open(SAVE_MEMORY, 'wb') as f:
+            pickle.dump(self.memory, f)
+            log.log(LOG_MODEL, "Save memory battle")
 
 
 def main(unused_argv):
