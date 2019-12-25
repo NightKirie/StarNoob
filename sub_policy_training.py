@@ -20,9 +20,6 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
-
 class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
@@ -77,7 +74,7 @@ class Agent(BaseAgent):
                obs.observation.player.minerals >= unit.mineral_price and \
                obs.observation.player.vespene >= unit.vespene_price and \
                0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, build_from)().index)) for build_from in unit.build_from] and \
-               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in unit.requirements]:      
+               0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in unit.requirements]:
                 can_afford = True
         return can_afford
 
@@ -92,7 +89,7 @@ class Agent(BaseAgent):
           no-op: if can not train
         """
         unit = getattr(terran, unit)()
-        
+
         building_tag = False
         requirement_flag = False
 
@@ -128,7 +125,7 @@ class SubAgent_Training(Agent):
             log.log(LOG_MODEL, "Memory " + SAVE_MEMORY + " not found")
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
-        
+
         self.episode = 0
 
 
@@ -172,17 +169,17 @@ class SubAgent_Training(Agent):
         self.episode += 1
         state = self.get_state(obs)
         log.debug(state)
-        action = self.select_action(state)
+        action, action_idx = self.select_action(state)
         log.info(action)
 
         if self.previous_action is not None:
             step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
-            if not obs.last:
-                self.memory.push(self.previous_state,
-                                 self.previous_action,
-                                 state,
-                                 obs.reward + step_reward)
+            if not obs.last():
+                self.memory.push(torch.Tensor(self.previous_state),
+                                 F.one_hot(torch.LongTensor([self.previous_action_idx]), self.action_size)[0],
+                                 torch.Tensor(state),
+                                 torch.Tensor([obs.reward + step_reward]))
 
                 self.optimize_model()
             else:
@@ -194,14 +191,15 @@ class SubAgent_Training(Agent):
 
         self.previous_state = state
         self.previous_action = action
+        self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
     def get_reward(self, obs):
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         # print(obs.observation['score_cumulative'][11])
-        total_spent_minerals = obs.observation.score_cumulative.spent_minerals 
-        total_spent_vespene = obs.observation.score_cumulative.spent_vespene  
+        total_spent_minerals = obs.observation.score_cumulative.spent_minerals
+        total_spent_vespene = obs.observation.score_cumulative.spent_vespene
 
         prev_reward = 0
         ## Prev reward will update in this epoch
@@ -213,7 +211,7 @@ class SubAgent_Training(Agent):
         if total_spent_vespene > self.previous_total_spent_vespene:
             prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
-        
+
         step_reward = prev_reward - self.now_reward
 
         ## Now reward will update in next epoch
@@ -243,9 +241,10 @@ class SubAgent_Training(Agent):
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
-                return self.actions[idx]
+                return self.actions[idx], idx
         else:
-            return self.actions[random.randrange(self.action_size)]
+            idx = random.randrange(self.action_size)
+            return self.actions[idx], idx
 
 
 
@@ -274,7 +273,7 @@ class SubAgent_Training(Agent):
         expected_state_action_values = (
             next_state_values * GAMMA) + reward_batch
 
-        loss = F.smooth_l1_loss(state_action_values,
+        loss = nn.CrossEntropyLoss(state_action_values,
                                 expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()

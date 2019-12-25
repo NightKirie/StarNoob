@@ -23,9 +23,6 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
-
 SAVE_POLICY_NET = 'model/battle_dqn_policy'
 SAVE_TARGET_NET = 'model/battle_dqn_target'
 SAVE_MEMORY = 'model/battle_memory'
@@ -139,7 +136,7 @@ class SubAgent_Battle(Agent):
                                                     (i + 1) * SUB_LOCATION_SIZE,
                                                     (j + 1) * SUB_LOCATION_SIZE)
                                                     for i in range(0, SUB_LOCATION_DIVISION) for j in range(0, SUB_LOCATION_DIVISION)]
-        
+
         free_supply = (obs.observation.player.food_cap -
                     obs.observation.player.food_used)
 
@@ -160,19 +157,19 @@ class SubAgent_Battle(Agent):
         self.episode += 1
         state = self.get_state(obs)
         log.debug(f"state: {state}")
-        action = self.select_action(state)
+        action, action_idx = self.select_action(state)
         log.info(action)
 
-        
+
 
         if self.previous_action is not None:
             step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
-            if not obs.last:
-                self.memory.push(self.previous_state,
-                                 self.previous_action,
-                                 state,
-                                 obs.reward + step_reward)
+            if not obs.last():
+                self.memory.push(torch.Tensor(self.previous_state),
+                                 F.one_hot(torch.LongTensor([self.previous_action_idx]), self.action_size)[0],
+                                 torch.Tensor(state),
+                                 torch.Tensor([obs.reward + step_reward]))
 
                 self.optimize_model()
             else:
@@ -185,13 +182,14 @@ class SubAgent_Battle(Agent):
 
         self.previous_state = state
         self.previous_action = action
+        self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
     def get_reward(self, obs):
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
-        total_killed_value_units_score = obs.observation.score_cumulative.killed_value_units 
-        total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures 
+        total_killed_value_units_score = obs.observation.score_cumulative.killed_value_units
+        total_killed_value_structures_score = obs.observation.score_cumulative.killed_value_structures
         total_damage_dealt = obs.observation.score_by_vital.total_damage_dealt[0]
         total_damage_taken = obs.observation.score_by_vital.total_damage_taken[0]
         visiable_enemy_army = len(self.get_enemy_army_by_pos(obs))
@@ -206,7 +204,7 @@ class SubAgent_Battle(Agent):
             prev_reward += KILL_UNIT_REWARD_RATE * \
                 (total_killed_value_units_score -
                     self.previous_total_killed_value_units_score)
-                    
+
         # If kill a more valuable structure, get positive reward
         if total_killed_value_structures_score > self.previous_total_killed_value_structures_score:
             prev_reward += KILL_BUILDING_REWARD_RATE * \
@@ -216,13 +214,13 @@ class SubAgent_Battle(Agent):
         # If in this epoch, dealt damage is more than taken damage, get positive reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
             prev_reward += DEALT_TAKEN_REWARD_RATE * \
-                ((total_damage_dealt - self.previous_total_damage_dealt) - 
+                ((total_damage_dealt - self.previous_total_damage_dealt) -
                     (total_damage_taken - self.previous_total_damage_taken))
-        
+
         # If in this epoch, dealt damage is less than taken damage, get negative reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
             prev_reward -= DEALT_TAKEN_REWARD_RATE * \
-                ((total_damage_dealt - self.previous_total_damage_dealt) - 
+                ((total_damage_dealt - self.previous_total_damage_dealt) -
                     (total_damage_taken - self.previous_total_damage_taken))
 
         # If in this epoch, found enemy, get positive reward
@@ -235,9 +233,9 @@ class SubAgent_Battle(Agent):
             prev_reward -= LOST_UNIT_RATE * (self.previous_my_units - my_army)
 
         # If loss stuctures in battle, get negative reward
-        if my_structures - self.previous_my_structures < 0:    
+        if my_structures - self.previous_my_structures < 0:
             prev_reward -= LOST_STRUCTURE_RATE * (self.previous_my_structures - my_structures)
-        
+
         ## Update reward
         step_reward = prev_reward - self.now_reward
 
@@ -265,9 +263,10 @@ class SubAgent_Battle(Agent):
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
-                return self.actions[idx]
+                return self.actions[idx], idx
         else:
-            return self.actions[random.randrange(self.action_size)]
+            idx = random.randrange(self.action_size)
+            return self.actions[idx], idx
 
     def optimize_model(self):
         if len(self.memory) < BATCH_SIZE:
@@ -294,7 +293,7 @@ class SubAgent_Battle(Agent):
         expected_state_action_values = (
             next_state_values * GAMMA) + reward_batch
 
-        loss = F.smooth_l1_loss(state_action_values,
+        loss = nn.CrossEntropyLoss(state_action_values,
                                 expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()

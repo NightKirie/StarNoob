@@ -12,9 +12,6 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
-
 SAVE_POLICY_NET = 'model/economic_dqn_policy'
 SAVE_TARGET_NET = 'model/economic_dqn_target'
 SAVE_MEMORY = 'model/economic_memory'
@@ -156,7 +153,7 @@ class Agent(BaseAgent):
                 supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)
             elif (len(supply_depots) == 8 and len(scvs) > 0):
                 supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)
-            else: 
+            else:
                 return actions.RAW_FUNCTIONS.no_op()
             distances = self.get_distances(obs, scvs, supply_depot_xy)
             scv = scvs[np.argmin(distances)]
@@ -480,7 +477,7 @@ class SubAgent_Economic(Agent):
         self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET).to(device)
 
         self.memory = ReplayMemory(10000)
-        
+
         # if saved models exist
         if self.policy_net.load() and self.target_net.load():
             with open(SAVE_MEMORY, 'rb') as f:
@@ -855,21 +852,21 @@ class SubAgent_Economic(Agent):
         self.episode += 1
         state = self.get_state(obs)
         log.debug(f"state: {state}")
-        action = self.select_action(state)
+        action, action_idx = self.select_action(state)
         log.info(action)
 
 
-        
+
 
         if self.previous_action is not None:
             step_reward = self.get_reward(obs)
 
             log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
-            if not obs.last:
-                self.memory.push(self.previous_state,
-                                 self.previous_action,
-                                 state,
-                                 obs.reward + step_reward)
+            if not obs.last():
+                self.memory.push(torch.Tensor(self.previous_state),
+                                 F.one_hot(torch.LongTensor([self.previous_action_idx]), self.action_size)[0],
+                                 torch.Tensor(state),
+                                 torch.Tensor([obs.reward + step_reward]))
 
                 self.optimize_model()
             else:
@@ -879,9 +876,10 @@ class SubAgent_Economic(Agent):
 
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
-            
+
         self.previous_state = state
         self.previous_action = action
+        self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
     def get_reward(self, obs):
@@ -889,7 +887,7 @@ class SubAgent_Economic(Agent):
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
-        
+
         positive_reward = 0
         ## Positive reward update in this step
 
@@ -942,7 +940,7 @@ class SubAgent_Economic(Agent):
         expected_state_action_values = (
             next_state_values * GAMMA) + reward_batch
 
-        loss = F.smooth_l1_loss(state_action_values,
+        loss = nn.CrossEntropyLoss(state_action_values,
                                 expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()
@@ -957,9 +955,10 @@ class SubAgent_Economic(Agent):
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
-                return self.actions[idx]
+                return self.actions[idx], idx
         else:
-            return self.actions[random.randrange(self.action_size)]
+            idx = random.randrange(self.action_size)
+            return self.actions[idx], idx
 
     def save_module(self):
         self.policy_net.save()
