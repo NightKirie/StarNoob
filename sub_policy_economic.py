@@ -855,22 +855,21 @@ class SubAgent_Economic(Agent):
 
 
 
+        if self.episodes % 3 == 2:
+            if self.previous_action is not None:
+                step_reward = self.get_reward(obs)
 
-        if self.previous_action is not None:
-            step_reward = self.get_reward(obs)
-
-            log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
-            if not obs.last():
-                self.memory.push(torch.Tensor(self.previous_state),
-                                 torch.LongTensor([self.previous_action_idx]),
-                                 torch.Tensor(state),
-                                 torch.Tensor([obs.reward + step_reward]))
-
-                self.optimize_model()
-            else:
+                log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
+                if not obs.last():
+                    self.memory.push(torch.Tensor(self.previous_state).to(device),
+                                    torch.LongTensor([self.previous_action_idx]).to(device),
+                                    torch.Tensor(state).to(device),
+                                    torch.Tensor([obs.reward + step_reward]).to(device))
+                    self.optimize_model()
+                else:
+                    pass
+            else: # first step
                 pass
-        else: # first step
-            pass
 
         if self.episode % TARGET_UPDATE == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())

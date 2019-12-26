@@ -170,21 +170,22 @@ class SubAgent_Training(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
-        if self.previous_action is not None:
-            step_reward = self.get_reward(obs)
-            log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
-            if not obs.last():
-                self.memory.push(torch.Tensor(self.previous_state),
-                                 torch.LongTensor([self.previous_action_idx]),
-                                 torch.Tensor(state),
-                                 torch.Tensor([obs.reward + step_reward]))
+        if self.episodes % 3 == 0:
+            if self.previous_action is not None:
+                step_reward = self.get_reward(obs)
+                log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
+                if not obs.last():
+                    self.memory.push(torch.Tensor(self.previous_state).to(device),
+                                    torch.LongTensor([self.previous_action_idx]).to(device),
+                                    torch.Tensor(state).to(device),
+                                    torch.Tensor([obs.reward + step_reward]).to(device))
 
-                self.optimize_model()
-            else:
-                pass
+                    self.optimize_model()
+                else:
+                    pass
 
-        if self.episode % TARGET_UPDATE == 0:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
+            if self.episode % TARGET_UPDATE == 0:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
 
 
         self.previous_state = state

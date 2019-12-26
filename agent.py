@@ -16,6 +16,7 @@ TARGET_UPDATE = 500
 SAVE_POLICY_NET = 'model/agent_dqn_policy'
 SAVE_TARGET_NET = 'model/agent_dqn_target'
 SAVE_MEMORY = 'model/agent_memory'
+TIME_PENALTY_Q = 0.00005
 
 class Agent(BaseAgent):
 
@@ -131,7 +132,7 @@ class SmartAgent(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
         self.previous_total_spent_minerals = 0
-
+        self.time_penalty = 0
         self.score = 0
 
     def get_state(self, obs):
@@ -192,11 +193,11 @@ class SmartAgent(Agent):
             step_reward = 0
             log.log(LOG_REWARD, "agent reward = " + str(obs.reward +step_reward))
             if not obs.last():
-                self.memory.push(torch.Tensor(self.previous_state),
-                                 torch.LongTensor([self.previous_action_idx]),
-                                 torch.Tensor(state),
-                                 torch.Tensor([obs.reward + step_reward]))
-
+                self.time_penalty += TIME_PENALTY_Q
+                self.memory.push(torch.Tensor(self.previous_state).to(device),
+                                 torch.LongTensor([self.previous_action_idx]).to(device),
+                                 torch.Tensor(state).to(device),
+                                 torch.Tensor([obs.reward + step_reward]).to(device))
                 self.optimize_model()
             else:
                 # save models
@@ -213,7 +214,7 @@ class SmartAgent(Agent):
         self.previous_action_idx = action_idx
 
         # record score for episode ending use
-        self.score = obs.observation.score_cumulative.score
+        self.score = obs.observation.score_cumulative.score - self.time_penalty
         log.debug('get out step')
         return getattr(self, action)(obs)
 

@@ -26,8 +26,9 @@ SAVE_TARGET_NET = 'model/battle_dqn_target'
 SAVE_MEMORY = 'model/battle_memory'
 
 class Agent(BaseAgent):
-    actions = tuple(["do_nothing"]+["attack_enemy"]*64*64) + \
-        tuple([f"attack_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
+    actions = tuple(["do_nothing"]) + \
+              tuple(["attack_enemy"]*64*64) + \
+              tuple([f"attack_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
 
     def __init__(self):
         super().__init__()
@@ -46,21 +47,21 @@ class Agent(BaseAgent):
                 "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
         return actions.RAW_FUNCTIONS.no_op()
 
-    def attack_enemy(self, obs): 
-        """ attack enemy in pos """
-        enemy_army_location = self.get_enemy_army_by_pos(obs)
-        enemy_building_location = self.get_enemy_building_by_pos(obs)
-        armys = self.get_my_army_by_pos(obs)
-        if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
-            if enemy_army_location != []:
-                attack = SimpleNamespace(**{'x': enemy_army_location[0].x, 'y': enemy_army_location[0].y})
-            elif enemy_building_location != []:
-                attack = SimpleNamespace(**{'x': enemy_building_location[0].x, 'y': enemy_building_location[0].y})
+    # def attack_enemy(self, obs): 
+    #     """ attack enemy in pos """
+    #     enemy_army_location = self.get_enemy_army_by_pos(obs)
+    #     enemy_building_location = self.get_enemy_building_by_pos(obs)
+    #     armys = self.get_my_army_by_pos(obs)
+    #     if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
+    #         if enemy_army_location != []:
+    #             attack = SimpleNamespace(**{'x': enemy_army_location[0].x, 'y': enemy_army_location[0].y})
+    #         elif enemy_building_location != []:
+    #             attack = SimpleNamespace(**{'x': enemy_building_location[0].x, 'y': enemy_building_location[0].y})
 
 
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
-        return actions.RAW_FUNCTIONS.no_op()
+    #         return actions.RAW_FUNCTIONS.Attack_pt(
+    #             "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
+    #     return actions.RAW_FUNCTIONS.no_op()
 
 
 class SubAgent_Battle(Agent):
@@ -159,24 +160,24 @@ class SubAgent_Battle(Agent):
         log.info(action)
 
 
+        if self.episodes % 3 == 1:
+            if self.previous_action is not None:
+                step_reward = self.get_reward(obs)
+                log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
+                if not obs.last():
+                    self.memory.push(torch.Tensor(self.previous_state).to(device),
+                                    torch.LongTensor([self.previous_action_idx]).to(device),
+                                    torch.Tensor(state).to(device),
+                                    torch.Tensor([obs.reward + step_reward]).to(device))
 
-        if self.previous_action is not None:
-            step_reward = self.get_reward(obs)
-            log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
-            if not obs.last():
-                self.memory.push(torch.Tensor(self.previous_state),
-                                 torch.LongTensor([self.previous_action_idx]),
-                                 torch.Tensor(state),
-                                 torch.Tensor([obs.reward + step_reward]))
-
-                self.optimize_model()
+                    self.optimize_model()
+                else:
+                    pass
             else:
                 pass
-        else:
-            pass
 
-        if self.episode % TARGET_UPDATE == 0:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
+            if self.episode % TARGET_UPDATE == 0:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.previous_state = state
         self.previous_action = action
