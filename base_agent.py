@@ -26,7 +26,7 @@ from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME
 DATA_FILE = 'AI_agent_data'
 
 GAMMA = 0.9
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 
 LOG_EPISODE = 31
 LOG_REWARD = 25
@@ -141,11 +141,7 @@ class DQN(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(state_size, 64),
             nn.ReLU(),
-            nn.Linear(64, 128),
-            nn.ReLU(),
-            nn.Linear(128, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
+            nn.Linear(64, 64),
             nn.ReLU(),
             nn.Linear(64, action_size)
         )
