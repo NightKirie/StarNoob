@@ -259,6 +259,7 @@ class BaseAgent(base_agent.BaseAgent):
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in army_type_list
+                    and unit.health > 0
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
@@ -279,6 +280,7 @@ class BaseAgent(base_agent.BaseAgent):
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in building_type_list
+                    and unit.health > 0
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
