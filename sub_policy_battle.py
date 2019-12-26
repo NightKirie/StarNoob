@@ -27,8 +27,9 @@ SAVE_MEMORY = 'model/battle_memory'
 
 class Agent(BaseAgent):
     actions = tuple(["do_nothing"]) + \
-              #tuple(["attack"]*64*64) + \
               tuple([f"attack_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)])
+
+             #tuple(["attack"]*64*64) + \
 
     def __init__(self):
         super().__init__()
