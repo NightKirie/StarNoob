@@ -6,23 +6,16 @@ import sub_policy_economic
 import sub_policy_training
 import configs as configs
 
-
 DATA_FILE = 'model/AI_agent_data.gz'
 
-BATCH_SIZE = 128
-GAMMA = 0.9
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
-
 SAVE_POLICY_NET = 'model/agent_dqn_policy'
 SAVE_TARGET_NET = 'model/agent_dqn_target'
 SAVE_MEMORY = 'model/agent_memory'
-
 
 class Agent(BaseAgent):
 
@@ -114,7 +107,7 @@ class SmartAgent(Agent):
 
         self.episode = 0
 
-        
+
 
     def reset(self):
         log.debug('in reset')
@@ -192,75 +185,48 @@ class SmartAgent(Agent):
         self.episode += 1
         state = self.get_state(obs)
         log.debug(f"state: {state}")
-        action = self.select_action(state)
+        action, action_idx = self.select_action(state)
         log.info(action)
 
         if self.previous_action is not None:
             step_reward = 0
             log.log(LOG_REWARD, "agent reward = " + str(obs.reward +step_reward))
-            if not obs.last:
-                self.memory.push(self.previous_state,
-                                 self.previous_action,
-                                 state,
-                                 obs.reward + step_reward)
+            if not obs.last():
+                self.memory.push(torch.Tensor(self.previous_state),
+                                 torch.LongTensor([self.previous_action_idx]),
+                                 torch.Tensor(state),
+                                 torch.Tensor([obs.reward + step_reward]))
 
                 self.optimize_model()
             else:
-                pass
+                # save models
+                self.save_module()
+                self.training_policy.save_module()
+                self.economic_policy.save_module()
+                self.battle_policy.save_module()
+                return
         else:
             pass
 
         self.previous_state = state
         self.previous_action = action
+        self.previous_action_idx = action_idx
 
         # record score for episode ending use
         self.score = obs.observation.score_cumulative.score
         log.debug('get out step')
         return getattr(self, action)(obs)
-    
+
     def select_action(self, state):
         sample = random.random()
         eps_threshold = 0.9
         if sample > eps_threshold:
             with torch.no_grad():
                 _, idx = self.policy_net(torch.Tensor(state).to(device)).max(0)
-                return self.actions[idx]
+                return self.actions[idx], idx
         else:
-            return self.actions[random.randrange(self.action_size)]
-
-    def optimize_model(self):
-        if len(self.memory) < BATCH_SIZE:
-            return
-        transitions = self.memory.sample(BATCH_SIZE)
-        batch = Transition(*zip(*transitions))
-
-        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), dtype=torch.uint8, device=device)
-
-        non_final_next_states = torch.cat([s for s in batch.next_state
-                                           if s is not None])
-        state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
-
-        state_action_values = self.policy_net(
-            state_batch).gather(1, action_batch)
-
-        next_state_values = torch.zeros(BATCH_SIZE, device=device)
-        next_state_values[non_final_mask] = self.target_net(
-            non_final_next_states)
-
-        expected_state_action_values = (
-            next_state_values * GAMMA) + reward_batch
-
-        loss = F.smooth_l1_loss(state_action_values,
-                                expected_state_action_values.unsqueeze(1))
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-1, 1)
-        self.optimizer.step()
+            idx = random.randrange(self.action_size)
+            return self.actions[idx], idx
 
     def save_module(self):
         self.policy_net.save()
