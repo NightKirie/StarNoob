@@ -13,8 +13,6 @@ SAVE_POLICY_NET = 'model/training_dqn_policy'
 SAVE_TARGET_NET = 'model/training_dqn_target'
 SAVE_MEMORY = 'model/training_memory'
 
-BATCH_SIZE = 128
-GAMMA = 0.9
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
@@ -177,7 +175,7 @@ class SubAgent_Training(Agent):
             log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
             if not obs.last():
                 self.memory.push(torch.Tensor(self.previous_state),
-                                 F.one_hot(torch.LongTensor([self.previous_action_idx]), self.action_size)[0],
+                                 torch.LongTensor([self.previous_action_idx]),
                                  torch.Tensor(state),
                                  torch.Tensor([obs.reward + step_reward]))
 
@@ -245,42 +243,6 @@ class SubAgent_Training(Agent):
         else:
             idx = random.randrange(self.action_size)
             return self.actions[idx], idx
-
-
-
-    def optimize_model(self):
-        if len(self.memory) < BATCH_SIZE:
-            return
-        transitions = self.memory.sample(BATCH_SIZE)
-        batch = Transition(*zip(*transitions))
-
-        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), dtype=torch.uint8, device=device)
-
-        non_final_next_states = torch.cat([s for s in batch.next_state
-                                           if s is not None])
-        state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
-
-        state_action_values = self.policy_net(
-            state_batch).gather(1, action_batch)
-
-        next_state_values = torch.zeros(BATCH_SIZE, device=device)
-        next_state_values[non_final_mask] = self.target_net(
-            non_final_next_states)
-
-        expected_state_action_values = (
-            next_state_values * GAMMA) + reward_batch
-
-        loss = nn.CrossEntropyLoss(state_action_values,
-                                expected_state_action_values.unsqueeze(1))
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-1, 1)
-        self.optimizer.step()
 
     def save_module(self):
         self.policy_net.save()

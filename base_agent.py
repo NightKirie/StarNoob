@@ -25,6 +25,9 @@ from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME
 
 DATA_FILE = 'AI_agent_data'
 
+GAMMA = 0.9
+BATCH_SIZE = 32
+
 LOG_EPISODE = 31
 LOG_REWARD = 25
 LOG_MODEL = 30
@@ -144,8 +147,7 @@ class DQN(nn.Module):
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(64, action_size),
-            nn.Softmax(0)
+            nn.Linear(64, action_size)
         )
 
     def forward(self, x):
@@ -314,6 +316,31 @@ class BaseAgent(base_agent.BaseAgent):
             command_center = self.get_my_units_by_type(
                 obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32)
+
+    def optimize_model(self):
+        if len(self.memory) < BATCH_SIZE:
+            return
+        transitions = self.memory.sample(BATCH_SIZE)
+        batch = Transition(*zip(*transitions))
+
+        state_batch = torch.cat(batch.state).view(self.state_size, -1).T
+        next_state_batch = torch.cat(batch.next_state).view(self.state_size, -1).T
+        action_batch = torch.cat(batch.action).unsqueeze(1)
+        reward_batch = torch.cat(batch.reward)
+
+        state_action_values = self.policy_net(state_batch)
+        state_action_values = state_action_values.gather(1, action_batch).squeeze()
+
+        next_state_values = self.target_net(next_state_batch).max(1)[0].detach()
+        expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+
+        loss = F.mse_loss(state_action_values, expected_state_action_values)
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        for param in self.policy_net.parameters():
+            param.grad.data.clamp_(-1, 1)
+        self.optimizer.step()
 
 
 observation = SimpleNamespace(**{'single_select': np.zeros((0,7)),
