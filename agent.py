@@ -62,15 +62,7 @@ class Agent(BaseAgent):
         log.debug('out choose training')
         return choose_action
 
-    def step(self, obs):
-        super(Agent, self).step(obs)
-        if obs.first():
-            command_center = self.get_my_units_by_type(
-                obs, units.Terran.CommandCenter)[0]
-            self.base_top_left = (command_center.x < 32)
-            self.battle_policy.set_top_left(obs)
-            self.economic_policy.set_top_left(obs)
-            self.training_policy.set_top_left(obs)
+        
 
 
 
@@ -133,6 +125,7 @@ class SmartAgent(Agent):
         self.previous_killed_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.time_penalty = 0
+        self.steps = 0
         self.score = 0
 
     def get_state(self, obs):
@@ -177,12 +170,21 @@ class SmartAgent(Agent):
                 )
 
     def step(self, obs):
+
         """
         every step starcraft II will call this function
         return: getattr(self, action)(obs)
         """
         log.debug('into step')
         super(SmartAgent, self).step(obs)
+        if obs.first():
+            command_center = self.get_my_units_by_type(
+                obs, units.Terran.CommandCenter)[0]
+            self.base_top_left = (command_center.x < 32)
+            self.battle_policy.set_top_left(obs)
+            self.economic_policy.set_top_left(obs)
+            self.training_policy.set_top_left(obs)
+
         self.episode += 1
         state = self.get_state(obs)
         log.debug(f"state: {state}")
