@@ -26,6 +26,42 @@ class TerranCreature(Creature):
             return self.hp * attack / max(attack - self.armor, 1)
 
 
+class TechLab(TerranBuilding):
+
+    def __init__(self):
+        super().__init__()
+        self.specialization()
+
+    def specialization(self): 
+        self.name = "TechLab"
+        self.mineral_price = 50
+        self.vespene_price = 25
+        self.build_time = 18
+
+        self.hp = 400
+        self.armor = 1
+        self.index = 5
+        self.requirements = []
+
+
+class Reactor(TerranBuilding):
+
+    def __init__(self):
+        super().__init__()
+        self.specialization()
+
+    def specialization(self): 
+        self.name = "Reactor"
+        self.mineral_price = 50
+        self.vespene_price = 50
+        self.build_time = 36
+
+        self.hp = 400
+        self.armor = 1
+        self.index = 6
+        self.requirements = []
+
+
 class CommandCenter(TerranBuilding):
 
     def __init__(self):
@@ -89,6 +125,17 @@ class Barracks(TerranBuilding):
         self.index = 21
         self.requirements = ["SupplyDepot"]
 
+class BarracksTechLab(TechLab):
+    def specialization(self): 
+        self.name = self.__name__
+        self.index = 37
+        self.requirements = ["Barracks"]
+
+class BarracksReactor(Reactor):
+    def specialization(self): 
+        self.name = self.__name__
+        self.index = 38
+        self.requirements = ["Barracks"]
 
 class OrbitalCommand(TerranBuilding):
 
@@ -241,6 +288,18 @@ class Factory(TerranBuilding):
         self.index = 27
         self.requirements = ["Barracks"]
 
+class FactoryTechLab(TechLab):
+    def specialization(self):
+        self.name = self.__name__
+        self.index = 39
+        self.requirements = ["Factory"]
+
+class FactoryReactor(Reactor):
+    def specialization(self):
+        self.name = self.__name__
+        self.index = 40
+        self.requirements = ["Factory"]
+
 class GhostAcademy(TerranBuilding):
 
     def __init__(self):
@@ -292,6 +351,19 @@ class Starport(TerranBuilding):
         self.index = 28
         self.requirements = ["Factory"]
 
+class StarportTechLab(TechLab):
+    def specialization(self):
+        self.name = self.__name__
+        self.index = 41
+        self.requirements = ["Starport"]
+
+class StarportReactor(Reactor):
+    def specialization(self):
+        self.name = self .__name__
+        self.index = 42
+        self.requirements = ["Starport"]
+
+
 class FusionCore(TerranBuilding):
 
     def __init__(self):
@@ -309,39 +381,6 @@ class FusionCore(TerranBuilding):
         self.index = 30
         self.requirements = ["Starport"]
 
-class TechLab(TerranBuilding):
-
-    def __init__(self):
-        super().__init__()
-        self.specialization()
-
-    def specialization(self): 
-        self.name = "TechLab"
-        self.mineral_price = 50
-        self.vespene_price = 25
-        self.build_time = 18
-
-        self.hp = 400
-        self.armor = 1
-        self.index = 5
-        self.requirements = []
-
-class Reactor(TerranBuilding):
-
-    def __init__(self):
-        super().__init__()
-        self.specialization()
-
-    def specialization(self): 
-        self.name = "Reactor"
-        self.mineral_price = 50
-        self.vespene_price = 50
-        self.build_time = 36
-
-        self.hp = 400
-        self.armor = 1
-        self.index = 6
-        self.requirements = []
 
 class Marine(TerranCreature):
 
