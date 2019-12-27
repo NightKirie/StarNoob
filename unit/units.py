@@ -90,3 +90,17 @@ class Army():
 
     def __str__(self):
         return str(self.player_id) + ', ' + str(self.order) + ', ' + str(self.pos)
+
+class Upgrade():
+    def __init(self):
+        self.name = "Upgrade"
+        self.index = 0
+
+        self.mineral_price = 0
+        self.gas_price = 0
+        self.build_time = 0
+
+        self.research_from = []
+        self.requirements = []
+        self.affect = []
+        
