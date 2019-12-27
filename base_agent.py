@@ -151,15 +151,15 @@ class DQN(nn.Module):
 
     def save(self):
         torch.save(self.state_dict(), self.savepath)
-        log.log(LOG_MODEL, "Save model " + self.savepath)
+        log.log(LOG_MODEL, f"Save model  \"{self.savepath}\"")
 
     def load(self):
         if os.path.isfile(self.savepath):
             self.load_state_dict(torch.load(self.savepath, map_location=device))
-            log.log(LOG_MODEL, "Load model " + self.savepath)
+            log.log(LOG_MODEL, f"Load model  \"{self.savepath}\"")
             return True
         else:
-            log.log(LOG_MODEL, "Model " + self.savepath + " not found")
+            log.log(LOG_MODEL, f"Model \"{self.savepath}\" not found")
             return False
 
 
@@ -337,6 +337,26 @@ class BaseAgent(base_agent.BaseAgent):
         for param in self.policy_net.parameters():
             param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
+
+    def set_DQN(self, SAVE_POLICY_NET, SAVE_TARGET_NET, SAVE_MEMORY):
+        self.state_size = len(self.get_state(MYOBS))
+        self.action_size = len(self.actions)
+        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET).to(device)
+        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET).to(device)
+
+        self.memory = ReplayMemory(10000)
+
+        # if saved models exist
+        if self.policy_net.load() and self.target_net.load():
+            with open(SAVE_MEMORY, 'rb') as f:
+                self.memory = pickle.load(f)
+                log.log(LOG_MODEL, f"Load memory \"{SAVE_MEMORY}\"")
+        else:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+            self.target_net.eval()
+            log.log(LOG_MODEL, f"Memory \"{SAVE_MEMORY}\" not found")
+
+        self.optimizer = optim.RMSprop(self.policy_net.parameters())
 
 
 observation = SimpleNamespace(**{'single_select': np.zeros((0,7)),

@@ -79,28 +79,8 @@ class SmartAgent(Agent):
         log.debug('in __init__')
         super(SmartAgent, self).__init__()
         self.new_game()
-        self.state_size = len(self.get_state(MYOBS))
-        self.action_size = len(self.actions)
-        self.policy_net = DQN(self.state_size, self.action_size, SAVE_POLICY_NET).to(device)
-        self.target_net = DQN(self.state_size, self.action_size, SAVE_TARGET_NET).to(device)
-
-        self.memory = ReplayMemory(10000)
-
-        # if saved models exist
-        if self.policy_net.load() and self.target_net.load():
-            with open(SAVE_MEMORY, 'rb') as f:
-                self.memory = pickle.load(f)
-                log.log(LOG_MODEL, "Load memory " + SAVE_MEMORY)
-        else:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-            self.target_net.eval()
-            log.log(LOG_MODEL, "Memory " + SAVE_MEMORY + " not found")
-
-        self.optimizer = optim.RMSprop(self.policy_net.parameters())
-
+        self.set_DQN(SAVE_POLICY_NET, SAVE_TARGET_NET, SAVE_MEMORY)
         self.episode = 0
-
-
 
     def reset(self):
         log.debug('in reset')
@@ -236,7 +216,7 @@ class SmartAgent(Agent):
         self.target_net.save()
         with open(SAVE_MEMORY, 'wb') as f:
             pickle.dump(self.memory, f)
-            log.log(LOG_MODEL, "Save memory battle")
+            log.log(LOG_MODEL, "Save memory in agent")
 
 
 def main(unused_argv):
