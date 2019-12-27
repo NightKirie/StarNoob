@@ -6,8 +6,6 @@ import sub_policy_economic
 import sub_policy_training
 import configs as configs
 
-DATA_FILE = 'model/AI_agent_data.gz'
-
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
