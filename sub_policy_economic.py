@@ -1,5 +1,7 @@
 from base_agent import *
 
+import unit.terran_unit as terran
+
 DATA_FILE = 'Sub_building_data'
 FAILED_COMMAND = 0.0001
 MORE_MINERALS_USED_REWARD_RATE = 0.0001
@@ -18,23 +20,23 @@ class Agent(BaseAgent):
 
     actions = ("do_nothing",
                "harvest_minerals",
-               "build_supply_depot",
-               "build_barracks",
-               "build_refinery",
+               "build_SupplyDepot",
+               "build_Barracks",
+               "build_Refinery",
                "train_SCV",
                "harvest_gas",
-               "build_barrack_techlab",
-               "build_barrack_reactor",
-               "build_ghostacademys",
-               "build_engineeringbays",
-               "build_factorys",
-               "build_factory_techlab",
-               "build_factory_reactor",
-               "build_armorys",
-               "build_starports",
-               "build_starports_techlab",
-               "build_starports_reactor",
-               "build_fusioncores",
+               "build_BarracksTechLab",
+               "build_BarracksReactor",
+               "build_GhostAcademy",
+               "build_EngineeringBay",
+               "bulid_Factory",
+               "build_FactoryTechLab",
+               "build_FactoryReactor",
+               "build_Armory",
+               "build_Starport",
+               "build_StarportTechLab",
+               "build_StarportReactor",
+               "build_FusionCore",
                "research_infantryweapons",
                "research_infantryarmor",
                "research_hiSecautotracking",
@@ -126,7 +128,7 @@ class Agent(BaseAgent):
             return actions.RAW_FUNCTIONS.Train_SCV_quick("now", completed_commandcenter.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_supply_depot(self, obs):
+    def build_SupplyDepot(self, obs):
         supply_depots = self.get_my_units_by_type(
             obs, units.Terran.SupplyDepot)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -159,7 +161,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, supply_depot_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_refinery(self, obs):
+    def build_Refinery(self, obs):
         refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         gas_patches = [unit for unit in obs.observation.raw_units
@@ -183,7 +185,7 @@ class Agent(BaseAgent):
             return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_barracks(self, obs):
+    def build_Barracks(self, obs):
         completed_supply_depots = self.get_my_completed_units_by_type(
             obs, units.Terran.SupplyDepot)
         barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
@@ -204,7 +206,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, barracks_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_barrack_techlab(self, obs):
+    def build_BarracksTechLab(self, obs):
         completed_barrackses = self.get_my_completed_units_by_type(
             obs, units.Terran.Barracks)
         if len(completed_barrackses) > 0:
@@ -212,7 +214,7 @@ class Agent(BaseAgent):
                 "now", [barrack.tag for barrack in completed_barrackses])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_barrack_reactor(self, obs):
+    def build_BarracksReactor(self, obs):
         completed_barrackses = self.get_my_completed_units_by_type(
             obs, units.Terran.Barracks)
         if len(completed_barrackses) > 0:
@@ -220,7 +222,7 @@ class Agent(BaseAgent):
                 "now", [barrack.tag for barrack in completed_barrackses])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_ghostacademys(self, obs):
+    def build_GhostAcademy(self, obs):
         ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         if (len(ghostacademys) == 0 and obs.observation.player.minerals >= 150 and len(scvs) > 0):
@@ -231,7 +233,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, ghostacademys_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_engineeringbays(self, obs):
+    def build_EngineeringBay(self, obs):
         engineeringbays = self.get_my_units_by_type(
             obs, units.Terran.EngineeringBay)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -243,7 +245,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, engineeringbays_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_factorys(self, obs):
+    def bulid_Factory(self, obs):
         factorys = self.get_my_units_by_type(
             obs, units.Terran.Factory)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -255,7 +257,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, factorys_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_factory_techlab(self, obs):
+    def build_FactoryTechLab(self, obs):
         completed_factorys = self.get_my_completed_units_by_type(
             obs, units.Terran.Factory)
         if len(completed_factorys) > 0:
@@ -263,7 +265,7 @@ class Agent(BaseAgent):
                 "now", [factorys.tag for factorys in completed_factorys])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_factory_reactor(self, obs):
+    def build_FactoryReactor(self, obs):
         completed_factorys = self.get_my_completed_units_by_type(
             obs, units.Terran.Factory)
         if len(completed_factorys) > 0:
@@ -271,7 +273,7 @@ class Agent(BaseAgent):
                 "now", [factorys.tag for factorys in completed_factorys])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_armorys(self, obs):
+    def build_Armory(self, obs):
         armorys = self.get_my_units_by_type(
             obs, units.Terran.Armory)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -283,7 +285,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, armorys_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_starports(self, obs):
+    def build_Starport(self, obs):
         starports = self.get_my_units_by_type(
             obs, units.Terran.Starport)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -295,7 +297,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, starports_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_fusioncores(self, obs):
+    def build_FusionCore(self, obs):
         fusioncores = self.get_my_units_by_type(
             obs, units.Terran.FusionCore)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -307,7 +309,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, fusioncores_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_starports_techlab(self, obs):
+    def build_StarportTechLab(self, obs):
         completed_starports = self.get_my_completed_units_by_type(
             obs, units.Terran.Starport)
         if len(completed_starports) > 0:
@@ -315,7 +317,7 @@ class Agent(BaseAgent):
                 "now", [starports.tag for starports in completed_starports])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def build_starports_reactor(self, obs):
+    def build_StarportReactor(self, obs):
         completed_starports = self.get_my_completed_units_by_type(
             obs, units.Terran.Starport)
         if len(completed_starports) > 0:
@@ -488,6 +490,47 @@ class SubAgent_Economic(Agent):
         self.previous_total_spent_vespene = 0
         self.negative_reward = 0
 
+    def can_afford_unit(self, obs, action):
+        """ Check if all conditi on can afford to this unit
+        Args:
+          obs
+          action (str): from self.actions
+        Returns:
+          True: if can afford
+          or                                                                
+          False: if can not afford
+        """
+        can_afford = False
+        
+        # Parse action
+        ## build_xxx
+        if action.find("build") != -1:
+            building = getattr(terran, action[action.index("_")+1:])
+
+            ### check requirement
+            if isinstance(building, terran.TerranBuilding):
+                if len(self.get_my_units_by_type(obs, units.Terran.SCV)) > 0 \
+                and obs.observation.player.minerals >= building.mineral_price\
+                and obs.observation.player.vespene >= building.vespene_price \
+                and 0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in building.requirements]:
+                    can_afford = True
+            
+            ### Reactor or TechLab
+            if isinstance(building, terran.Reactor) or isinstance(building, terran.TechLab):
+                father_building = self.get_my_units_by_type(obs, getattr(terran, building.requirement[0])().index)
+                cousin_building = \
+                        self.get_my_units_by_type(obs, getattr(terran, building.requirement[0]+"Reactor")().index) + \
+                        self.get_my_units_by_type(obs, getattr(terran, building.requirement[0]+"TechLab")().index)
+
+                if len(father_building) <= len(cousin_building):
+                    can_afford = False
+        elif action.find("research") != -1:
+            pass
+
+                
+
+        return can_afford
+
     def get_negative_reward(self, obs, action):
 
         player_mineral = obs.observation.player.minerals
@@ -497,42 +540,11 @@ class SubAgent_Economic(Agent):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
 
-        refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
-        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
 
-        completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+        if self.can_afford_unit(obs, action) == False:
+            return FAILED_COMMAND
 
-        supply_depots = self.get_my_units_by_type(obs, units.Terran.SupplyDepot)
-        completed_supply_depots = self.get_my_completed_units_by_type(obs, units.Terran.SupplyDepot)
-
-        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
-        completed_barrackses = self.get_my_completed_units_by_type(obs, units.Terran.Barracks)
-        barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
-        barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
-        completed_barrackstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.BarracksTechLab)
-
-        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
-
-        engineeringbays = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
-        completed_engineeringbays = self.get_my_completed_units_by_type(obs, units.Terran.EngineeringBay)
-
-        factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
-        completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
-        factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
-        factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
-        completed_factorytechlabs = self.get_my_completed_units_by_type(obs, units.Terran.FactoryTechLab)
-
-        armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
-        completed_armorys = self.get_my_completed_units_by_type(obs, units.Terran.Armory)
-
-        starports = self.get_my_units_by_type(obs, units.Terran.Starport)
-        complete_starports = self.get_my_completed_units_by_type(obs, units.Terran.Starport)
-        starportstechlabs = self.get_my_units_by_type(obs, units.Terran.StarportTechLab)
-        starportsreactors = self.get_my_units_by_type(obs, units.Terran.StarportReactor)
-        completed_starportstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.StarportTechLab )
-
-        fusioncores = self.get_my_units_by_type(obs, units.Terran.FusionCore)
-
+        """
         have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
         have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
         have_research_infantryweapons_level3 = 9 in obs.observation.upgrades
@@ -571,56 +583,11 @@ class SubAgent_Economic(Agent):
         if action == "harvest_minerals":
             if len(idle_scvs) == 0:
                 return FAILED_COMMAND
-        elif action == "build_supply_depot":
-            if len(supply_depots) >= 9 or len(scvs) <= 0 or player_mineral < 100:
-                return FAILED_COMMAND
-        elif action == "build_barracks":
-            if len(completed_supply_depots) <= 0 or len(barrackses) >= 2 or len(scvs) <= 0 or player_mineral < 150:
-                return FAILED_COMMAND
-        elif action == "build_refinery":
-            if len(refinery) >= 2 or len(scvs) <= 0 or player_mineral < 75:
-                return FAILED_COMMAND
         elif action == "train_SCV":
             if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
                 return FAILED_COMMAND
         elif action == "harvest_gas":
             if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
-                return FAILED_COMMAND
-        elif action == "build_barrack_techlab":
-            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 25:
-                return FAILED_COMMAND
-        elif action == "build_barrack_reactor":
-            if len(completed_barrackses) <= 0 or len(completed_barrackses) <= len(barracksreactors) + len(barrackstechlabs) or player_mineral < 50 or player_vespene < 50:
-                return FAILED_COMMAND
-        elif action == "build_ghostacademys":
-            if len(ghostacademys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 50:
-                return FAILED_COMMAND
-        elif action == "build_engineeringbays":
-            if len(engineeringbays) >= 1 or len(scvs) <= 0 or len(completed_commandcenters) <= 0 or player_mineral < 125:
-                return FAILED_COMMAND
-        elif action == "build_factorys":
-            if len(factorys) >= 1 or len(completed_barrackses) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "build_factory_techlab":
-            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 25:
-                return FAILED_COMMAND
-        elif action == "build_factory_reactor":
-            if len(completed_factorys) <= 0 or len(completed_factorys) <= len(factoryreactors) + len(factorytechlabs) or player_mineral < 50 or player_vespene < 50:
-                return FAILED_COMMAND
-        elif action == "build_armorys":
-            if len(armorys) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "build_starports":
-            if len(starports) >= 1 or len(completed_factorys) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene <100:
-                return FAILED_COMMAND
-        elif action == "build_starports_techlab":
-            if len(complete_starports) <= 0 or len(complete_starports) <= len(starportsreactors) + len(starportstechlabs) or player_mineral < 50 or player_vespene < 25:
-                return FAILED_COMMAND
-        elif action == "build_starports_reactor":
-            if len(complete_starports) <= 0 or len(complete_starports) <= len(starportsreactors) + len(starportstechlabs) or player_mineral < 50 or player_vespene < 50:
-                return FAILED_COMMAND
-        elif action == "build_fusioncores":
-            if len(fusioncores) >= 1 or len(complete_starports) <= 0 or len(scvs) <= 0 or player_mineral < 150 or player_vespene < 150:
                 return FAILED_COMMAND
         elif action == "research_infantryweapons":
             if len(completed_engineeringbays) <= 0 or have_research_infantryweapons_level3:
@@ -713,6 +680,7 @@ class SubAgent_Economic(Agent):
                     return FAILED_COMMAND
             if player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
+        """
         return 0
 
     def get_state(self, obs):
@@ -722,108 +690,23 @@ class SubAgent_Economic(Agent):
 
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        command_centers = self.get_my_units_by_type(
-            obs, units.Terran.CommandCenter)
+        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in BUILDING_UNIT_NAME] 
 
-        refinerys = self.get_my_units_by_type(obs, units.Terran.Refinery)
-        completed_refinerys = self.get_my_completed_units_by_type(
-            obs, units.Terran.Refinery)
-        notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
-
-        supply_depots = self.get_my_units_by_type(
-            obs, units.Terran.SupplyDepot)
-        completed_supply_depots = self.get_my_completed_units_by_type(
-            obs, units.Terran.SupplyDepot)
-
-        barrackses = self.get_my_units_by_type(obs, units.Terran.Barracks)
-        completed_barrackses = self.get_my_completed_units_by_type(
-            obs, units.Terran.Barracks)
-
-        barrackstechlabs = self.get_my_units_by_type(obs, units.Terran.BarracksTechLab)
-        completed_barrackstechlabs = self.get_my_completed_units_by_type(
-            obs, units.Terran.BarracksTechLab)
-
-        barracksreactors = self.get_my_units_by_type(obs, units.Terran.BarracksReactor)
-        completed_barracksreactors = self.get_my_completed_units_by_type(
-            obs, units.Terran.BarracksReactor)
-
-        ghostacademys = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
-        complete_ghostacademys = self.get_my_completed_units_by_type(obs, units.Terran.GhostAcademy)
-
-        engineeringbays = self.get_my_units_by_type(
-            obs, units.Terran.EngineeringBay)
-        completed_engineeringbays = self.get_my_completed_units_by_type(
-            obs, units.Terran.EngineeringBay)
-
-        factorys = self.get_my_units_by_type(obs, units.Terran.Factory)
-        completed_factorys = self.get_my_completed_units_by_type(obs, units.Terran.Factory)
-
-        factorytechlabs = self.get_my_units_by_type(obs, units.Terran.FactoryTechLab)
-        completed_factorytechlabs = self.get_my_completed_units_by_type(obs, units.Terran.FactoryTechLab)
-
-        factoryreactors = self.get_my_units_by_type(obs, units.Terran.FactoryReactor)
-        completed_factoryreactors = self.get_my_completed_units_by_type(obs, units.Terran.FactoryReactor)
-
-        armorys = self.get_my_units_by_type(obs, units.Terran.Armory)
-        completed_armorys = self.get_my_completed_units_by_type(obs, units.Terran.Armory)
-
-        starports = self.get_my_units_by_type(obs, units.Terran.Starport)
-        complete_starports = self.get_my_completed_units_by_type(obs, units.Terran.Starport)
-
-        starportstechlabs = self.get_my_units_by_type(obs, units.Terran.StarportTechLab )
-        completed_starportstechlabs = self.get_my_completed_units_by_type(obs, units.Terran.StarportTechLab )
-
-        starportsreactors = self.get_my_units_by_type(obs, units.Terran.StarportReactor )
-        completed_starportsreactors = self.get_my_completed_units_by_type(obs, units.Terran.StarportReactor)
-
-        fusioncores = self.get_my_units_by_type(obs, units.Terran.FusionCore)
-        complete_fusioncores = self.get_my_completed_units_by_type(obs, units.Terran.FusionCore)
 
         player_food_used = obs.observation.player.food_used
         player_food_cap = obs.observation.player.food_cap
         free_supply = (obs.observation.player.food_cap -
                        obs.observation.player.food_used)
 
-        return (self.base_top_left,
+        return tuple([self.base_top_left,
                 player_mineral,
                 player_vespene,
-                len(command_centers),
                 len(scvs),
-                len(idle_scvs),
-                len(refinerys),
-                len(completed_refinerys),
-                len(notfull_completed_refinerys),
-                len(supply_depots),
-                len(completed_supply_depots),
-                len(barrackses),
-                len(completed_barrackses),
-                len(barrackstechlabs),
-                len(completed_barrackstechlabs),
-                len(barracksreactors),
-                len(completed_barracksreactors),
-                len(ghostacademys),
-                len(complete_ghostacademys),
-                len(engineeringbays),
-                len(completed_engineeringbays),
-                len(factorys),
-                len(completed_factorys),
-                len(factorytechlabs),
-                len(completed_factorytechlabs),
-                len(factoryreactors),
-                len(completed_factoryreactors),
-                len(armorys),
-                len(completed_armorys),
-                len(starports),
-                len(complete_starports),
-                len(starportstechlabs),
-                len(completed_starportstechlabs),
-                len(starportsreactors),
-                len(completed_starportsreactors),
-                len(fusioncores),
-                len(complete_fusioncores),
-                free_supply,
+                len(idle_scvs)]+ \
+                buildings + \
+                [free_supply,
                 player_food_used,
-                player_food_cap
+                player_food_cap]
                 )
 
     def step(self, obs):

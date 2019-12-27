@@ -159,7 +159,7 @@ class DQN(nn.Module):
             log.log(LOG_MODEL, f"Load model  \"{self.savepath}\"")
             return True
         else:
-            log.log(LOG_MODEL, f"Model \"{self.savepath}\" not found")
+            log.log(LOG_MODEL, f"Model  \"{self.savepath}\" not found")
             return False
 
 

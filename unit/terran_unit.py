@@ -198,7 +198,7 @@ class Refinery(TerranBuilding):
         self.index = 20
         self.requirements = []
 
-class EngineerBay(TerranBuilding):
+class EngineeringBay(TerranBuilding):
 
     def __init__(self):
         super().__init__()
