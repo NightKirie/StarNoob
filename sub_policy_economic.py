@@ -18,43 +18,12 @@ SAVE_MEMORY = 'model/economic_memory'
 
 class Agent(BaseAgent):
 
-    actions = ("do_nothing",
-               "harvest_minerals",
-               "build_SupplyDepot",
-               "build_Barracks",
-               "build_Refinery",
+    actions = tuple(["do_nothing",
                "train_SCV",
-               "harvest_gas",
-               "build_BarracksTechLab",
-               "build_BarracksReactor",
-               "build_GhostAcademy",
-               "build_EngineeringBay",
-               "bulid_Factory",
-               "build_FactoryTechLab",
-               "build_FactoryReactor",
-               "build_Armory",
-               "build_Starport",
-               "build_StarportTechLab",
-               "build_StarportReactor",
-               "build_FusionCore",
-               "research_infantryweapons",
-               "research_infantryarmor",
-               "research_hiSecautotracking",
-               "research_structurearmor",
-               "research_Combat_Shield",
-               "research_StimPack",
-               "research_ConcussiveShells",
-               "research_InfernalPreignite",
-               "research_CycloneLockOnDamage",
-               "research_DrillingClaws",
-               "research_SmartServos",
-               "research_RavenCorvidReactor",
-               "research_BansheeCloakingField",
-               "research_BansheeHyperflightRotors",
-               "research_TerranVehicleWeapons",
-               "research_TerranShipWeapons",
-               "research_TerranVehicleAndShipPlating"
-               )
+               "harvest_minerals",
+               "harvest_gas"] +\
+                [f"build_{building}" for building in BUILDING_UNIT_NAME] +\
+                [f"research_{tech}" for tech in RESEARCH_NAME])
 
     def __init__(self):
         super(Agent, self).__init__()
@@ -126,6 +95,9 @@ class Agent(BaseAgent):
             completed_commandcenter = completed_commandcenters[self.get_least_busy_building(
                 completed_commandcenters)]
             return actions.RAW_FUNCTIONS.Train_SCV_quick("now", completed_commandcenter.tag)
+        return actions.RAW_FUNCTIONS.no_op()
+
+    def build_CommandCenter(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_SupplyDepot(self, obs):
@@ -245,7 +217,7 @@ class Agent(BaseAgent):
                 "now", scv.tag, engineeringbays_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
-    def bulid_Factory(self, obs):
+    def build_Factory(self, obs):
         factorys = self.get_my_units_by_type(
             obs, units.Terran.Factory)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -325,7 +297,7 @@ class Agent(BaseAgent):
                 "now", [starports.tag for starports in completed_starports])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_infantryweapons(self, obs):
+    def research_TerranInfantryWeapons(self, obs):
         completed_engineeringbays = self.get_my_completed_units_by_type(
             obs, units.Terran.EngineeringBay)
         if len(completed_engineeringbays) > 0:
@@ -333,7 +305,7 @@ class Agent(BaseAgent):
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_infantryarmor(self, obs):
+    def research_TerranInfantryArmor(self, obs):
         completed_engineeringbays = self.get_my_completed_units_by_type(
             obs, units.Terran.EngineeringBay)
         if len(completed_engineeringbays) > 0:
@@ -341,7 +313,7 @@ class Agent(BaseAgent):
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_hiSecautotracking(self, obs):
+    def research_HiSecAutoTracking(self, obs):
         completed_engineeringbays = self.get_my_completed_units_by_type(
             obs, units.Terran.EngineeringBay)
         if len(completed_engineeringbays) > 0:
@@ -349,7 +321,7 @@ class Agent(BaseAgent):
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_structurearmor(self, obs):
+    def research_TerranStructureArmorUpgrade(self, obs):
         completed_engineeringbays = self.get_my_completed_units_by_type(
             obs, units.Terran.EngineeringBay)
         if len(completed_engineeringbays) > 0:
@@ -357,7 +329,7 @@ class Agent(BaseAgent):
                 "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
         return actions.RAW_FUNCTIONS.no_op()
 #Tech lab (barrack)
-    def research_Combat_Shield(self, obs):
+    def research_CombatShield(self, obs):
         completed_Tech_lab = self.get_my_completed_units_by_type(
             obs, units.Terran.BarracksTechLab)
         if len(completed_Tech_lab) > 0:
@@ -365,7 +337,7 @@ class Agent(BaseAgent):
                 "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_StimPack(self, obs):
+    def research_Stimpack(self, obs):
         completed_Tech_lab = self.get_my_completed_units_by_type(
             obs, units.Terran.BarracksTechLab)
         if len(completed_Tech_lab) > 0:
@@ -382,11 +354,11 @@ class Agent(BaseAgent):
         return actions.RAW_FUNCTIONS.no_op()
 
 #Tech lab (factory)
-    def research_InfernalPreignite(self, obs):
+    def research_InfernalPreigniter(self, obs):
         completed_Tech_lab = self.get_my_completed_units_by_type(
             obs, units.Terran.FactoryTechLab)
         if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_InfernalPreigniter_quick(
+            return actions.RAW_FUNCTIONS.Research_InfernalPreigniterr_quick(
                 "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
         return actions.RAW_FUNCTIONS.no_op()
 
@@ -545,20 +517,20 @@ class SubAgent_Economic(Agent):
             return FAILED_COMMAND
 
         """
-        have_research_infantryweapons_level1 = 7 in obs.observation.upgrades
-        have_research_infantryweapons_level2 = 8 in obs.observation.upgrades
-        have_research_infantryweapons_level3 = 9 in obs.observation.upgrades
-        have_research_infantryarmor_level1 = 11 in obs.observation.upgrades
-        have_research_infantryarmor_level2 = 12 in obs.observation.upgrades
-        have_research_infantryarmor_level3 = 13 in obs.observation.upgrades
-        have_research_hiSecautotracking = 5 in obs.observation.upgrades
-        have_research_structurearmor = 6 in obs.observation.upgrades
+        have_research_TerranInfantryWeapons_level1 = 7 in obs.observation.upgrades
+        have_research_TerranInfantryWeapons_level2 = 8 in obs.observation.upgrades
+        have_research_TerranInfantryWeapons_level3 = 9 in obs.observation.upgrades
+        have_research_TerranInfantryArmor_level1 = 11 in obs.observation.upgrades
+        have_research_TerranInfantryArmor_level2 = 12 in obs.observation.upgrades
+        have_research_TerranInfantryArmor_level3 = 13 in obs.observation.upgrades
+        have_research_HiSecAutoTracking = 5 in obs.observation.upgrades
+        have_research_TerranStructureArmorUpgrade = 6 in obs.observation.upgrades
 
-        have_research_Combat_Shield = 16 in obs.observation.upgrades
-        have_research_StimPack = 15 in obs.observation.upgrades
+        have_research_CombatShield = 16 in obs.observation.upgrades
+        have_research_Stimpack = 15 in obs.observation.upgrades
         have_research_ConcussiveShells = 17 in obs.observation.upgrades
 
-        have_research_InfernalPreignite = 19 in obs.observation.upgrades
+        have_research_InfernalPreigniter = 19 in obs.observation.upgrades
         have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
         have_research_DrillingClaws = 122 in obs.observation.upgrades
         have_research_SmartServos = 289 in obs.observation.upgrades
@@ -589,45 +561,45 @@ class SubAgent_Economic(Agent):
         elif action == "harvest_gas":
             if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
                 return FAILED_COMMAND
-        elif action == "research_infantryweapons":
-            if len(completed_engineeringbays) <= 0 or have_research_infantryweapons_level3:
+        elif action == "research_TerranInfantryWeapons":
+            if len(completed_engineeringbays) <= 0 or have_research_TerranInfantryWeapons_level3:
                 return FAILED_COMMAND
-            if have_research_infantryweapons_level2:
+            if have_research_TerranInfantryWeapons_level2:
                 if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
                     return FAILED_COMMAND
-            if have_research_infantryweapons_level1:
+            if have_research_TerranInfantryWeapons_level1:
                 if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
                     return FAILED_COMMAND
             if player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
-        elif action == "research_infantryarmor":
-            if len(completed_engineeringbays) <= 0 or have_research_infantryarmor_level3:
+        elif action == "research_TerranInfantryArmor":
+            if len(completed_engineeringbays) <= 0 or have_research_TerranInfantryArmor_level3:
                 return FAILED_COMMAND
-            if have_research_infantryarmor_level2:
+            if have_research_TerranInfantryArmor_level2:
                 if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
                     return FAILED_COMMAND
-            if have_research_infantryarmor_level1:
+            if have_research_TerranInfantryArmor_level1:
                 if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
                     return FAILED_COMMAND
             if player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
-        elif action == "research_hiSecautotracking":
-            if len(completed_engineeringbays) <= 0 or have_research_hiSecautotracking or player_mineral < 100 or player_vespene < 100:
+        elif action == "research_HiSecAutoTracking":
+            if len(completed_engineeringbays) <= 0 or have_research_HiSecAutoTracking or player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
-        elif action == "research_structurearmor":
-            if len(completed_engineeringbays) <= 0 or have_research_structurearmor or player_mineral < 100 or player_vespene < 100:
+        elif action == "research_TerranStructureArmorUpgrade":
+            if len(completed_engineeringbays) <= 0 or have_research_TerranStructureArmorUpgrade or player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
-        elif action == "research_Combat_Shield":
-            if len(completed_barrackstechlabs) <= 0 or have_research_Combat_Shield or player_mineral < 100 or player_vespene < 100:
+        elif action == "research_CombatShield":
+            if len(completed_barrackstechlabs) <= 0 or have_research_CombatShield or player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
-        elif action == "research_StimPack":
-            if len(completed_barrackstechlabs) <= 0 or have_research_StimPack or player_mineral < 100 or player_vespene < 100:
+        elif action == "research_Stimpack":
+            if len(completed_barrackstechlabs) <= 0 or have_research_Stimpack or player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
         elif action == "research_ConcussiveShells":
             if len(completed_barrackstechlabs) <= 0 or have_research_ConcussiveShells or player_mineral < 50 or player_vespene < 50:
                 return FAILED_COMMAND
-        elif action == "research_InfernalPreignite":
-            if len(completed_factorytechlabs) <= 0 or have_research_InfernalPreignite or player_mineral < 100 or player_vespene < 100:
+        elif action == "research_InfernalPreigniter":
+            if len(completed_factorytechlabs) <= 0 or have_research_InfernalPreigniter or player_mineral < 100 or player_vespene < 100:
                 return FAILED_COMMAND
         elif action == "research_CycloneLockOnDamage":
             if len(completed_factorytechlabs) <= 0 or have_research_CycloneLockOnDamage or player_mineral < 100 or player_vespene < 100:

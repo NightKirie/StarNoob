@@ -21,7 +21,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME
+from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME, RESEARCH_NAME
 
 DATA_FILE = 'AI_agent_data'
 

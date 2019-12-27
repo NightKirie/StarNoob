@@ -119,14 +119,14 @@ BUILDING_UNIT_NAME = [
     # "PlanetaryFortress",
     # "Reactor",
     "Refinery",
-    "RefineryRich",
+    # "RefineryRich",
     # "SensorTower",
     "Starport",
     # "StarportFlying",
     "StarportReactor",
     "StarportTechLab",
     "SupplyDepot",
-    "SupplyDepotLowered",
+    # "SupplyDepotLowered",
     # "TechLab",
 ]
 
@@ -135,4 +135,25 @@ TRAINABLE_BUILDING = [
     "Factory", 
     "Starport"
 ]
+
+RESEARCH_NAME = [
+    "TerranInfantryWeapons",
+    "TerranInfantryArmor",
+    "HiSecAutoTracking",
+    "TerranStructureArmorUpgrade",
+    "CombatShield",
+    "Stimpack",
+    "ConcussiveShells",
+    "InfernalPreigniter",
+    "CycloneLockOnDamage",
+    "DrillingClaws",
+    "SmartServos",
+    "RavenCorvidReactor",
+    "BansheeCloakingField",
+    "BansheeHyperflightRotors",
+    "TerranVehicleWeapons", 
+    "TerranShipWeapons", 
+    "TerranVehicleAndShipPlating"
+]
+
 
