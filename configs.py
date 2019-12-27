@@ -86,14 +86,14 @@ COMBAT_UNIT_NAME = [
     "Ghost",
     "Hellion",
     "SiegeTank",
-    "WidowMine",
+    #"WidowMine",
     "Hellbat",
     "Thor",
     "Liberator",
     "Cyclone",
     "VikingFighter",
     "Medivac",
-    "Raven",
+    #"Raven",
     "Banshee",
     "Battlecruiser"]
 
