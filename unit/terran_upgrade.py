@@ -5,7 +5,7 @@ class name from pysc2.lib.action
 delete "research" and "quick"
 """
 
-class TerranInfantryArmors(Upgrade):
+class TerranInfantryArmor(Upgrade):
     index = 11
     level = 0
     max_level = 3
@@ -16,7 +16,7 @@ class TerranInfantryArmors(Upgrade):
     mp_gap = 75
     vp_gap = 75
 
-    research_from = ["EngineeringBay"]
+    research_from = "EngineeringBay"
     requirements = []
     lv2_requirement = ["Armory"]
 
@@ -31,7 +31,7 @@ class TerranInfantryWeapons(Upgrade):
     mp_gap = 75
     vp_gap = 75
 
-    research_from = ["EngineeringBay"]
+    research_from = "EngineeringBay"
     requirements = []
     lv2_requirement = ["Armory"]
 
@@ -43,10 +43,10 @@ class HiSecAutoTracking(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["EngineeringBay"]
+    research_from = "EngineeringBay"
     requirements = []
 
-class TerranStructureArmor(Upgrade):
+class TerranStructureArmorUpgrade(Upgrade):
     index = 6
     level = 0
     max_level = 1
@@ -54,7 +54,7 @@ class TerranStructureArmor(Upgrade):
     mineral_price = 150
     vespene_price = 150
 
-    research_from = ["EngineeringBay"]
+    research_from = "EngineeringBay"
     requirements = []
 
 class CombatShield(Upgrade):
@@ -65,7 +65,7 @@ class CombatShield(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["BarracksTechLab"]
+    research_from = "BarracksTechLab"
     requirements = []
 
 class ConcussiveShells(Upgrade):
@@ -76,7 +76,7 @@ class ConcussiveShells(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["BarracksTechLab"]
+    research_from = "BarracksTechLab"
     requirements = []
 
 class Stimpack(Upgrade):
@@ -87,7 +87,7 @@ class Stimpack(Upgrade):
     mineral_price = 50
     vespene_price = 50
 
-    research_from = ["BarracksTechLab"]
+    research_from = "BarracksTechLab"
     requirements = []
 
 class InfernalPreigniter(Upgrade):
@@ -98,7 +98,7 @@ class InfernalPreigniter(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["FactoryTechLab"]
+    research_from = "FactoryTechLab"
     requirements = []
 
 class DrillingClaws(Upgrade):
@@ -109,7 +109,7 @@ class DrillingClaws(Upgrade):
     mineral_price = 75
     vespene_price = 75
 
-    research_from = ["FactoryTechLab"]
+    research_from = "FactoryTechLab"
     requirements = []
 
 class CycloneLockOnDamage(Upgrade):
@@ -121,7 +121,7 @@ class CycloneLockOnDamage(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["FactoryTechLab"]
+    research_from = "FactoryTechLab"
     requirements = ["Armory"]
 
 class SmartServos(Upgrade):
@@ -132,10 +132,10 @@ class SmartServos(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["FactoryTechLab"]
+    research_from = "FactoryTechLab"
     requirements = ["Armory"]
 
-class CorvidReactor(Upgrade):
+class RavenCorvidReactor(Upgrade):
     index = 22
     level = 0
     max_level = 1
@@ -143,10 +143,10 @@ class CorvidReactor(Upgrade):
     mineral_price = 150
     vespene_price = 150
 
-    research_from = ["StarportTechLab"]
+    research_from = "StarportTechLab"
     requirements = []
 
-class CloakingField(Upgrade):
+class BansheeCloakingField(Upgrade):
     index = 20
     level = 0
     max_level = 1
@@ -154,10 +154,10 @@ class CloakingField(Upgrade):
     mineral_price = 100
     vespene_price = 100
 
-    research_from = ["StarportTechLab"]
+    research_from = "StarportTechLab"
     requirements = []
 
-class HyperflightRotors(Upgrade):
+class BansheeHyperflightRotors(Upgrade):
     index = 136
     level = 0
     max_level = 1
@@ -165,7 +165,7 @@ class HyperflightRotors(Upgrade):
     mineral_price = 150
     vespene_price = 150
 
-    research_from = ["StarportTechLab"]
+    research_from = "StarportTechLab"
     requirements = []
 
 class TerranVehicleWeapons(Upgrade):
@@ -179,7 +179,7 @@ class TerranVehicleWeapons(Upgrade):
     mp_gap = 75
     vp_gap = 75
 
-    research_from = ["Armory"]
+    research_from = "Armory"
     requirements = []
 
 class TerranShipWeapons(Upgrade):
@@ -193,10 +193,10 @@ class TerranShipWeapons(Upgrade):
     mp_gap = 75
     vp_gap = 75
 
-    research_from = ["Armory"]
+    research_from = "Armory"
     requirements = []
 
-class TerranVehicleAndShipArmors(Upgrade):
+class TerranVehicleAndShipPlating(Upgrade):
     index = 116
     level = 0
     max_level = 3
@@ -207,5 +207,5 @@ class TerranVehicleAndShipArmors(Upgrade):
     mp_gap = 75
     vp_gap = 75
 
-    research_from = ["Armory"]
+    research_from = "Armory"
     requirements = []

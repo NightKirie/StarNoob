@@ -1,6 +1,8 @@
 from base_agent import *
 
+from unit.units import Upgrade
 import unit.terran_unit as terran
+import unit.terran_upgrade as terran_upgrade
 
 DATA_FILE = 'Sub_building_data'
 FAILED_COMMAND = 0.0001
@@ -27,6 +29,8 @@ class Agent(BaseAgent):
 
     def __init__(self):
         super(Agent, self).__init__()
+        for tech in RESEARCH_NAME:
+            self.__setattr__(f"research_{tech}", partial(self.research_tech, upgrade=tech))
 
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]
@@ -97,6 +101,7 @@ class Agent(BaseAgent):
             return actions.RAW_FUNCTIONS.Train_SCV_quick("now", completed_commandcenter.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
+#build something
     def build_CommandCenter(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
 
@@ -297,144 +302,18 @@ class Agent(BaseAgent):
                 "now", [starports.tag for starports in completed_starports])
         return actions.RAW_FUNCTIONS.no_op()
 
-    def research_TerranInfantryWeapons(self, obs):
-        completed_engineeringbays = self.get_my_completed_units_by_type(
-            obs, units.Terran.EngineeringBay)
-        if len(completed_engineeringbays) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranInfantryWeapons_quick(
-                "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_TerranInfantryArmor(self, obs):
-        completed_engineeringbays = self.get_my_completed_units_by_type(
-            obs, units.Terran.EngineeringBay)
-        if len(completed_engineeringbays) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranInfantryArmor_quick(
-                "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_HiSecAutoTracking(self, obs):
-        completed_engineeringbays = self.get_my_completed_units_by_type(
-            obs, units.Terran.EngineeringBay)
-        if len(completed_engineeringbays) > 0:
-            return actions.RAW_FUNCTIONS.Research_HiSecAutoTracking_quick(
-                "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_TerranStructureArmorUpgrade(self, obs):
-        completed_engineeringbays = self.get_my_completed_units_by_type(
-            obs, units.Terran.EngineeringBay)
-        if len(completed_engineeringbays) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranStructureArmorUpgrade_quick(
-                "now", [engineeringbay.tag for engineeringbay in completed_engineeringbays])
-        return actions.RAW_FUNCTIONS.no_op()
-#Tech lab (barrack)
-    def research_CombatShield(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.BarracksTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_CombatShield_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_Stimpack(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.BarracksTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_Stimpack_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_ConcussiveShells(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.BarracksTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_ConcussiveShells_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-#Tech lab (factory)
-    def research_InfernalPreigniter(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.FactoryTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_InfernalPreigniterr_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_CycloneLockOnDamage(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.FactoryTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_CycloneLockOnDamage_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_DrillingClaws(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.FactoryTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_DrillingClaws_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_SmartServos(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.FactoryTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_SmartServos_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-#Tech lab (starport)
-
-    def research_RavenCorvidReactor(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.StarportTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_RavenCorvidReactor_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_BansheeCloakingField(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.StarportTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_BansheeCloakingField_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_BansheeHyperflightRotors(self, obs):
-        completed_Tech_lab = self.get_my_completed_units_by_type(
-            obs, units.Terran.StarportTechLab)
-        if len(completed_Tech_lab) > 0:
-            return actions.RAW_FUNCTIONS.Research_BansheeHyperflightRotors_quick(
-                "now", [Tech_lab.tag for Tech_lab in completed_Tech_lab])
-        return actions.RAW_FUNCTIONS.no_op()
-
-#Armory
-    def research_TerranVehicleWeapons(self, obs):
-        completed_armory = self.get_my_completed_units_by_type(
-            obs, units.Terran.Armory)
-        if len(completed_armory) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranVehicleWeapons_quick(
-                "now", [armory.tag for armory in completed_armory])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_TerranShipWeapons(self, obs):
-        completed_armory = self.get_my_completed_units_by_type(
-            obs, units.Terran.Armory)
-        if len(completed_armory) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranShipWeapons_quick(
-                "now", [armory.tag for armory in completed_armory])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def research_TerranVehicleAndShipPlating(self, obs):
-        completed_armory = self.get_my_completed_units_by_type(
-            obs, units.Terran.Armory)
-        if len(completed_armory) > 0:
-            return actions.RAW_FUNCTIONS.Research_TerranVehicleAndShipPlating_quick(
-                "now", [armory.tag for armory in completed_armory])
+#Research all
+    def research_tech(self, obs, upgrade=None):
+        """ research each technology
+        Args:
+            obs
+            upgrade (string): class name in unit.terran_upgrade
+        """
+        tech = getattr(terran_upgrade, upgrade)
+        building_to_research = self.get_my_completed_units_by_type(obs, getattr(terran, tech.research_from)().index)
+        if len(building_to_research) > 0:
+            if tech.upgrade() == True:
+                return actions.RAW_FUNCTIONS.__getattr__(f"Research_{upgrade}_quick")("now", [b.tag for b in building_to_research])
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -447,8 +326,13 @@ class SubAgent_Economic(Agent):
         self.episode = 0
 
     def reset(self):
-        log.debug('in reset')
+        log.debug('in reset') 
         super(SubAgent_Economic, self).reset()
+        
+        ## reset upgrade
+        for upgrade_class in Upgrade.already_upgrade:
+            upgrade_class.reset()
+        
         self.new_game()
 
     def new_game(self):
@@ -477,30 +361,36 @@ class SubAgent_Economic(Agent):
         # Parse action
         ## build_xxx
         if action.find("build") != -1:
-            building = getattr(terran, action[action.index("_")+1:])
+            building = getattr(terran, action[action.index("_")+1:])()
 
             ### check requirement
-            if isinstance(building, terran.TerranBuilding):
-                if len(self.get_my_units_by_type(obs, units.Terran.SCV)) > 0 \
-                and obs.observation.player.minerals >= building.mineral_price\
-                and obs.observation.player.vespene >= building.vespene_price \
-                and 0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in building.requirements]:
-                    can_afford = True
+            if len(self.get_my_units_by_type(obs, units.Terran.SCV)) > 0 \
+            and obs.observation.player.minerals >= building.mineral_price\
+            and obs.observation.player.vespene >= building.vespene_price \
+            and 0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in building.requirements]:
+                can_afford = True
             
             ### Reactor or TechLab
             if isinstance(building, terran.Reactor) or isinstance(building, terran.TechLab):
-                father_building = self.get_my_units_by_type(obs, getattr(terran, building.requirement[0])().index)
-                cousin_building = \
-                        self.get_my_units_by_type(obs, getattr(terran, building.requirement[0]+"Reactor")().index) + \
-                        self.get_my_units_by_type(obs, getattr(terran, building.requirement[0]+"TechLab")().index)
+                father_building = self.get_my_units_by_type(obs, getattr(terran, building.requirements[0])().index)
+                sibling_building = \
+                        self.get_my_units_by_type(obs, getattr(terran, building.requirements[0]+"Reactor")().index) + \
+                        self.get_my_units_by_type(obs, getattr(terran, building.requirements[0]+"TechLab")().index)
 
-                if len(father_building) <= len(cousin_building):
+                if len(father_building) <= len(sibling_building):
                     can_afford = False
+
+        ## research_xxx
         elif action.find("research") != -1:
-            pass
-
-                
-
+            tech = getattr(terran_upgrade, action[action.index("_")+1:])
+            
+            ### check requirement
+            if len(self.get_my_completed_units_by_type(obs, getattr(terran, tech.research_from)().index)) > 0 \
+            and obs.observation.player.minerals >= tech.mineral_price\
+            and obs.observation.player.vespene >= tech.vespene_price \
+            and 0 not in [len(self.get_my_completed_units_by_type(obs, getattr(terran, requirement)().index)) for requirement in tech.requirements]:
+                can_afford = True
+            
         return can_afford
 
     def get_negative_reward(self, obs, action):
@@ -516,143 +406,17 @@ class SubAgent_Economic(Agent):
         if self.can_afford_unit(obs, action) == False:
             return FAILED_COMMAND
 
-        """
-        have_research_TerranInfantryWeapons_level1 = 7 in obs.observation.upgrades
-        have_research_TerranInfantryWeapons_level2 = 8 in obs.observation.upgrades
-        have_research_TerranInfantryWeapons_level3 = 9 in obs.observation.upgrades
-        have_research_TerranInfantryArmor_level1 = 11 in obs.observation.upgrades
-        have_research_TerranInfantryArmor_level2 = 12 in obs.observation.upgrades
-        have_research_TerranInfantryArmor_level3 = 13 in obs.observation.upgrades
-        have_research_HiSecAutoTracking = 5 in obs.observation.upgrades
-        have_research_TerranStructureArmorUpgrade = 6 in obs.observation.upgrades
-
-        have_research_CombatShield = 16 in obs.observation.upgrades
-        have_research_Stimpack = 15 in obs.observation.upgrades
-        have_research_ConcussiveShells = 17 in obs.observation.upgrades
-
-        have_research_InfernalPreigniter = 19 in obs.observation.upgrades
-        have_research_CycloneLockOnDamage = 144 in obs.observation.upgrades
-        have_research_DrillingClaws = 122 in obs.observation.upgrades
-        have_research_SmartServos = 289 in obs.observation.upgrades
-
-        have_research_RavenCorvidReactor = 22 in obs.observation.upgrades
-        have_research_BansheeCloakingField = 20 in obs.observation.upgrades
-        have_research_BansheeHyperflightRotors = 136 in obs.observation.upgrades
-
-        have_research_TerranVehicleWeapons_level_1 = 30 in obs.observation.upgrades
-        have_research_TerranVehicleWeapons_level_2 = 31 in obs.observation.upgrades
-        have_research_TerranVehicleWeapons_level_3 = 32 in obs.observation.upgrades
-
-        have_research_TerranShipWeapons_level_1 = 36 in obs.observation.upgrades
-        have_research_TerranShipWeapons_level_2 = 37 in obs.observation.upgrades
-        have_research_TerranShipWeapons_level_3 = 38 in obs.observation.upgrades
-
-        have_research_TerranVehicleAndShipPlating_level_1 = 116 in obs.observation.upgrades
-        have_research_TerranVehicleAndShipPlating_level_2 = 117 in obs.observation.upgrades
-        have_research_TerranVehicleAndShipPlating_level_3 = 118 in obs.observation.upgrades
-
-
         if action == "harvest_minerals":
             if len(idle_scvs) == 0:
                 return FAILED_COMMAND
         elif action == "train_SCV":
+            completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
             if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
                 return FAILED_COMMAND
         elif action == "harvest_gas":
+            notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
             if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
                 return FAILED_COMMAND
-        elif action == "research_TerranInfantryWeapons":
-            if len(completed_engineeringbays) <= 0 or have_research_TerranInfantryWeapons_level3:
-                return FAILED_COMMAND
-            if have_research_TerranInfantryWeapons_level2:
-                if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
-                    return FAILED_COMMAND
-            if have_research_TerranInfantryWeapons_level1:
-                if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
-                    return FAILED_COMMAND
-            if player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_TerranInfantryArmor":
-            if len(completed_engineeringbays) <= 0 or have_research_TerranInfantryArmor_level3:
-                return FAILED_COMMAND
-            if have_research_TerranInfantryArmor_level2:
-                if len(completed_armorys) <= 0 or player_mineral < 250 or player_vespene < 250:
-                    return FAILED_COMMAND
-            if have_research_TerranInfantryArmor_level1:
-                if len(completed_armorys) <= 0 or player_mineral < 175 or player_vespene < 175:
-                    return FAILED_COMMAND
-            if player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_HiSecAutoTracking":
-            if len(completed_engineeringbays) <= 0 or have_research_HiSecAutoTracking or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_TerranStructureArmorUpgrade":
-            if len(completed_engineeringbays) <= 0 or have_research_TerranStructureArmorUpgrade or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_CombatShield":
-            if len(completed_barrackstechlabs) <= 0 or have_research_CombatShield or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_Stimpack":
-            if len(completed_barrackstechlabs) <= 0 or have_research_Stimpack or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_ConcussiveShells":
-            if len(completed_barrackstechlabs) <= 0 or have_research_ConcussiveShells or player_mineral < 50 or player_vespene < 50:
-                return FAILED_COMMAND
-        elif action == "research_InfernalPreigniter":
-            if len(completed_factorytechlabs) <= 0 or have_research_InfernalPreigniter or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_CycloneLockOnDamage":
-            if len(completed_factorytechlabs) <= 0 or have_research_CycloneLockOnDamage or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_DrillingClaws":
-            if len(completed_factorytechlabs) <= 0 or have_research_DrillingClaws or player_mineral < 75 or player_vespene < 75:
-                return FAILED_COMMAND
-        elif action == "research_SmartServos":
-            if len(completed_factorytechlabs) <= 0 or have_research_SmartServos or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_RavenCorvidReactor":
-            if len(completed_starportstechlabs) <= 0 or have_research_RavenCorvidReactor or player_mineral < 150 or player_vespene < 150:
-                return FAILED_COMMAND
-        elif action == "research_BansheeCloakingField":
-            if len(completed_starportstechlabs) <= 0 or have_research_BansheeCloakingField or player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_BansheeHyperflightRotors":
-            if len(completed_starportstechlabs) <= 0 or have_research_BansheeHyperflightRotors or player_mineral < 150 or player_vespene < 150:
-                return FAILED_COMMAND
-        elif action == "research_TerranVehicleWeapons":
-            if len(completed_armorys) <= 0 or have_research_TerranVehicleWeapons_level_3:
-                return FAILED_COMMAND
-            if have_research_TerranVehicleWeapons_level_2:
-                if player_mineral < 250 or player_vespene < 250:
-                    return FAILED_COMMAND
-            if have_research_TerranVehicleWeapons_level_1:
-                if player_mineral < 175 or player_vespene < 175:
-                    return FAILED_COMMAND
-            if player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_TerranShipWeapons":
-            if len(completed_armorys) <= 0 or have_research_TerranShipWeapons_level_3:
-                return FAILED_COMMAND
-            if have_research_TerranShipWeapons_level_2:
-                if player_mineral < 250 or player_vespene < 250:
-                    return FAILED_COMMAND
-            if have_research_TerranShipWeapons_level_1:
-                if player_mineral < 175 or player_vespene < 175:
-                    return FAILED_COMMAND
-            if player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        elif action == "research_TerranVehicleAndShipPlating":
-            if len(completed_armorys) <= 0 or have_research_TerranVehicleAndShipPlating_level_3:
-                return FAILED_COMMAND
-            if have_research_TerranVehicleAndShipPlating_level_2:
-                if player_mineral < 250 or player_vespene < 250:
-                    return FAILED_COMMAND
-            if have_research_TerranVehicleAndShipPlating_level_1:
-                if player_mineral < 175 or player_vespene < 175:
-                    return FAILED_COMMAND
-            if player_mineral < 100 or player_vespene < 100:
-                return FAILED_COMMAND
-        """
         return 0
 
     def get_state(self, obs):
@@ -703,7 +467,7 @@ class SubAgent_Economic(Agent):
                                     torch.Tensor(state).to(device),
                                     torch.Tensor([obs.reward + step_reward]).to(device))
                     self.optimize_model()
-                else:
+                else: # last step in an episode
                     pass
             else: # first step
                 pass

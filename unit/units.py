@@ -101,24 +101,38 @@ class Upgrade():
     mp_gap = 0
     vp_gap = 0
 
-    research_from = []
+    research_from = ""
     requirements = []
     lv2_requirement = []
+
+    # Upgrade only
+    already_upgrade = []
     
     @classmethod
     def upgrade(cls):
         if cls.level >= cls.max_level:
             return False
-
-        if cls.level == 0:
+        elif cls.level == 0:
             cls.origin_index = cls.index
+            cls.origin_mineral_price = cls.mineral_price
+            cls.origin_vespene_price = cls.vespene_price
+            cls.origin_requirements = cls.requirements
+        elif cls.level == 1:
+            cls.requirements += cls.lv2_requirement
 
         cls.index = cls.origin_index + cls.level
-        cls.mineral_price += cls.level * cls.mp_gap
-        cls.vespene_price += cls.level * cls.vp_gap
+        cls.mineral_price = cls.origin_mineral_price + cls.level * cls.mp_gap
+        cls.vespene_price = cls.origin_vespene_price + cls.level * cls.vp_gap
 
-        if cls.level == 1:
-            cls.requirements += cls.lv2_requirement
         cls.level += 1
-
+        
+        Upgrade.already_upgrade.append(cls)
         return True
+    
+    @classmethod
+    def reset(cls):
+        cls.index = cls.origin_index
+        cls.mineral_price = cls.origin_mineral_price
+        cls.vespene_price = cls.origin_vespene_price
+        cls.requirements = cls.origin_requirements
+        cls.level = 0
