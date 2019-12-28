@@ -11,10 +11,10 @@ class TerranInfantryArmors(Upgrade):
     max_level = 3
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     mp_gap = 75
-    gp_gap = 75
+    vp_gap = 75
 
     research_from = ["EngineeringBay"]
     requirements = []
@@ -26,10 +26,10 @@ class TerranInfantryWeapons(Upgrade):
     max_level = 3
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     mp_gap = 75
-    gp_gap = 75
+    vp_gap = 75
 
     research_from = ["EngineeringBay"]
     requirements = []
@@ -41,7 +41,7 @@ class HiSecAutoTracking(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["EngineeringBay"]
     requirements = []
@@ -52,7 +52,7 @@ class TerranStructureArmor(Upgrade):
     max_level = 1
 
     mineral_price = 150
-    gas_price = 150
+    vespene_price = 150
 
     research_from = ["EngineeringBay"]
     requirements = []
@@ -63,7 +63,7 @@ class CombatShield(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["BarracksTechLab"]
     requirements = []
@@ -74,7 +74,7 @@ class ConcussiveShells(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["BarracksTechLab"]
     requirements = []
@@ -85,7 +85,7 @@ class Stimpack(Upgrade):
     max_level = 1
 
     mineral_price = 50
-    gas_price = 50
+    vespene_price = 50
 
     research_from = ["BarracksTechLab"]
     requirements = []
@@ -96,7 +96,7 @@ class InfernalPreigniter(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["FactoryTechLab"]
     requirements = []
@@ -107,7 +107,7 @@ class DrillingClaws(Upgrade):
     max_level = 1
 
     mineral_price = 75
-    gas_price = 75
+    vespene_price = 75
 
     research_from = ["FactoryTechLab"]
     requirements = []
@@ -119,7 +119,7 @@ class CycloneLockOnDamage(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["FactoryTechLab"]
     requirements = ["Armory"]
@@ -130,7 +130,7 @@ class SmartServos(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["FactoryTechLab"]
     requirements = ["Armory"]
@@ -141,7 +141,7 @@ class CorvidReactor(Upgrade):
     max_level = 1
 
     mineral_price = 150
-    gas_price = 150
+    vespene_price = 150
 
     research_from = ["StarportTechLab"]
     requirements = []
@@ -152,7 +152,7 @@ class CloakingField(Upgrade):
     max_level = 1
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     research_from = ["StarportTechLab"]
     requirements = []
@@ -163,7 +163,7 @@ class HyperflightRotors(Upgrade):
     max_level = 1
 
     mineral_price = 150
-    gas_price = 150
+    vespene_price = 150
 
     research_from = ["StarportTechLab"]
     requirements = []
@@ -174,10 +174,10 @@ class TerranVehicleWeapons(Upgrade):
     max_level = 3
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     mp_gap = 75
-    gp_gap = 75
+    vp_gap = 75
 
     research_from = ["Armory"]
     requirements = []
@@ -188,10 +188,10 @@ class TerranShipWeapons(Upgrade):
     max_level = 3
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     mp_gap = 75
-    gp_gap = 75
+    vp_gap = 75
 
     research_from = ["Armory"]
     requirements = []
@@ -202,10 +202,10 @@ class TerranVehicleAndShipArmors(Upgrade):
     max_level = 3
 
     mineral_price = 100
-    gas_price = 100
+    vespene_price = 100
 
     mp_gap = 75
-    gp_gap = 75
+    vp_gap = 75
 
     research_from = ["Armory"]
     requirements = []

@@ -27,7 +27,7 @@ class Unit:
 
     def __init__(self):
         self.mineral_price = 0
-        self.gas_price = 0
+        self.vespene_price = 0
         self.build_time = 0
 
         self.hp = 0
@@ -45,12 +45,12 @@ class Unit:
         self.progress = 0
 
     def __hash__(self):
-        return hash((self.hp, self.armor, self.attack, self.range, self.mineral_price, self.gas_price))
+        return hash((self.hp, self.armor, self.attack, self.range, self.mineral_price, self.vespene_price))
 
     def __eq__(self, other):
-        return (self.hp, self.armor, self.attack, self.range, self.mineral_price, self.gas_price) == \
+        return (self.hp, self.armor, self.attack, self.range, self.mineral_price, self.vespene_price) == \
             (other.hp, other.range, other.attack, other.range,
-             other.mineral_price, other.gas_price)
+             other.mineral_price, other.vespene_price)
 
     def __ne__(self, other):
         # Not strictly necessary, but to avoid having both x==y and x!=y
@@ -96,10 +96,10 @@ class Upgrade():
     max_level = 0
 
     mineral_price = 0
-    gas_price = 0
+    vespene_price = 0
 
     mp_gap = 0
-    gp_gap = 0
+    vp_gap = 0
 
     research_from = []
     requirements = []
@@ -115,7 +115,7 @@ class Upgrade():
 
         cls.index = cls.origin_index + cls.level
         cls.mineral_price += cls.level * cls.mp_gap
-        cls.gas_price += cls.level * cls.gp_gap
+        cls.vespene_price += cls.level * cls.vp_gap
 
         if cls.level == 1:
             cls.requirements += cls.lv2_requirement
