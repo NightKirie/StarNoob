@@ -21,7 +21,7 @@ TARGET_UPDATE = 500
 class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
-        tuple([f"train_{unit.lower()}" for unit in COMBAT_UNIT_NAME])
+        tuple([f"train_{unit}" for unit in COMBAT_UNIT_NAME])
 
     def __init__(self):
         super(Agent, self).__init__()
@@ -29,7 +29,7 @@ class Agent(BaseAgent):
         # Create action function
         for unit in COMBAT_UNIT_NAME:
             self.__setattr__(
-                f"train_{unit.lower()}", partial(
+                f"train_{unit}", partial(
                     self.train_unit, unit=unit))
 
     def get_distances(self, obs, units, xy):
@@ -152,9 +152,9 @@ class SubAgent_Training(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
-        if self.episodes % 3 == 0:
+        if self.episodes % 3 == 1:
             if self.previous_action is not None:
-                step_reward = self.get_reward(obs)
+                step_reward = self.get_reward(obs, action)
                 log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))
                 if not obs.last():
                     self.memory.push(torch.Tensor(self.previous_state).to(device),
@@ -175,7 +175,7 @@ class SubAgent_Training(Agent):
         self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs):
+    def get_reward(self, obs, action):
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         # print(obs.observation['score_cumulative'][11])
@@ -197,10 +197,12 @@ class SubAgent_Training(Agent):
 
         ## Now reward will update in next epoch
         # If trying to train a unit, but there's no building to train it, get negative reward
-        if False in [self.can_afford_unit(obs, getattr(terran, unit)()) for unit in COMBAT_UNIT_NAME]:
-            self.now_reward = FAILED_COMMAND
-        else:
-            self.now_reward = 0
+        if action.find("train") != -1 :
+            unit_name = action[action.index("_")+1:]
+            if self.can_afford_unit(obs, getattr(terran, unit_name)()):
+                self.now_reward = 0
+            else:
+                self.now_reward = FAILED_COMMAND
 
 
         self.previous_total_value_units_score = total_value_units_score

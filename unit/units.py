@@ -59,7 +59,6 @@ class Unit:
 
 
 class Building(Unit):
-
     def __init__(self):
         Unit.__init__(self)
         self.food_supply = 0
@@ -90,3 +89,36 @@ class Army():
 
     def __str__(self):
         return str(self.player_id) + ', ' + str(self.order) + ', ' + str(self.pos)
+
+class Upgrade():
+    index = 0
+    level = 0
+    max_level = 0
+
+    mineral_price = 0
+    gas_price = 0
+
+    mp_gap = 0
+    gp_gap = 0
+
+    research_from = []
+    requirements = []
+    lv2_requirement = []
+    
+    @classmethod
+    def upgrade(cls):
+        if cls.level >= cls.max_level:
+            return False
+
+        if cls.level == 0:
+            cls.origin_index = cls.index
+
+        cls.index = cls.origin_index + cls.level
+        cls.mineral_price += cls.level * cls.mp_gap
+        cls.gas_price += cls.level * cls.gp_gap
+
+        if cls.level == 1:
+            cls.requirements += cls.lv2_requirement
+        cls.level += 1
+
+        return True
