@@ -59,7 +59,7 @@ class Agent(BaseAgent):
             elif enemy_building_location != []:
                 attack = (enemy_building_location[0].x, enemy_building_location[0].y)
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], attack.x)
+                "now", [soldier.tag for soldier in armys], attack)
         return actions.RAW_FUNCTIONS.no_op()
 
 
