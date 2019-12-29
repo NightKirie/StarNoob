@@ -24,10 +24,11 @@ TARGET_UPDATE = 500
 SAVE_POLICY_NET = 'model/battle_dqn_policy'
 SAVE_TARGET_NET = 'model/battle_dqn_target'
 SAVE_MEMORY = 'model/battle_memory'
+Point = namedtuple("Point", ["x", "y"])
 
 class Agent(BaseAgent):
     actions = tuple(["do_nothing"]) + \
-              tuple([f"attack_point{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
+              tuple([f"attack_point_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
               tuple(["attack_enemy"]*64*64) 
 
     def __init__(self):
@@ -36,13 +37,13 @@ class Agent(BaseAgent):
         for i in range(0, SUB_ATTACK_DIVISION):
             for j in range(0, SUB_ATTACK_DIVISION):
                 self.__setattr__(
-                    f"attack_point{i}_{j}", partial(
-                        self.attack_point, range=SimpleNamespace(**{'x': i, 'y': j}), size=SUB_ATTACK_SIZE))
+                    f"attack_point_{i}_{j}", partial(
+                        self.attack_point, point=Point(i, j), size=SUB_ATTACK_SIZE))
 
-    def attack_point(self, obs, range, size):
+    def attack_point(self, obs, point, size):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0:
-            attack = SimpleNamespace(**{'x': range.x * SUB_ATTACK_SIZE, 'y': range.y * SUB_ATTACK_SIZE})
+            attack = (range.x * SUB_ATTACK_SIZE, range.y * SUB_ATTACK_SIZE)
             return actions.RAW_FUNCTIONS.Attack_pt(
                 "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
         return actions.RAW_FUNCTIONS.no_op()
@@ -54,11 +55,9 @@ class Agent(BaseAgent):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
             if enemy_army_location != []:
-                attack = SimpleNamespace(**{'x': enemy_army_location[0].x, 'y': enemy_army_location[0].y})
+                attack = (enemy_army_location[0].x, enemy_army_location[0].y)
             elif enemy_building_location != []:
-                attack = SimpleNamespace(**{'x': enemy_building_location[0].x, 'y': enemy_building_location[0].y})
-
-
+                attack = (enemy_building_location[0].x, enemy_building_location[0].y)
             return actions.RAW_FUNCTIONS.Attack_pt(
                 "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
         return actions.RAW_FUNCTIONS.no_op()
