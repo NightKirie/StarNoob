@@ -43,9 +43,9 @@ class Agent(BaseAgent):
     def attack_point(self, obs, point, size):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0:
-            attack = (range.x * SUB_ATTACK_SIZE, range.y * SUB_ATTACK_SIZE)
+            attack = (point.x * SUB_ATTACK_SIZE, point.y * SUB_ATTACK_SIZE)
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
+                "now", [soldier.tag for soldier in armys], attack)
         return actions.RAW_FUNCTIONS.no_op()
 
     def attack_enemy(self, obs): 
@@ -59,7 +59,7 @@ class Agent(BaseAgent):
             elif enemy_building_location != []:
                 attack = (enemy_building_location[0].x, enemy_building_location[0].y)
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], (attack.x, attack.y))
+                "now", [soldier.tag for soldier in armys], attack.x)
         return actions.RAW_FUNCTIONS.no_op()
 
 
