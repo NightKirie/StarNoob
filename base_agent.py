@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-from configs import COMBAT_UNIT_NAME, BUILDING_UNIT_NAME, RESEARCH_NAME
+import configs as configs
 
 DATA_FILE = 'AI_agent_data'
 
@@ -153,13 +153,14 @@ class DQN(nn.Module):
         log.log(LOG_MODEL, f"Save model  \"{self.savepath}\"")
 
     def load(self):
-        if os.path.isfile(self.savepath):
-            self.load_state_dict(torch.load(self.savepath, map_location=device))
-            log.log(LOG_MODEL, f"Load model  \"{self.savepath}\"")
-            return True
-        else:
-            log.log(LOG_MODEL, f"Model  \"{self.savepath}\" not found")
-            return False
+        if configs.LOAD_MODEL:
+            if os.path.isfile(self.savepath):
+                self.load_state_dict(torch.load(self.savepath, map_location=device))
+                log.log(LOG_MODEL, f"Load model  \"{self.savepath}\"")
+                return True
+            else:
+                log.log(LOG_MODEL, f"Model  \"{self.savepath}\" not found")
+                return False
 
 
 class BaseAgent(base_agent.BaseAgent):
@@ -233,7 +234,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in configs.COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in army_type_list
@@ -253,7 +254,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in configs.COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in army_type_list
@@ -274,7 +275,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in configs.BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in building_type_list
@@ -295,7 +296,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in configs.BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in building_type_list
@@ -404,7 +405,7 @@ observation = Observation(np.zeros((0,7)),
                           named_array.NamedNumpyArray(np.zeros((3,3)),[['total_damage_dealt', 'total_damage_taken', 'total_healed'], ['life', 'shields', 'energy']]),
                           named_array.NamedNumpyArray(np.zeros((11,)), ['player_id', 'minerals', 'vespene', 'food_used', 'food_cap', 'food_army', 'food_workers', 'idle_worker_count', 'army_count', 'warp_gate_count', 'larva_count']),
                           np.zeros((10,2)),
-                          named_array.NamedNumpyArray(np.zeros((55,46)), [None, ['unit_type', 'alliance', 'health', 'shield', 'energy', 'cargo_space_taken =', 'build_progress', "health_ratio", "shield_ratio", "energy_ratio", "display_type", "owner", "x", "y", "facing", "radius", "cloak", "is_selected", "is_blip", "is_powered", "mineral_contents", "vespene_contents", "cargo_space_max", "assigned_harvesters", "ideal_harvesters", "weapon_cooldown", "order_length", "order_id_0", "order_id_1", "tag", "hallucination", "buff_id_0", "buff_id_1", "addon_unit_type", "active", "is_on_screen", "order_progress_0", "order_progress_1", "order_id_2", "order_id_3", "is_in_cargo", 'buff_duration_remain', 'buff_duration_max', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']]),
+                          named_array.NamedNumpyArray(np.zeros((55,46)), [None, ['unit_type', 'alliance', 'health', 'shield', 'energy', 'cargo_space_taken', 'build_progress', "health_ratio", "shield_ratio", "energy_ratio", "display_type", "owner", "x", "y", "facing", "radius", "cloak", "is_selected", "is_blip", "is_powered", "mineral_contents", "vespene_contents", "cargo_space_max", "assigned_harvesters", "ideal_harvesters", "weapon_cooldown", "order_length", "order_id_0", "order_id_1", "tag", "hallucination", "buff_id_0", "buff_id_1", "addon_unit_type", "active", "is_on_screen", "order_progress_0", "order_progress_1", "order_id_2", "order_id_3", "is_in_cargo", 'buff_duration_remain', 'buff_duration_max', 'attack_upgrade_level', 'armor_upgrade_level', 'shield_upgrade_level']]),
                           [],
                           [],
                           [])

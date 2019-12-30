@@ -78,6 +78,9 @@ flags.DEFINE_bool("use_raw_actions", True,
 flags.DEFINE_integer("raw_resolution", 64, 
                      "Discretize the `raw_units` observation's x,y to this resolution. Default is the map_size")                   
 
+# Load & save model or not
+LOAD_MODEL = True
+SAVE_MODEL = True
 
 COMBAT_UNIT_NAME = [
     "Marine",

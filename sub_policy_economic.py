@@ -13,7 +13,7 @@ EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
-
+BUILD_RANGE = 6
 SAVE_POLICY_NET = 'model/economic_dqn_policy'
 SAVE_TARGET_NET = 'model/economic_dqn_target'
 SAVE_MEMORY = 'model/economic_memory'
@@ -24,12 +24,12 @@ class Agent(BaseAgent):
                "train_SCV",
                "harvest_minerals",
                "harvest_gas"] +\
-                [f"build_{building}" for building in BUILDING_UNIT_NAME] +\
-                [f"research_{tech}" for tech in RESEARCH_NAME])
+                [f"build_{building}" for building in configs.BUILDING_UNIT_NAME] +\
+                [f"research_{tech}" for tech in configs.RESEARCH_NAME])
 
     def __init__(self):
         super(Agent, self).__init__()
-        for tech in RESEARCH_NAME:
+        for tech in configs.RESEARCH_NAME:
             self.__setattr__(f"research_{tech}", partial(self.research_tech, upgrade=tech))
 
     def get_distances(self, obs, units, xy):
@@ -55,25 +55,15 @@ class Agent(BaseAgent):
         if len(idle_scvs) > 0:
             mineral_patches = [unit for unit in obs.observation.raw_units
                                if unit.unit_type in [
-                                   units.Neutral.BattleStationMineralField,
-                                   units.Neutral.BattleStationMineralField750,
-                                   units.Neutral.LabMineralField,
-                                   units.Neutral.LabMineralField750,
                                    units.Neutral.MineralField,
                                    units.Neutral.MineralField750,
-                                   units.Neutral.PurifierMineralField,
-                                   units.Neutral.PurifierMineralField750,
-                                   units.Neutral.PurifierRichMineralField,
-                                   units.Neutral.PurifierRichMineralField750,
-                                   units.Neutral.RichMineralField,
-                                   units.Neutral.RichMineralField750
                                ]]
             scv = random.choice(idle_scvs)
             distances = self.get_distances(
                 obs, mineral_patches, (scv.x, scv.y))
             mineral_patch = mineral_patches[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Harvest_Gather_unit(
-                "now", scv.tag, mineral_patch.tag)
+                "now", [scv.tag for scv in idle_scvs], mineral_patch.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
     def harvest_gas(self, obs):
@@ -101,6 +91,11 @@ class Agent(BaseAgent):
             return actions.RAW_FUNCTIONS.Train_SCV_quick("now", completed_commandcenter.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
+    def check_if_buildable(self, obs, posx, posy):
+        if self.get_my_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
+           self.get_enemy_building_by_pos(obs, posx, posy, posx+1, posy+1) == []:
+            return True
+        return False
 #build something
     def build_CommandCenter(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
@@ -109,53 +104,22 @@ class Agent(BaseAgent):
         supply_depots = self.get_my_units_by_type(
             obs, units.Terran.SupplyDepot)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if len(supply_depots) >= 9:
-            return actions.RAW_FUNCTIONS.no_op()
-        else:
-            if (len(supply_depots) == 0 and len(scvs) > 0):
-                supply_depot_xy = (22, 26) if self.base_top_left else (35, 42)
-            elif (len(supply_depots) == 1 and len(scvs) > 0):
-                supply_depot_xy = (21, 26) if self.base_top_left else (36, 42)
-            elif (len(supply_depots) == 2 and len(scvs) > 0):
-                supply_depot_xy = (19, 26) if self.base_top_left else (38, 42)
-            elif (len(supply_depots) == 3 and len(scvs) > 0):
-                supply_depot_xy = (17, 26) if self.base_top_left else (40, 42)
-            elif (len(supply_depots) == 4 and len(scvs) > 0):
-                supply_depot_xy = (12, 18) if self.base_top_left else (46, 42)
-            elif (len(supply_depots) == 5 and len(scvs) > 0):
-                supply_depot_xy = (12, 20) if self.base_top_left else (46, 44)
-            elif (len(supply_depots) == 6 and len(scvs) > 0):
-                supply_depot_xy = (12, 22) if self.base_top_left else (46, 46)
-            elif (len(supply_depots) == 7 and len(scvs) > 0):
-                supply_depot_xy = (12, 24) if self.base_top_left else (46, 48)
-            elif (len(supply_depots) == 8 and len(scvs) > 0):
-                supply_depot_xy = (12, 26) if self.base_top_left else (45, 48)
-            else:
-                return actions.RAW_FUNCTIONS.no_op()
-            distances = self.get_distances(obs, scvs, supply_depot_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-                "now", scv.tag, supply_depot_xy)
+        command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        build_xy = (command_centers[0].x + random.randint(-BUILD_RANGE, BUILD_RANGE), command_centers[0].y + random.randint(-BUILD_RANGE, BUILD_RANGE))
+        while not self.check_if_buildable(obs, *build_xy):
+            build_xy = (command_centers[0].x + random.randint(-BUILD_RANGE, BUILD_RANGE), command_centers[0].y + random.randint(-BUILD_RANGE, BUILD_RANGE))
+        distances = self.get_distances(obs, scvs, build_xy)
+        scv = scvs[np.argmin(distances)]
+        return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
+            "now", scv.tag, build_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_Refinery(self, obs):
         refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         gas_patches = [unit for unit in obs.observation.raw_units
-                       if unit.unit_type in [
-                           units.Neutral.ProtossVespeneGeyser,
-                           units.Neutral.PurifierVespeneGeyser,
-                           units.Neutral.RichVespeneGeyser,
-                           units.Neutral.ShakurasVespeneGeyser,
-                           units.Neutral.SpacePlatformGeyser,
-                           units.Neutral.VespeneGeyser
-                       ]]
-        if (len(refinery) == 0 and len(scvs) > 0):
-            scv = random.choice(scvs)
-            distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
-            gas_patch = gas_patches[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
-        if (len(refinery) == 1 and len(scvs) > 0):
+                       if unit.unit_type == units.Neutral.VespeneGeyser ]
+        if len(refinery) >= 0 and len(scvs) > 0:
             scv = random.choice(scvs)
             distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
             gas_patch = gas_patches[np.argmin(distances)]
@@ -426,7 +390,7 @@ class SubAgent_Economic(Agent):
 
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in BUILDING_UNIT_NAME] 
+        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in configs.BUILDING_UNIT_NAME] 
 
 
         player_food_used = obs.observation.player.food_used
@@ -447,7 +411,7 @@ class SubAgent_Economic(Agent):
 
     def step(self, obs):
         super(SubAgent_Economic, self).step(obs)
-
+            
         self.episode += 1
         state = self.get_state(obs)
         log.debug(f"state: {state}")

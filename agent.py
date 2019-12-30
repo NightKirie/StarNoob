@@ -4,7 +4,6 @@ from base_agent import *
 import sub_policy_battle
 import sub_policy_economic
 import sub_policy_training
-import configs as configs
 
 EPS_START = 0.9
 EPS_END = 0.05
@@ -181,10 +180,11 @@ class SmartAgent(Agent):
                 self.optimize_model()
             else:
                 # save models
-                self.save_module()
-                self.training_policy.save_module()
-                self.economic_policy.save_module()
-                self.battle_policy.save_module()
+                if configs.SAVE_MODEL:
+                    self.save_module()
+                    self.training_policy.save_module()
+                    self.economic_policy.save_module()
+                    self.battle_policy.save_module()
                 return
         else:
             pass
