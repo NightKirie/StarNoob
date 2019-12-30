@@ -25,7 +25,8 @@ class Agent(BaseAgent):
                "harvest_minerals",
                "harvest_gas"] +\
                 [f"build_{building}" for building in configs.BUILDING_UNIT_NAME] +\
-                [f"research_{tech}" for tech in configs.RESEARCH_NAME])
+                [f"research_{tech}" for tech in configs.RESEARCH_NAME]
+               )
 
     def __init__(self):
         super(Agent, self).__init__()
@@ -47,7 +48,9 @@ class Agent(BaseAgent):
                 if unit.unit_type == unit_type
                 and unit.build_progress == 100
                 and unit.assigned_harvesters < unit.ideal_harvesters
-                and unit.alliance == features.PlayerRelative.SELF]
+                and unit.alliance == features.PlayerRelative.SELF
+                and (unit.mineral_contents > 0 or unit.vespene_contents > 0)
+                ]
 
     def harvest_minerals(self, obs):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
@@ -98,6 +101,20 @@ class Agent(BaseAgent):
         return False
 #build something
     def build_CommandCenter(self, obs):
+        command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+
+        if len(command_centers) == 1 and len(scvs) > 0:
+            build_xy = (41, 21) if self.base_top_left else (17, 48)
+            distances = self.get_distances(obs, scvs, build_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
+        elif len(command_centers) == 2 and len(scvs) > 0:
+            build_xy = (17, 48) if self.base_top_left else (41, 21)
+            distances = self.get_distances(obs, scvs, build_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
+        #(19, 23)(41, 21)(17, 48)(39, 45)
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_SupplyDepot(self, obs):
@@ -105,13 +122,16 @@ class Agent(BaseAgent):
             obs, units.Terran.SupplyDepot)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
-        build_xy = (command_centers[0].x + random.randint(-BUILD_RANGE, BUILD_RANGE), command_centers[0].y + random.randint(-BUILD_RANGE, BUILD_RANGE))
-        while not self.check_if_buildable(obs, *build_xy):
-            build_xy = (command_centers[0].x + random.randint(-BUILD_RANGE, BUILD_RANGE), command_centers[0].y + random.randint(-BUILD_RANGE, BUILD_RANGE))
-        distances = self.get_distances(obs, scvs, build_xy)
-        scv = scvs[np.argmin(distances)]
-        return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-            "now", scv.tag, build_xy)
+        if len(scvs) > 0 and len(command_centers) > 0:
+            choose_command_centers = command_centers[random.randint(0, len(command_centers)-1)]
+            build_xy = (choose_command_centers.x + random.randint(-BUILD_RANGE, BUILD_RANGE), choose_command_centers.y + random.randint(-BUILD_RANGE, BUILD_RANGE))
+            while not self.check_if_buildable(obs, *build_xy):
+                choose_command_centers = np.random.choice(command_centers)
+                build_xy = (choose_command_centers.x + random.randint(-BUILD_RANGE, BUILD_RANGE), choose_command_centers.y + random.randint(-BUILD_RANGE, BUILD_RANGE))
+            distances = self.get_distances(obs, scvs, build_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
+                "now", scv.tag, build_xy)
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_Refinery(self, obs):
@@ -418,7 +438,8 @@ class SubAgent_Economic(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
-
+        #a_com = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        #print([a_com[0].x, a_com[0].y])
 
         if self.episodes % 3 == 2:
             if self.previous_action is not None:
