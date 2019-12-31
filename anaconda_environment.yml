@@ -1,4 +1,4 @@
-name: test
+name: StarNoob
 channels:
 - pytorch
 dependencies: 
@@ -8,6 +8,7 @@ dependencies:
 - torchvision
 - cudatoolkit=10.1
 - pip
+- pandas
 - pip:
     - pysc2
     - pyvirtualdisplay
