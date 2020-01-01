@@ -9,6 +9,8 @@ FAILED_COMMAND = 0.0001
 FAILED_BUILDING = 0.0001
 MORE_MINERALS_USED_REWARD_RATE = 0.0001
 MORE_VESPENE_USED_REWARD_RATE = 0.0002
+TOO_MUCH_MINERAL_PENALTY = 0.0005
+TOO_MUCH_VESPENE_PENALTY = 0.001
 
 EPS_START = 0.9
 EPS_END = 0.05
@@ -61,12 +63,12 @@ class Agent(BaseAgent):
     def harvest_minerals(self, obs):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        if len(idle_scvs) > 0:
-            mineral_patches = [unit for unit in obs.observation.raw_units
+        mineral_patches = [unit for unit in obs.observation.raw_units
                                if unit.unit_type in [
                                    units.Neutral.MineralField,
                                    units.Neutral.MineralField750,
                                ]]
+        if len(idle_scvs) > 0 and len(mineral_patches) > 0:
             scv = random.choice(idle_scvs)
             distances = self.get_distances(
                 obs, mineral_patches, (scv.x, scv.y))
@@ -354,7 +356,7 @@ class SubAgent_Economic(Agent):
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
         self.previous_building_num = 0
-        self.negative_reward = 0
+        self.saved_reward = 0
 
     def can_afford_unit(self, obs, action):
         """ Check if all conditi on can afford to this unit
@@ -403,32 +405,6 @@ class SubAgent_Economic(Agent):
             
         return can_afford
 
-    def get_negative_reward(self, obs, action):
-
-        player_mineral = obs.observation.player.minerals
-        player_vespene = obs.observation.player.vespene
-        free_supply = (obs.observation.player.food_cap - obs.observation.player.food_used)
-
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-
-
-        if self.can_afford_unit(obs, action) == False:
-            return FAILED_COMMAND
-
-        if action == "harvest_minerals":
-            if len(idle_scvs) == 0:
-                return FAILED_COMMAND
-        elif action == "train_SCV":
-            completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
-            if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
-                return FAILED_COMMAND
-        elif action == "harvest_gas":
-            notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
-            if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
-                return FAILED_COMMAND
-        return 0
-
     def get_state(self, obs):
 
         player_mineral = obs.observation.player.minerals
@@ -469,7 +445,7 @@ class SubAgent_Economic(Agent):
 
         if self.episodes % 3 == 2:
             if self.previous_action is not None:
-                step_reward = self.get_reward(obs)
+                step_reward = self.get_reward(obs, action)
 
                 log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
                 if not obs.last():
@@ -491,35 +467,75 @@ class SubAgent_Economic(Agent):
         self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs):
+    def get_prev_reward(self, obs):
+        reward = 0
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
         building_num = len(self.get_my_building_by_pos(obs))
 
-        positive_reward = 0
-        ## Positive reward update in this step
-
-        ## Negative reward update in next step
-
+        # If spent mineral from prev to now state, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
-            positive_reward += MORE_MINERALS_USED_REWARD_RATE * \
+            reward += MORE_MINERALS_USED_REWARD_RATE * \
                 (total_spent_minerals - self.previous_total_spent_minerals)
+        # If spent vespene from prev to now state, get positive reward
         if total_spent_vespene > self.previous_total_spent_vespene:
-            positive_reward += MORE_VESPENE_USED_REWARD_RATE * \
+            reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
-
-        step_reward = positive_reward - self.negative_reward
-        self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+        
+        # If too much mineral in this state, get negative reward
+        if player_mineral > 1000:
+            reward -= TOO_MUCH_MINERAL_PENALTY * (player_mineral - 1000)
+        # If too much mineral in this state, get negative reward
+        if player_vespene > 500:
+            reward -= TOO_MUCH_VESPENE_PENALTY * (player_vespene - 500)
+        
+        # If lose building in this step, get negative reward
         if building_num < self.previous_building_num:
-            self.negative_reward += FAILED_BUILDING * (building_num - self.previous_building_num)
-
+            reward += FAILED_BUILDING * (building_num - self.previous_building_num)
+          
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
         self.previous_building_num = building_num
+        return reward
+
+    def get_saved_reward(self, obs, action):
+        reward = 0
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
+        free_supply = (obs.observation.player.food_cap - obs.observation.player.food_used)
+
+        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+        idle_scvs = [scv for scv in scvs if scv.order_length == 0]
+
+        # If this state choose a action that can't execute, get negative reward
+        if self.can_afford_unit(obs, action) == False:
+            reward += FAILED_COMMAND
+
+        if action == "harvest_minerals":
+            if len(idle_scvs) == 0:
+                reward += FAILED_COMMAND
+        elif action == "train_SCV":
+            completed_commandcenters = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+            if len(completed_commandcenters) <= 0 or free_supply == 0 or player_mineral < 50:
+                reward += FAILED_COMMAND
+        elif action == "harvest_gas":
+            notfull_completed_refinerys = self.get_notfull_worker_building_by_type(obs, units.Terran.Refinery)
+            if len(scvs) <= 0 or len(notfull_completed_refinerys) <= 0:
+                reward += FAILED_COMMAND
+
+        return reward
+
+    def get_reward(self, obs, action):
+        prev_reward = self.get_prev_reward(obs)
+        step_reward = prev_reward - self.saved_reward
+        self.saved_reward = self.get_saved_reward(obs, action)
+
         return step_reward
 
     def set_top_left(self, obs):

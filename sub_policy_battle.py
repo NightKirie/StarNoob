@@ -77,6 +77,10 @@ class Agent(BaseAgent):
         enemy_army_location = self.get_enemy_army_by_pos(obs)
         enemy_building_location = self.get_enemy_building_by_pos(obs)
         armys = self.get_my_army_by_pos(obs)
+        for i in enemy_army_location:
+            print(f'{i.x} {i.y}')
+        for i in enemy_building_location:
+            print(f'{i.x} {i.y}')
         if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
             if enemy_army_location != []:
                 attack = Point(enemy_army_location[0].x, enemy_army_location[0].y)
@@ -111,7 +115,7 @@ class SubAgent_Battle(Agent):
         self.previous_total_damage_taken = 0
         self.previous_my_units = 0
         self.previous_my_structures = 0
-        self.now_reward = 0
+        self.saved_reward = 0
 
     def get_state(self, obs=None):
 
@@ -164,11 +168,10 @@ class SubAgent_Battle(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
-
         if self.episodes % 3 == 1:
             if self.previous_action is not None:
-                step_reward = self.get_reward(obs)
-                log.log(LOG_REWARD, "battle reward = " + str(obs.reward +step_reward))
+                step_reward = self.get_reward(obs, action)
+                log.log(LOG_REWARD, "battle reward = " + str(obs.reward + step_reward))
                 if not obs.last():
                     self.memory.push(torch.Tensor(self.previous_state).to(device),
                                     torch.LongTensor([self.previous_action_idx]).to(device),
@@ -188,8 +191,8 @@ class SubAgent_Battle(Agent):
         self.previous_action = action
         self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
-
-    def get_reward(self, obs):
+    def get_prev_reward(self, obs):
+        reward = 0
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_killed_value_units_score = obs.observation.score_cumulative.killed_value_units
@@ -201,50 +204,43 @@ class SubAgent_Battle(Agent):
         my_army = len(self.get_my_army_by_pos(obs))
         my_structures = len(self.get_my_building_by_pos(obs))
 
-        prev_reward = 0
-        ## Prev reward will update in this epoch
         # If kill a more valuable unit, get positive reward
         if total_killed_value_units_score > self.previous_total_killed_value_units_score:
-            prev_reward += KILL_UNIT_REWARD_RATE * \
+            reward += KILL_UNIT_REWARD_RATE * \
                 (total_killed_value_units_score -
                     self.previous_total_killed_value_units_score)
 
         # If kill a more valuable structure, get positive reward
         if total_killed_value_structures_score > self.previous_total_killed_value_structures_score:
-            prev_reward += KILL_BUILDING_REWARD_RATE * \
+            reward += KILL_BUILDING_REWARD_RATE * \
                 (total_killed_value_structures_score -
                     self.previous_total_killed_value_structures_score)
 
         # If in this epoch, dealt damage is more than taken damage, get positive reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
-            prev_reward += DEALT_TAKEN_REWARD_RATE * \
+            reward += DEALT_TAKEN_REWARD_RATE * \
                 ((total_damage_dealt - self.previous_total_damage_dealt) -
                     (total_damage_taken - self.previous_total_damage_taken))
 
         # If in this epoch, dealt damage is less than taken damage, get negative reward
         if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
-            prev_reward -= DEALT_TAKEN_REWARD_RATE * \
+            reward -= DEALT_TAKEN_REWARD_RATE * \
                 ((total_damage_dealt - self.previous_total_damage_dealt) -
                     (total_damage_taken - self.previous_total_damage_taken))
 
         # If in this epoch, found enemy, get positive reward
         if visiable_enemy_army > 0 or visiable_enemy_structures > 0:
-            prev_reward += FOUND_ENEMY_RATE * \
+            reward += FOUND_ENEMY_RATE * \
                 (visiable_enemy_army + visiable_enemy_structures)
 
         # If loss unit in battle, get negative reward
         if my_army - self.previous_my_units < 0:
-            prev_reward -= LOST_UNIT_RATE * (self.previous_my_units - my_army)
+            reward -= LOST_UNIT_RATE * (self.previous_my_units - my_army)
 
         # If loss stuctures in battle, get negative reward
         if my_structures - self.previous_my_structures < 0:
-            prev_reward -= LOST_STRUCTURE_RATE * (self.previous_my_structures - my_structures)
-
-        ## Update reward
-        step_reward = prev_reward - self.now_reward
-
-        ## Now reward will update in next epoch
-
+            reward -= LOST_STRUCTURE_RATE * (self.previous_my_structures - my_structures)
+        
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_killed_unit_score = total_killed_value_units_score
@@ -253,6 +249,18 @@ class SubAgent_Battle(Agent):
         self.previous_total_damage_taken = total_damage_taken
         self.previous_my_units = my_army
         self.previous_my_structures = my_structures
+        return reward
+
+    def get_saved_reward(self, obs, action):
+        reward = 0
+
+        return reward
+
+    def get_reward(self, obs, action):
+        prev_reward = self.get_prev_reward(obs)
+        step_reward = prev_reward - self.saved_reward
+        self.saved_reward = self.get_saved_reward(obs, action)
+
         return step_reward
 
     def set_top_left(self, obs):

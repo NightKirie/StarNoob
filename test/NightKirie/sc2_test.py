@@ -1,8 +1,3 @@
-a = (1, 2)
-
-def test(x, y):
-    print(f'{x} {y}')
-    
-a = 1
-b = 1
-print(a == b)
+scvs = []
+idle_scvs = [scv for scv in scvs if scv.order_length == 0]
+print(idle_scvs)

@@ -122,7 +122,7 @@ class SubAgent_Training(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
-        self.now_reward = 0
+        self.saved_reward = 0
 
     def get_state(self, obs):
         complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
@@ -174,40 +174,43 @@ class SubAgent_Training(Agent):
         self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
-    def get_reward(self, obs, action):
+    def get_prev_reward(self, obs):
+        reward = 0
         total_value_units_score = obs.observation.score_cumulative.total_value_units
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
-        # print(obs.observation['score_cumulative'][11])
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
 
         prev_reward = 0
-        ## Prev reward will update in this epoch
-        # If use mineral, get positive reward
+        # If spent mineral from prev to now state, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
             prev_reward += MORE_MINERALS_USED_REWARD_RATE * \
                 (total_spent_minerals - self.previous_total_spent_minerals)
-        # If use vespene, get positive reward
+        # If spent vespene from prev to now state, get positive reward
         if total_spent_vespene > self.previous_total_spent_vespene:
             prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
-
-        step_reward = prev_reward - self.now_reward
-
-        ## Now reward will update in next epoch
-        # If trying to train a unit, but there's no building to train it, get negative reward
-        if action.find("train") != -1 :
-            unit_name = action[action.index("_")+1:]
-            if self.can_afford_unit(obs, getattr(terran, unit_name)()):
-                self.now_reward = 0
-            else:
-                self.now_reward = FAILED_COMMAND
-
-
+        
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
+        return reward
+
+    def get_saved_reward(self, obs, action):
+        reward = 0
+        if action.find("train") != -1 :
+            unit_name = action[action.index("_")+1:]
+            if not self.can_afford_unit(obs, getattr(terran, unit_name)()):
+                reward = FAILED_COMMAND            
+        return reward
+
+    def get_reward(self, obs, action):
+
+        prev_reward = self.get_prev_reward(obs)
+        step_reward = prev_reward - self.saved_reward
+        self.saved_reward = self.get_saved_reward(obs, action)
+
         return step_reward
 
 
