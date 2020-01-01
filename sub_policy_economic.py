@@ -39,7 +39,7 @@ class Agent(BaseAgent):
         for tech in RESEARCH_NAME:
             self.__setattr__(f"research_{tech}", partial(self.research_tech, upgrade=tech))
         
-        for building in BUILDING_UNIT_NAME:
+        for building in MY_BUILDING_LIST:
             self.__setattr__(f"build_{building}", partial(self.build_unit, building=building))
 
     def get_distances(self, obs, units, xy):
@@ -108,53 +108,60 @@ class Agent(BaseAgent):
            self.get_enemy_building_by_pos(obs, posx, posy, posx+1, posy+1) == []:
             return True
         return False
-        
+    
+    def get_proper_position_to_build(self, obs, times):
+        """
+        Args:
+            times (int): how many times to check
+        Returns:
+            (int, int): (x, y)
+        """
+
+        for i in range(times):
+            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
+            if self.check_if_buildable(obs, *build_xy):
+                break
+        return build_xy
+                 
 #build something
     def build_unit(self, obs, building):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-
-        if building == "CommandCenter":
-            command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
-            #(19, 23)(41, 21)(17, 48)(39, 45)
-            if len(command_centers) == 0 and len(scvs) > 0:
-                build_xy = (19, 23) if self.base_top_left else (39, 45)
-            elif len(command_centers) == 1 and len(scvs) > 0:
-                build_xy = (41, 21) if self.base_top_left else (17, 48)
-            elif len(command_centers) == 2 and len(scvs) > 0:
-                build_xy = (17, 48) if self.base_top_left else (41, 21)
-            else:
-                return actions.RAW_FUNCTIONS.no_op()
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
-        elif building == "Refinery":
-            gas_patches = [unit for unit in obs.observation.raw_units
-                           if unit.unit_type == units.Neutral.VespeneGeyser ]
-            if len(scvs) > 0:
+        
+        if building.find("TechLab") == -1 and building.find("Reactor") == -1:
+            if building == "CommandCenter":
+                command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+                #(19, 23)(41, 21)(17, 48)(39, 45)
+                if len(command_centers) == 0 and len(scvs) > 0:
+                    build_xy = (19, 23) if self.base_top_left else (39, 45)
+                elif len(command_centers) == 1 and len(scvs) > 0:
+                    build_xy = (41, 21) if self.base_top_left else (17, 48)
+                elif len(command_centers) == 2 and len(scvs) > 0:
+                    build_xy = (17, 48) if self.base_top_left else (41, 21)
+                else:
+                    return actions.RAW_FUNCTIONS.no_op()
+            elif building == "Refinery":
+                gas_patches = [unit for unit in obs.observation.raw_units
+                               if unit.unit_type == units.Neutral.VespeneGeyser ]
                 scv = random.choice(scvs)
                 distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
                 gas_patch = gas_patches[np.argmin(distances)]
                 return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
-        
-        elif building in ["SupplyDepot", "Barracks", "GhostAcademy", "EngineeringBay", "Factory", "Armory", "Starport", "FusionCore"]:
-            if building in ["GhostAcademy", "EngineeringBay", "Armory", "FusionCore"]:
-                research_building_list = self.get_my_units_by_type(obs, getattr(units.Terran, building))
-                if len(research_building_list) > 0:
-                    return actions.RAW_FUNCTIONS.no_op()
+            else: 
+                ### buildings which only research
+                if building in ["GhostAcademy", "EngineeringBay", "Armory", "FusionCore"]:
+                    research_building_list = self.get_my_units_by_type(obs, getattr(units.Terran, building))
+                    if len(research_building_list) > 0:
+                        return actions.RAW_FUNCTIONS.no_op()
 
-            if len(scvs) > 0:
-                build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                            MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-                for i in range(0, 10):
-                    if not self.check_if_buildable(obs, *build_xy):
-                        build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                    MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-                distances = self.get_distances(obs, scvs, build_xy)
-                scv = scvs[np.argmin(distances)]
-                return actions.RAW_FUNCTIONS.__getattr__(f"Build_{building}_pt")(
+                build_xy = self.get_proper_position_to_build(obs, 10)
+
+            distances = self.get_distances(obs, scvs, build_xy)
+            scv = scvs[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.__getattr__(f"Build_{building}_pt")(
                     "now", scv.tag, build_xy)
 
-        elif building.find("TechLab") != -1 or building.find("Reactor") != -1:
+        else:
             # TechLab or Reactor
             TorR = "TechLab" if building.find("TechLab") != -1 else "Reactor"
             base_building_name = building[building.find("_")+1:building.find(TorR)]
