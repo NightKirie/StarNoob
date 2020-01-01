@@ -20,13 +20,13 @@ TARGET_UPDATE = 500
 class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
-        tuple([f"train_{unit}" for unit in configs.COMBAT_UNIT_NAME])
+        tuple([f"train_{unit}" for unit in COMBAT_UNIT_NAME])
 
     def __init__(self):
         super(Agent, self).__init__()
 
         # Create action function
-        for unit in configs.COMBAT_UNIT_NAME:
+        for unit in COMBAT_UNIT_NAME:
             self.__setattr__(
                 f"train_{unit}", partial(
                     self.train_unit, unit=unit))
@@ -125,8 +125,8 @@ class SubAgent_Training(Agent):
         self.now_reward = 0
 
     def get_state(self, obs):
-        complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in configs.TRAINABLE_BUILDING]
-        complete_unit = [len(self.get_my_units_by_type(obs, getattr(terran, unit)().index)) for unit in configs.COMBAT_UNIT_NAME]
+        complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
+        complete_unit = [len(self.get_my_units_by_type(obs, getattr(terran, unit)().index)) for unit in COMBAT_UNIT_NAME]
         completed_supply_depots = self.get_my_completed_units_by_type(
             obs, terran.SupplyDepot().index)
 
@@ -151,7 +151,7 @@ class SubAgent_Training(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
-        if self.episodes % 3 == 1:
+        if self.episodes % 3 == 0:
             if self.previous_action is not None:
                 step_reward = self.get_reward(obs, action)
                 log.log(LOG_REWARD, "training reward = " + str(obs.reward + step_reward))

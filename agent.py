@@ -180,7 +180,7 @@ class SmartAgent(Agent):
                 self.optimize_model()
             else:
                 # save models
-                if configs.SAVE_MODEL:
+                if SAVE_MODEL:
                     self.save_module()
                     self.training_policy.save_module()
                     self.economic_policy.save_module()
@@ -222,32 +222,32 @@ def main(unused_argv):
     #agent2 = RandomAgent()
     try:
         with sc2_env.SC2Env(
-            map_name=configs.FLAGS.map_name,
-            battle_net_map=configs.FLAGS.battle_net_map,
-            players=configs.FLAGS.players,
+            map_name=FLAGS.map_name,
+            battle_net_map=FLAGS.battle_net_map,
+            players=FLAGS.players,
             agent_interface_format=sc2_env.parse_agent_interface_format(
-                feature_screen=configs.FLAGS.feature_screen_size,
-                feature_minimap=configs.FLAGS.feature_minimap_size,
-                rgb_screen=configs.FLAGS.rgb_screen_size,
-                rgb_minimap=configs.FLAGS.rgb_minimap_size,
-                use_raw_units=configs.FLAGS.use_raw_units,
-                use_raw_actions=configs.FLAGS.use_raw_actions,
-                raw_resolution=configs.FLAGS.raw_resolution,
+                feature_screen=FLAGS.feature_screen_size,
+                feature_minimap=FLAGS.feature_minimap_size,
+                rgb_screen=FLAGS.rgb_screen_size,
+                rgb_minimap=FLAGS.rgb_minimap_size,
+                use_raw_units=FLAGS.use_raw_units,
+                use_raw_actions=FLAGS.use_raw_actions,
+                raw_resolution=FLAGS.raw_resolution,
             ),
-            discount=configs.FLAGS.discount,
-            discount_zero_after_timeout=configs.FLAGS.discount_zero_after_timeout,
-            visualize=configs.FLAGS.visualize,
-            step_mul=configs.FLAGS.step_mul,
-            realtime=configs.FLAGS.realtime,
-            save_replay_episodes=configs.FLAGS.save_replay_episodes,
-            replay_dir=configs.FLAGS.replay_dir,
-            replay_prefix=configs.FLAGS.replay_prefix,
-            game_steps_per_episode=configs.FLAGS.game_steps_per_episode,
-            score_index=configs.FLAGS.score_index,
-            score_multiplier=configs.FLAGS.score_multiplier,
-            random_seed=configs.FLAGS.random_seed,
-            disable_fog=configs.FLAGS.disable_fog,
-            ensure_available_actions=configs.FLAGS.ensure_available_actions
+            discount=FLAGS.discount,
+            discount_zero_after_timeout=FLAGS.discount_zero_after_timeout,
+            visualize=FLAGS.visualize,
+            step_mul=FLAGS.step_mul,
+            realtime=FLAGS.realtime,
+            save_replay_episodes=FLAGS.save_replay_episodes,
+            replay_dir=FLAGS.replay_dir,
+            replay_prefix=FLAGS.replay_prefix,
+            game_steps_per_episode=FLAGS.game_steps_per_episode,
+            score_index=FLAGS.score_index,
+            score_multiplier=FLAGS.score_multiplier,
+            random_seed=FLAGS.random_seed,
+            disable_fog=FLAGS.disable_fog,
+            ensure_available_actions=FLAGS.ensure_available_actions
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
             run_loop.run_loop([agent1], env, max_episodes=1000)

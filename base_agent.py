@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
-import configs as configs
+from configs import *
 
 DATA_FILE = 'AI_agent_data'
 
@@ -153,7 +153,7 @@ class DQN(nn.Module):
         log.log(LOG_MODEL, f"Save model  \"{self.savepath}\"")
 
     def load(self):
-        if configs.LOAD_MODEL:
+        if LOAD_MODEL:
             if os.path.isfile(self.savepath):
                 self.load_state_dict(torch.load(self.savepath, map_location=device))
                 log.log(LOG_MODEL, f"Load model  \"{self.savepath}\"")
@@ -234,7 +234,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in configs.COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in army_type_list
@@ -254,7 +254,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in configs.COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in army_type_list
@@ -275,7 +275,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in configs.BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in building_type_list
@@ -296,7 +296,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in configs.BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in building_type_list
