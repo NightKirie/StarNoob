@@ -6,6 +6,7 @@ import unit.terran_upgrade as terran_upgrade
 
 DATA_FILE = 'Sub_building_data'
 FAILED_COMMAND = 0.0001
+FAILED_BUILDING = 0.0001
 MORE_MINERALS_USED_REWARD_RATE = 0.0001
 MORE_VESPENE_USED_REWARD_RATE = 0.0002
 
@@ -349,6 +350,7 @@ class SubAgent_Economic(Agent):
         self.previous_total_value_structures_score = 0
         self.previous_total_spent_minerals = 0
         self.previous_total_spent_vespene = 0
+        self.previous_building_num = 0
         self.negative_reward = 0
 
     def can_afford_unit(self, obs, action):
@@ -491,6 +493,7 @@ class SubAgent_Economic(Agent):
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
+        building_num = self.get_my_building_by_pos(obs)
 
         positive_reward = 0
         ## Positive reward update in this step
@@ -506,11 +509,14 @@ class SubAgent_Economic(Agent):
 
         step_reward = positive_reward - self.negative_reward
         self.negative_reward = self.get_negative_reward(obs, self.previous_action)
+        if building_num < self.previous_building_num:
+            self.negative_reward += FAILED_BUILDING * (building_num - self.previous_building_num)
 
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
         self.previous_total_spent_vespene = total_spent_vespene
+        self.previous_building_num = building_num
         return step_reward
 
     def set_top_left(self, obs):
