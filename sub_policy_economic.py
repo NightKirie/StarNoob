@@ -38,6 +38,9 @@ class Agent(BaseAgent):
         super(Agent, self).__init__()
         for tech in RESEARCH_NAME:
             self.__setattr__(f"research_{tech}", partial(self.research_tech, upgrade=tech))
+        
+        for building in BUILDING_UNIT_NAME:
+            self.__setattr__(f"build_{building}", partial(self.build_unit, building=building))
 
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]
@@ -107,208 +110,59 @@ class Agent(BaseAgent):
         return False
         
 #build something
-    def build_CommandCenter(self, obs):
-        command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+    def build_unit(self, obs, building):
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if len(command_centers) == 0 and len(scvs) > 0:
-            build_xy = (19, 23) if self.base_top_left else (39, 45)
+
+        if building == "CommandCenter":
+            command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+            #(19, 23)(41, 21)(17, 48)(39, 45)
+            if len(command_centers) == 0 and len(scvs) > 0:
+                build_xy = (19, 23) if self.base_top_left else (39, 45)
+            elif len(command_centers) == 1 and len(scvs) > 0:
+                build_xy = (41, 21) if self.base_top_left else (17, 48)
+            elif len(command_centers) == 2 and len(scvs) > 0:
+                build_xy = (17, 48) if self.base_top_left else (41, 21)
+            else:
+                return actions.RAW_FUNCTIONS.no_op()
             distances = self.get_distances(obs, scvs, build_xy)
             scv = scvs[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
-        if len(command_centers) == 1 and len(scvs) > 0:
-            build_xy = (41, 21) if self.base_top_left else (17, 48)
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
-        elif len(command_centers) == 2 and len(scvs) > 0:
-            build_xy = (17, 48) if self.base_top_left else (41, 21)
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_CommandCenter_pt("now", scv.tag, build_xy)
-        #(19, 23)(41, 21)(17, 48)(39, 45)
-        return actions.RAW_FUNCTIONS.no_op()
+        elif building == "Refinery":
+            gas_patches = [unit for unit in obs.observation.raw_units
+                           if unit.unit_type == units.Neutral.VespeneGeyser ]
+            if len(scvs) > 0:
+                scv = random.choice(scvs)
+                distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
+                gas_patch = gas_patches[np.argmin(distances)]
+                return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
+        
+        elif building in ["SupplyDepot", "Barracks", "GhostAcademy", "EngineeringBay", "Factory", "Armory", "Starport", "FusionCore"]:
+            if building in ["GhostAcademy", "EngineeringBay", "Armory", "FusionCore"]:
+                research_building_list = self.get_my_units_by_type(obs, getattr(units.Terran, building))
+                if len(research_building_list) > 0:
+                    return actions.RAW_FUNCTIONS.no_op()
 
-    def build_Refinery(self, obs):
-        refinery = self.get_my_units_by_type(obs, units.Terran.Refinery)
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        gas_patches = [unit for unit in obs.observation.raw_units
-                       if unit.unit_type == units.Neutral.VespeneGeyser ]
-        if len(refinery) >= 0 and len(scvs) > 0:
-            scv = random.choice(scvs)
-            distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
-            gas_patch = gas_patches[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
-        return actions.RAW_FUNCTIONS.no_op()
+            if len(scvs) > 0:
+                build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                            MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
+                for i in range(0, 10):
+                    if not self.check_if_buildable(obs, *build_xy):
+                        build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                                    MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
+                distances = self.get_distances(obs, scvs, build_xy)
+                scv = scvs[np.argmin(distances)]
+                return actions.RAW_FUNCTIONS.__getattr__(f"Build_{building}_pt")(
+                    "now", scv.tag, build_xy)
 
-    def build_SupplyDepot(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if len(scvs) > 0:
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_SupplyDepot_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
+        elif building.find("TechLab") != -1 or building.find("Reactor") != -1:
+            # TechLab or Reactor
+            TorR = "TechLab" if building.find("TechLab") != -1 else "Reactor"
+            base_building_name = building[building.find("_")+1:building.find(TorR)]
+            base_building_list = self.get_my_completed_units_by_type(
+                obs, getattr(units.Terran, base_building_name))
+            if len(base_building_list) > 0:
+                return actions.RAW_FUNCTIONS.__getattr__(f"Build_{TorR}_{base_building_name}_quick")("now", [b.tag for b in base_building_list])
 
-    def build_Barracks(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Barracks_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_BarracksTechLab(self, obs):
-        completed_barrackses = self.get_my_completed_units_by_type(
-            obs, units.Terran.Barracks)
-        if len(completed_barrackses) > 0:
-            return actions.RAW_FUNCTIONS.Build_TechLab_Barracks_quick(
-                "now", [barrack.tag for barrack in completed_barrackses])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_BarracksReactor(self, obs):
-        completed_barrackses = self.get_my_completed_units_by_type(
-            obs, units.Terran.Barracks)
-        if len(completed_barrackses) > 0:
-            return actions.RAW_FUNCTIONS.Build_Reactor_Barracks_quick(
-                "now", [barrack.tag for barrack in completed_barrackses])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_GhostAcademy(self, obs):
-        ghost_academy_list = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0 and len(ghost_academy_list) == 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_GhostAcademy_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_EngineeringBay(self, obs):
-        engineering_bay_list = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0 and len(engineering_bay_list) == 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_EngineeringBay_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_Factory(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Factory_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_FactoryTechLab(self, obs):
-        completed_factorys = self.get_my_completed_units_by_type(
-            obs, units.Terran.Factory)
-        if len(completed_factorys) > 0:
-            return actions.RAW_FUNCTIONS.Build_TechLab_Factory_quick(
-                "now", [factorys.tag for factorys in completed_factorys])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_FactoryReactor(self, obs):
-        completed_factorys = self.get_my_completed_units_by_type(
-            obs, units.Terran.Factory)
-        if len(completed_factorys) > 0:
-            return actions.RAW_FUNCTIONS.Build_Reactor_Factory_quick(
-                "now", [factorys.tag for factorys in completed_factorys])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_Armory(self, obs):
-        armory_list = self.get_my_units_by_type(obs, units.Terran.Armory)
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0 and len(armory_list) == 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Armory_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_Starport(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_Starport_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_FusionCore(self, obs):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            for i in range(0, 10):
-                if not self.check_if_buildable(obs, *build_xy):
-                    build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))     
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.Build_FusionCore_pt(
-                "now", scv.tag, build_xy)
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_StarportTechLab(self, obs):
-        completed_starports = self.get_my_completed_units_by_type(
-            obs, units.Terran.Starport)
-        if len(completed_starports) > 0:
-            return actions.RAW_FUNCTIONS.Build_TechLab_Starport_quick(
-                "now", [starports.tag for starports in completed_starports])
-        return actions.RAW_FUNCTIONS.no_op()
-
-    def build_StarportReactor(self, obs):
-        completed_starports = self.get_my_completed_units_by_type(
-            obs, units.Terran.Starport)
-        if len(completed_starports) > 0:
-            return actions.RAW_FUNCTIONS.Build_Reactor_Starport_quick(
-                "now", [starports.tag for starports in completed_starports])
         return actions.RAW_FUNCTIONS.no_op()
 
 #Research all
