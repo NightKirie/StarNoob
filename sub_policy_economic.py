@@ -496,7 +496,7 @@ class SubAgent_Economic(Agent):
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
-        building_num = self.get_my_building_by_pos(obs)
+        building_num = len(self.get_my_building_by_pos(obs))
 
         positive_reward = 0
         ## Positive reward update in this step
