@@ -82,7 +82,7 @@ flags.DEFINE_integer("raw_resolution", 64,
 LOAD_MODEL = True
 SAVE_MODEL = True
 
-COMBAT_UNIT_NAME = [
+MY_ARMY_LIST = [
     "Marine",
     "Reaper",
     "Marauder",
@@ -100,7 +100,7 @@ COMBAT_UNIT_NAME = [
     "Banshee",
     "Battlecruiser"]
 
-BUILDING_UNIT_NAME = [
+MY_BUILDING_LIST = [
     "Armory",
     "Barracks",
     # "BarracksFlying",
@@ -133,44 +133,40 @@ BUILDING_UNIT_NAME = [
     # "TechLab",
 ]
 
-TOTAL_MY_UNIT_LIST = [
-    "Marine",
-    "Reaper",
-    "Marauder",
-    "Ghost",
-    "Hellion",
-    "SiegeTank",
-    "WidowMine",
-    "Hellbat",
-    "Thor",
-    "Liberator",
-    "Cyclone",
-    "VikingFighter",
-    "Medivac",
-    "Raven",
-    "Banshee",
-    "Battlecruiser"]
+ENEMY_ARMY_LIST = [
+   "AutoTurret" ,
+   "Banshee",
+   "Battlecruiser",
+   "Cyclone",
+   "Ghost",
+   "GhostAlternate",
+   "GhostNova",
+   "Hellion",
+   "Hellbat",
+   "KD8Charge",
+   "Liberator",
+   "LiberatorAG",
+   "MULE",
+   "Marauder",
+   "Marine",
+   "Medivac",
+   "Nuke",
+   "PointDefenseDrone",
+   "Raven",
+   "Reaper",
+   "RepairDrone",
+   "SCV",
+   "SiegeTank",
+   "SiegeTankSieged",
+   "Thor",
+   "ThorHighImpactMode",
+   "VikingAssault",
+   "VikingFighter",
+   "WidowMine",
+   "WidowMineBurrowed"
+]
 
-TOTAL_ENEMY_UNIT_LIST = [
-    "SCV",
-    "Marine",
-    "Reaper",
-    "Marauder",
-    "Ghost",
-    "Hellion",
-    "SiegeTank",
-    "WidowMine",
-    "Hellbat",
-    "Thor",
-    "Liberator",
-    "Cyclone",
-    "VikingFighter",
-    "Medivac",
-    "Raven",
-    "Banshee",
-    "Battlecruiser"]
-
-TOTAL_BUILDING_LIST = [
+ENEMY_BUILDING_LIST = [
     "Armory",
     "Barracks",
     "BarracksFlying",

@@ -20,13 +20,13 @@ TARGET_UPDATE = 500
 class Agent(BaseAgent):
 
     actions = tuple(["do_nothing"]) + \
-        tuple([f"train_{unit}" for unit in COMBAT_UNIT_NAME])
+        tuple([f"train_{unit}" for unit in MY_ARMY_LIST])
 
     def __init__(self):
         super(Agent, self).__init__()
 
         # Create action function
-        for unit in COMBAT_UNIT_NAME:
+        for unit in MY_ARMY_LIST:
             self.__setattr__(
                 f"train_{unit}", partial(
                     self.train_unit, unit=unit))
@@ -126,7 +126,7 @@ class SubAgent_Training(Agent):
 
     def get_state(self, obs):
         complete_trainable_building = [len(self.get_my_completed_units_by_type(obs, getattr(terran, building)().index)) for building in TRAINABLE_BUILDING]
-        complete_unit = [len(self.get_my_units_by_type(obs, getattr(terran, unit)().index)) for unit in COMBAT_UNIT_NAME]
+        complete_unit = [len(self.get_my_units_by_type(obs, getattr(terran, unit)().index)) for unit in MY_ARMY_LIST]
         completed_supply_depots = self.get_my_completed_units_by_type(
             obs, terran.SupplyDepot().index)
 

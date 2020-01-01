@@ -30,7 +30,7 @@ class Agent(BaseAgent):
                "train_SCV",
                "harvest_minerals",
                "harvest_gas"] +\
-                [f"build_{building}" for building in BUILDING_UNIT_NAME] +\
+                [f"build_{building}" for building in MY_BUILDING_LIST] +\
                 [f"research_{tech}" for tech in RESEARCH_NAME]
                )
 
@@ -290,7 +290,7 @@ class SubAgent_Economic(Agent):
 
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in BUILDING_UNIT_NAME] 
+        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in MY_BUILDING_LIST] 
 
 
         player_food_used = obs.observation.player.food_used
