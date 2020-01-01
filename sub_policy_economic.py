@@ -30,7 +30,7 @@ class Agent(BaseAgent):
                "train_SCV",
                "harvest_minerals",
                "harvest_gas"] +\
-                [f"build_{building}" for building in BUILDING_UNIT_NAME] +\
+                [f"build_{building}" for building in MY_BUILDING_LIST] +\
                 [f"research_{tech}" for tech in RESEARCH_NAME]
                )
 
@@ -436,7 +436,7 @@ class SubAgent_Economic(Agent):
 
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
         idle_scvs = [scv for scv in scvs if scv.order_length == 0]
-        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in BUILDING_UNIT_NAME] 
+        buildings = [len(self.get_my_completed_units_by_type(obs, getattr(units.Terran, unit))) for unit in MY_BUILDING_LIST] 
 
 
         player_food_used = obs.observation.player.food_used
@@ -496,7 +496,7 @@ class SubAgent_Economic(Agent):
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
-        building_num = self.get_my_building_by_pos(obs)
+        building_num = len(self.get_my_building_by_pos(obs))
 
         positive_reward = 0
         ## Positive reward update in this step
