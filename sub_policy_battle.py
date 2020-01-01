@@ -77,10 +77,6 @@ class Agent(BaseAgent):
         enemy_army_location = self.get_enemy_army_by_pos(obs)
         enemy_building_location = self.get_enemy_building_by_pos(obs)
         armys = self.get_my_army_by_pos(obs)
-        for i in enemy_army_location:
-            print(f'{i.x} {i.y}')
-        for i in enemy_building_location:
-            print(f'{i.x} {i.y}')
         if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
             if enemy_army_location != []:
                 attack = Point(enemy_army_location[0].x, enemy_army_location[0].y)
