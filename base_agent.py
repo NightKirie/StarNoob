@@ -234,7 +234,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in TOTAL_MY_UNIT_LIST]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in army_type_list
@@ -254,7 +254,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of army units
         """
-        army_type_list = [getattr(units.Terran, unit) for unit in COMBAT_UNIT_NAME]
+        army_type_list = [getattr(units.Terran, unit) for unit in TOTAL_ENEMY_UNIT_LIST]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in army_type_list
@@ -275,7 +275,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in TOTAL_BUILDING_LIST]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.SELF
                     and unit.unit_type in building_type_list
@@ -296,7 +296,7 @@ class BaseAgent(base_agent.BaseAgent):
         Returns:
             list: a list of building units
         """
-        building_type_list = [getattr(units.Terran, unit) for unit in BUILDING_UNIT_NAME]
+        building_type_list = [getattr(units.Terran, unit) for unit in TOTAL_BUILDING_LIST]
         return [unit for unit in obs.observation.raw_units
                 if unit.alliance == features.PlayerRelative.ENEMY
                     and unit.unit_type in building_type_list

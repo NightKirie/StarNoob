@@ -186,8 +186,9 @@ class Agent(BaseAgent):
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_GhostAcademy(self, obs):
+        ghost_academy_list = self.get_my_units_by_type(obs, units.Terran.GhostAcademy)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
+        if (len(scvs) > 0 and len(ghost_academy_list) == 0):
             build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
                         MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
             for i in range(0, 10):
@@ -201,8 +202,9 @@ class Agent(BaseAgent):
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_EngineeringBay(self, obs):
+        engineering_bay_list = self.get_my_units_by_type(obs, units.Terran.EngineeringBay)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
+        if (len(scvs) > 0 and len(engineering_bay_list) == 0):
             build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
                         MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
             for i in range(0, 10):
@@ -247,8 +249,9 @@ class Agent(BaseAgent):
         return actions.RAW_FUNCTIONS.no_op()
 
     def build_Armory(self, obs):
+        armory_list = self.get_my_units_by_type(obs, units.Terran.Armory)
         scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        if (len(scvs) > 0):
+        if (len(scvs) > 0 and len(armory_list) == 0):
             build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
                         MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
             for i in range(0, 10):

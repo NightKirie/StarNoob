@@ -41,7 +41,7 @@ flags.DEFINE_string("replay_dir", None,
 flags.DEFINE_string("replay_prefix", None,
                     "An optional prefix to use when saving replays.")
 
-flags.DEFINE_integer("game_steps_per_episode", None, """Game steps per episode, independent of the
+flags.DEFINE_integer("game_steps_per_episode", 0, """Game steps per episode, independent of the
                                                         step_mul. 0 means no limit. None means use the map default.""")
 
 flags.DEFINE_integer("score_index", None, """-1 means use the win/loss reward, >=0 is the index into the
@@ -131,6 +131,76 @@ BUILDING_UNIT_NAME = [
     "SupplyDepot",
     # "SupplyDepotLowered",
     # "TechLab",
+]
+
+TOTAL_MY_UNIT_LIST = [
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
+
+TOTAL_ENEMY_UNIT_LIST = [
+    "SCV",
+    "Marine",
+    "Reaper",
+    "Marauder",
+    "Ghost",
+    "Hellion",
+    "SiegeTank",
+    "WidowMine",
+    "Hellbat",
+    "Thor",
+    "Liberator",
+    "Cyclone",
+    "VikingFighter",
+    "Medivac",
+    "Raven",
+    "Banshee",
+    "Battlecruiser"]
+
+TOTAL_BUILDING_LIST = [
+    "Armory",
+    "Barracks",
+    "BarracksFlying",
+    "BarracksReactor",
+    "BarracksTechLab",
+    "Bunker",
+    "CommandCenter",
+    "CommandCenterFlying",
+    "EngineeringBay",
+    "Factory",
+    "FactoryFlying",
+    "FactoryReactor",
+    "FactoryTechLab",
+    "FusionCore",
+    "GhostAcademy",
+    "MissileTurret",
+    "OrbitalCommand",
+    "OrbitalCommandFlying",
+    "PlanetaryFortress",
+    "Reactor",
+    "Refinery",
+    "RefineryRich",
+    "SensorTower",
+    "Starport",
+    "StarportFlying",
+    "StarportReactor",
+    "StarportTechLab",
+    "SupplyDepot",
+    "SupplyDepotLowered",
+    "TechLab",
 ]
 
 TRAINABLE_BUILDING = [
