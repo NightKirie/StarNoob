@@ -44,10 +44,6 @@ class Agent(BaseAgent):
         for building in MY_BUILDING_LIST:
             self.__setattr__(f"build_{building}", partial(self.build_unit, building=building))
 
-    def get_distances(self, obs, units, xy):
-        units_xy = [(unit.x, unit.y) for unit in units]
-        return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
-
     def get_least_busy_building(self, building):
         order_array = []
         for item in building:
@@ -128,9 +124,11 @@ class Agent(BaseAgent):
                  
 #build something
     def build_unit(self, obs, building):
-        scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
-        
         if building.find("TechLab") == -1 and building.find("Reactor") == -1:
+            scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+            if len(scvs) <= 0:
+                return actions.RAW_FUNCTIONS.no_op()
+            
             if building == "CommandCenter":
                 command_centers = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
                 #(19, 23)(41, 21)(17, 48)(39, 45)
@@ -144,7 +142,7 @@ class Agent(BaseAgent):
                     return actions.RAW_FUNCTIONS.no_op()
             elif building == "Refinery":
                 gas_patches = [unit for unit in obs.observation.raw_units
-                               if unit.unit_type == units.Neutral.VespeneGeyser ]
+                            if unit.unit_type == units.Neutral.VespeneGeyser ]
                 scv = random.choice(scvs)
                 distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
                 gas_patch = gas_patches[np.argmin(distances)]
@@ -320,12 +318,12 @@ class SubAgent_Economic(Agent):
             else: # first step
                 pass
 
-        if self.episode % TARGET_UPDATE == 0:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
+            if self.episode % TARGET_UPDATE == 0:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.previous_state = state
-        self.previous_action = action
-        self.previous_action_idx = action_idx
+            self.previous_state = state
+            self.previous_action = action
+            self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
     def get_prev_reward(self, obs):

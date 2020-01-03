@@ -49,7 +49,7 @@ class Agent(BaseAgent):
         for vector in VECTOR:
             self.__setattr__(
                 f"attack_vector_{vector.x}_{vector.y}", partial(
-                    self.attack_vector, vector=vector, step=8))
+                    self.attack_vector, vector=vector, step=16))
                 
 
     def move_vector(self, obs, vector, step):
@@ -74,16 +74,19 @@ class Agent(BaseAgent):
 
     def attack_enemy(self, obs): 
         """ attack enemy in pos """
-        enemy_army_location = self.get_enemy_army_by_pos(obs)
-        enemy_building_location = self.get_enemy_building_by_pos(obs)
+        enemy_army_list = self.get_enemy_army_by_pos(obs)
+        enemy_building_list = self.get_enemy_building_by_pos(obs)
         armys = self.get_my_army_by_pos(obs)
-        if len(armys) > 0 and (enemy_army_location != [] or enemy_building_location != []):
-            if enemy_army_location != []:
-                attack = Point(enemy_army_location[0].x, enemy_army_location[0].y)
-            elif enemy_building_location != []:
-                attack = Point(enemy_building_location[0].x, enemy_building_location[0].y)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], attack)
+        if len(armys) > 0 and (enemy_army_list != [] or enemy_building_list != []):
+            if enemy_army_list != []:
+               # attack = Point(enemy_army_list[0].x, enemy_army_list[0].y)
+                distances = self.get_distances(obs, enemy_army_list, (armys[0].x, armys[0].y))
+                attack_enemy = enemy_army_list[np.argmin(distances)]
+            elif enemy_building_list != []:
+                distances = self.get_distances(obs, enemy_building_list, (armys[0].x, armys[0].y))
+                attack_enemy = enemy_building_list[np.argmin(distances)]
+            return actions.RAW_FUNCTIONS.Attack_unit(
+                "now", [soldier.tag for soldier in armys], attack_enemy.tag)
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -183,9 +186,9 @@ class SubAgent_Battle(Agent):
             if self.episode % TARGET_UPDATE == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.previous_state = state
-        self.previous_action = action
-        self.previous_action_idx = action_idx
+            self.previous_state = state
+            self.previous_action = action
+            self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
     def get_prev_reward(self, obs):
         reward = 0

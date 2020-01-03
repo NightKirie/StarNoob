@@ -194,7 +194,7 @@ class SmartAgent(Agent):
         self.previous_action_idx = action_idx
 
         # record score for episode ending use
-        self.score = obs.observation.score_cumulative.score - self.time_penalty
+        self.score = obs.observation.score_cumulative.score
         log.debug('get out step')
         return getattr(self, action)(obs)
 

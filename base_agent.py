@@ -164,6 +164,9 @@ class DQN(nn.Module):
 
 
 class BaseAgent(base_agent.BaseAgent):
+    def get_distances(self, obs, units, xy):
+        units_xy = [(unit.x, unit.y) for unit in units]
+        return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
     def get_my_units_by_type(self, obs, unit_type):
         """ get all user's units of a type
         Args:
@@ -283,7 +286,7 @@ class BaseAgent(base_agent.BaseAgent):
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
-    def get_enemy_building_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=4, pos2y=4):
+    def get_enemy_building_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
         """ get a list of enemy building units in a position range
 
         Args:

@@ -169,9 +169,9 @@ class SubAgent_Training(Agent):
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
 
-        self.previous_state = state
-        self.previous_action = action
-        self.previous_action_idx = action_idx
+            self.previous_state = state
+            self.previous_action = action
+            self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
 
     def get_prev_reward(self, obs):
