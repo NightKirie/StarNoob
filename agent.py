@@ -198,8 +198,16 @@ class SmartAgent(Agent):
         return getattr(self, action)(obs)
 
     def get_reward(self, obs):
-        log.info(self.battle_policy.get_reward(obs, self.battle_policy.previous_action))
         reward = 0
+        # Add battle reward into agent's reward
+        if self.episodes % 3 == 1:
+            reward += self.battle_policy.get_reward(obs, self.battle_policy.previous_action)
+        # Add battle reward into agent's reward
+        elif self.episodes % 3 == 2:
+            reward += self.economic_policy.get_reward(obs, self.economic_policy.previous_action)
+        # Add battle reward into agent's reward
+        else:
+            reward += self.training_policy.get_reward(obs, self.training_policy.previous_action)        
         reward += -TIME_PENALTY_Q
         return reward
 
