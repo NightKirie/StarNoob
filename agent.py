@@ -4,6 +4,7 @@ from base_agent import *
 import sub_policy_battle
 import sub_policy_economic
 import sub_policy_training
+import matplotlib.pyplot as plt
 
 EPS_START = 0.9
 EPS_END = 0.05
@@ -81,6 +82,10 @@ class SmartAgent(Agent):
         self.win_game_count = 0
         self.even_game_count = 0
         self.lose_game_count = 0
+        self.win_count_list = []
+        self.even_count_list = []
+        self.lose_count_list = []
+        plt.ion()
 
     def reset(self):
         log.debug('in reset')  
@@ -88,6 +93,9 @@ class SmartAgent(Agent):
             log.log(LOG_EPISODE,
                     f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. 
                         Win game count: {self.win_game_count}, Even game count: {self.even_game_count}, Lose game count: {self.lose_game_count}""")
+            plt.plot(self.win_count_list, 'b')
+            plt.pause(1)
+            
         super(SmartAgent, self).reset()
         log.log(LOG_EPISODE, f"Starting episode {self.episodes}")
         self.new_game()
@@ -194,6 +202,8 @@ class SmartAgent(Agent):
                     self.even_game_count += 1
                 elif obs.reward == -1:
                     self.lose_game_count += 1
+
+                self.win_count_list.append(self.win_game_count/self.episodes*100)
                 return
         else:
             pass
