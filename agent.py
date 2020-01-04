@@ -13,7 +13,7 @@ TARGET_UPDATE = 500
 SAVE_POLICY_NET = 'model/agent_dqn_policy'
 SAVE_TARGET_NET = 'model/agent_dqn_target'
 SAVE_MEMORY = 'model/agent_memory'
-TIME_PENALTY_Q = 0.00005
+TIME_PENALTY_Q = 0.0001
 
 class Agent(BaseAgent):
 
@@ -125,10 +125,10 @@ class SmartAgent(Agent):
         player_food_army = obs.observation.player.food_army
         player_food_workers = obs.observation.player.food_workers
 
-        my_army_num = self.get_my_army_by_pos(obs, 0, 0, 64, 64)
-        my_building_num = self.get_my_building_by_pos(obs, 0, 0, 64, 64)
-        enemy_army_num = self.get_enemy_army_by_pos(obs, 0, 0, 64, 64)
-        enemy_building_num = self.get_enemy_building_by_pos(obs, 0, 0, 64, 64)
+        my_army_num = self.get_my_army_by_pos(obs)
+        my_building_num = self.get_my_building_by_pos(obs)
+        enemy_army_num = self.get_enemy_army_by_pos(obs)
+        enemy_building_num = self.get_enemy_building_by_pos(obs)
 
         return (self.base_top_left,
                 player_mineral,
@@ -169,10 +169,9 @@ class SmartAgent(Agent):
         log.info(action)
 
         if self.previous_action is not None:
-            step_reward = 0
-            log.log(LOG_REWARD, "agent reward = " + str(obs.reward +step_reward))
+            step_reward = self.get_reward(obs)
+            log.log(LOG_REWARD, "agent reward = " + str(obs.reward + step_reward))
             if not obs.last():
-                self.time_penalty += TIME_PENALTY_Q
                 self.memory.push(torch.Tensor(self.previous_state).to(device),
                                  torch.LongTensor([self.previous_action_idx]).to(device),
                                  torch.Tensor(state).to(device),
@@ -197,6 +196,12 @@ class SmartAgent(Agent):
         self.score = obs.observation.score_cumulative.score
         log.debug('get out step')
         return getattr(self, action)(obs)
+
+    def get_reward(self, obs):
+        log.info(self.battle_policy.get_reward(obs, self.battle_policy.previous_action))
+        reward = 0
+        reward += -TIME_PENALTY_Q
+        return reward
 
     def select_action(self, state):
         sample = random.random()

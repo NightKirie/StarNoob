@@ -1,14 +1,14 @@
 from base_agent import *
 
 DATA_FILE = 'Sub_battle_data'
-KILL_UNIT_REWARD_RATE = 0.0002
-KILL_BUILDING_REWARD_RATE = 0.0004
-DEAD_UNIT_REWARD_RATE = 0.0001 * 0
-DEAD_BUILDING_REWARD_RATE = 0.0002 * 0
-DEALT_TAKEN_REWARD_RATE = 0.0001
-FOUND_ENEMY_RATE = 0.0001
-LOST_UNIT_RATE = 0.0002
-LOST_STRUCTURE_RATE = 0.0004
+KILL_UNIT_REWARD_RATE = 0.02
+KILL_BUILDING_REWARD_RATE = 0.04
+DEAD_UNIT_REWARD_RATE = 0.001 * 0
+DEAD_BUILDING_REWARD_RATE = 0.002 * 0
+DEALT_TAKEN_REWARD_RATE = 0.001
+FOUND_ENEMY_RATE = 0.001
+LOST_UNIT_RATE = 0.02
+LOST_STRUCTURE_RATE = 0.04
 
 SUB_ATTACK_DIVISION = 64
 SUB_ATTACK_SIZE = 1
@@ -49,7 +49,7 @@ class Agent(BaseAgent):
         for vector in VECTOR:
             self.__setattr__(
                 f"attack_vector_{vector.x}_{vector.y}", partial(
-                    self.attack_vector, vector=vector, step=16))
+                    self.attack_vector, vector=vector, step=8))
                 
 
     def move_vector(self, obs, vector, step):
@@ -79,7 +79,6 @@ class Agent(BaseAgent):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0 and (enemy_army_list != [] or enemy_building_list != []):
             if enemy_army_list != []:
-               # attack = Point(enemy_army_list[0].x, enemy_army_list[0].y)
                 distances = self.get_distances(obs, enemy_army_list, (armys[0].x, armys[0].y))
                 attack_enemy = enemy_army_list[np.argmin(distances)]
             elif enemy_building_list != []:
@@ -87,6 +86,12 @@ class Agent(BaseAgent):
                 attack_enemy = enemy_building_list[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Attack_unit(
                 "now", [soldier.tag for soldier in armys], attack_enemy.tag)
+            # if enemy_army_list != []:
+            #     attack = Point(enemy_army_list[0].x, enemy_army_list[0].y)
+            # elif enemy_building_list != []:
+            #     attack = Point(enemy_building_list[0].x, enemy_building_list[0].y)
+            # return actions.RAW_FUNCTIONS.Attack_pt(
+            #     "now", [soldier.tag for soldier in armys], attack)
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -115,6 +120,7 @@ class SubAgent_Battle(Agent):
         self.previous_my_units = 0
         self.previous_my_structures = 0
         self.saved_reward = 0
+        print("sdfsdf")
 
     def get_state(self, obs=None):
 
@@ -190,6 +196,7 @@ class SubAgent_Battle(Agent):
             self.previous_action = action
             self.previous_action_idx = action_idx
         return getattr(self, action)(obs)
+        
     def get_prev_reward(self, obs):
         reward = 0
         total_value_units_score = obs.observation.score_cumulative.total_value_units
@@ -220,12 +227,11 @@ class SubAgent_Battle(Agent):
             reward += DEALT_TAKEN_REWARD_RATE * \
                 ((total_damage_dealt - self.previous_total_damage_dealt) -
                     (total_damage_taken - self.previous_total_damage_taken))
-
         # If in this epoch, dealt damage is less than taken damage, get negative reward
-        if total_damage_dealt - self.previous_total_damage_dealt > total_damage_taken - self.previous_total_damage_taken:
+        else:
             reward -= DEALT_TAKEN_REWARD_RATE * \
-                ((total_damage_dealt - self.previous_total_damage_dealt) -
-                    (total_damage_taken - self.previous_total_damage_taken))
+                ((total_damage_taken - self.previous_total_damage_taken) - 
+                (total_damage_dealt - self.previous_total_damage_dealt))
 
         # If in this epoch, found enemy, get positive reward
         if visiable_enemy_army > 0 or visiable_enemy_structures > 0:

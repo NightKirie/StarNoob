@@ -5,12 +5,12 @@ import unit.terran_unit as terran
 import unit.terran_upgrade as terran_upgrade
 
 DATA_FILE = 'Sub_building_data'
-FAILED_COMMAND = 0.0001
-FAILED_BUILDING = 0.0001
-MORE_MINERALS_USED_REWARD_RATE = 0.0001
-MORE_VESPENE_USED_REWARD_RATE = 0.0002
-TOO_MUCH_MINERAL_PENALTY = 0.0005
-TOO_MUCH_VESPENE_PENALTY = 0.001
+FAILED_COMMAND = 0.01
+FAILED_BUILDING = 0.01
+MORE_MINERALS_USED_REWARD_RATE = 0.001
+MORE_VESPENE_USED_REWARD_RATE = 0.002
+TOO_MUCH_MINERAL_PENALTY = 0.005
+TOO_MUCH_VESPENE_PENALTY = 0.01
 
 EPS_START = 0.9
 EPS_END = 0.05
@@ -114,12 +114,24 @@ class Agent(BaseAgent):
         Returns:
             (int, int): (x, y)
         """
-
+        buildable = False
+        # First try to build near the main command center
         for i in range(times):
-            build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                        MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-            if self.check_if_buildable(obs, *build_xy):
-                break
+                build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                            MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
+                if self.check_if_buildable(obs, *build_xy):
+                    buildable = True
+                    break
+        # If location is not buildable, try to get location from all command center again
+        if not buildable:
+            command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+            if len(command_center_list) > 0:
+                for command_center in command_center_list:
+                    for i in range(times):
+                        build_xy = (command_center.x + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                                    command_center.y + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))               
+                        if self.check_if_buildable(obs, *build_xy):
+                            break
         return build_xy
                  
 #build something
@@ -154,7 +166,7 @@ class Agent(BaseAgent):
                     if len(research_building_list) > 0:
                         return actions.RAW_FUNCTIONS.no_op()
 
-                build_xy = self.get_proper_position_to_build(obs, 10)
+                build_xy = self.get_proper_position_to_build(obs, 50)
 
             distances = self.get_distances(obs, scvs, build_xy)
             scv = scvs[np.argmin(distances)]

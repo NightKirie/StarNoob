@@ -4,9 +4,11 @@ import unit.terran_unit as terran
 
 DATA_FILE = 'Sub_training_data'
 
-FAILED_COMMAND = 0.0001
-MORE_MINERALS_USED_REWARD_RATE = 0.0001
-MORE_VESPENE_USED_REWARD_RATE = 0.0002
+FAILED_COMMAND = 0.01
+MORE_MINERALS_USED_REWARD_RATE = 0.001
+MORE_VESPENE_USED_REWARD_RATE = 0.002
+TOO_MUCH_MINERAL_PENALTY = 0.005
+TOO_MUCH_VESPENE_PENALTY = 0.01
 
 SAVE_POLICY_NET = 'model/training_dqn_policy'
 SAVE_TARGET_NET = 'model/training_dqn_target'
@@ -180,6 +182,8 @@ class SubAgent_Training(Agent):
         total_value_structures_score = obs.observation.score_cumulative.total_value_structures
         total_spent_minerals = obs.observation.score_cumulative.spent_minerals
         total_spent_vespene = obs.observation.score_cumulative.spent_vespene
+        player_mineral = obs.observation.player.minerals
+        player_vespene = obs.observation.player.vespene
 
         prev_reward = 0
         # If spent mineral from prev to now state, get positive reward
@@ -191,6 +195,13 @@ class SubAgent_Training(Agent):
             prev_reward += MORE_VESPENE_USED_REWARD_RATE * \
                 (total_spent_vespene - self.previous_total_spent_vespene)
         
+        # If too much mineral in this state, get negative reward
+        if player_mineral > 1000:
+            reward -= TOO_MUCH_MINERAL_PENALTY * (player_mineral - 1000)
+        # If too much mineral in this state, get negative reward
+        if player_vespene > 500:
+            reward -= TOO_MUCH_VESPENE_PENALTY * (player_vespene - 500)
+
         self.previous_total_value_units_score = total_value_units_score
         self.previous_total_value_structures_score = total_value_structures_score
         self.previous_total_spent_minerals = total_spent_minerals
