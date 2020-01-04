@@ -7,6 +7,7 @@ import unit.terran_upgrade as terran_upgrade
 DATA_FILE = 'Sub_building_data'
 FAILED_COMMAND = 0.01
 FAILED_BUILDING = 0.01
+BUILD_STRUCTURE_REWARD_RATE = 0.02
 MORE_MINERALS_USED_REWARD_RATE = 0.001
 MORE_VESPENE_USED_REWARD_RATE = 0.002
 TOO_MUCH_MINERAL_PENALTY = 0.005
@@ -348,6 +349,11 @@ class SubAgent_Economic(Agent):
         player_vespene = obs.observation.player.vespene
         building_num = len(self.get_my_building_by_pos(obs))
 
+        # If build structure, get positive reward
+        if total_value_structures_score > self.previous_total_value_structures_score:
+            reward += BUILD_STRUCTURE_REWARD_RATE * \
+                (total_value_structures_score - self.previous_total_value_structures_score)
+                
         # If spent mineral from prev to now state, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
             reward += MORE_MINERALS_USED_REWARD_RATE * \

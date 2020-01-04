@@ -5,6 +5,7 @@ import unit.terran_unit as terran
 DATA_FILE = 'Sub_training_data'
 
 FAILED_COMMAND = 0.01
+TRAIN_UNIT_REWARD_RATE = 0.01
 MORE_MINERALS_USED_REWARD_RATE = 0.001
 MORE_VESPENE_USED_REWARD_RATE = 0.002
 TOO_MUCH_MINERAL_PENALTY = 0.005
@@ -186,6 +187,12 @@ class SubAgent_Training(Agent):
         player_vespene = obs.observation.player.vespene
 
         prev_reward = 0
+
+        # If train valueable unit, get positive reward
+        if total_value_units_score > self.previous_total_value_units_score:
+            prev_reward += TRAIN_UNIT_REWARD_RATE * \
+                (total_value_units_score - self.previous_total_value_units_score)
+
         # If spent mineral from prev to now state, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
             prev_reward += MORE_MINERALS_USED_REWARD_RATE * \

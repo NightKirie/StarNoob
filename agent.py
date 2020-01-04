@@ -80,10 +80,10 @@ class SmartAgent(Agent):
         self.set_DQN(SAVE_POLICY_NET, SAVE_TARGET_NET, SAVE_MEMORY)
         self.episode = 0
         self.win_game_count = 0
-        self.even_game_count = 0
+        self.draw_game_count = 0
         self.lose_game_count = 0
         self.win_count_list = []
-        self.even_count_list = []
+        self.draw_count_list = []
         self.lose_count_list = []
         plt.ion()
 
@@ -92,8 +92,10 @@ class SmartAgent(Agent):
         if self.episodes != 0:
             log.log(LOG_EPISODE,
                     f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. 
-                        Win game count: {self.win_game_count}, Even game count: {self.even_game_count}, Lose game count: {self.lose_game_count}""")
-            plt.plot(self.win_count_list, 'b')
+                        Win game count: {self.win_game_count}, Draw game count: {self.draw_game_count}, Lose game count: {self.lose_game_count}""")
+            plt.plot(self.win_count_list, 'g')
+            plt.plot(self.lose_count_list, 'r')
+            plt.plot(self.draw_count_list, 'b')
             plt.pause(1)
             
         super(SmartAgent, self).reset()
@@ -199,11 +201,13 @@ class SmartAgent(Agent):
                 if obs.reward == 1:
                     self.win_game_count += 1
                 elif obs.reward == 0:
-                    self.even_game_count += 1
+                    self.draw_game_count += 1
                 elif obs.reward == -1:
                     self.lose_game_count += 1
 
                 self.win_count_list.append(self.win_game_count/self.episodes*100)
+                self.lose_count_list.append(self.lose_game_count/self.episodes*100)
+                self.draw_count_list.append(self.draw_game_count/self.episodes*100)
                 return
         else:
             pass
