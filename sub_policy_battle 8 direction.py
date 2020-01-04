@@ -10,8 +10,8 @@ FOUND_ENEMY_RATE = 0.001
 LOST_UNIT_RATE = 0.02
 LOST_STRUCTURE_RATE = 0.04
 
-SUB_ATTACK_DIVISION = 4
-SUB_ATTACK_SIZE = 16
+SUB_ATTACK_DIVISION = 64
+SUB_ATTACK_SIZE = 1
 
 SUB_LOCATION_DIVISION = 4
 SUB_LOCATION_SIZE = 16
@@ -27,27 +27,49 @@ SAVE_MEMORY = 'model/battle_memory'
 
 Point = namedtuple("Vector_tuple", ["x", "y"])
 
+VECTOR = [
+    Point(0, 1),
+    Point(1, 1),
+    Point(1, 0),
+    Point(1, -1),
+    Point(0, -1),
+    Point(-1, -1),
+    Point(-1, 0),
+    Point(-1, 1)
+]
 
 class Agent(BaseAgent):
     actions = tuple(["do_nothing"]) + \
-              tuple([f"attack_point_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
-              tuple(["attack_enemy"]) 
+              tuple([f"attack_vector_{vector.x}_{vector.y}" for vector in VECTOR]) + \
+              tuple(["attack_enemy"])
 
     def __init__(self):
         super().__init__()
 
-        for i in range(0, SUB_ATTACK_DIVISION):
-            for j in range(0, SUB_ATTACK_DIVISION):
-                self.__setattr__(
-                    f"attack_point_{i}_{j}", partial(
-                        self.attack_point, point=Point(i, j), size=SUB_ATTACK_SIZE))
+        for vector in VECTOR:
+            self.__setattr__(
+                f"attack_vector_{vector.x}_{vector.y}", partial(
+                    self.attack_vector, vector=vector, step=8))
+                
 
-    def attack_point(self, obs, point, size):
+    def move_vector(self, obs, vector, step):
         armys = self.get_my_army_by_pos(obs)
-        if len(armys) > 0:
-            attack = (point.x * SUB_ATTACK_SIZE, point.y * SUB_ATTACK_SIZE)
-            return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], attack)
+        if len(armys) > 0:  
+            move_p = Point(armys[0].x + vector.x * step, armys[0].y + vector.y * step)
+            if move_p.x >= 0 and move_p.x < 64 and \
+               move_p.y >= 0 and move_p.y < 64:
+                return actions.RAW_FUNCTIONS.Move_pt(
+                    "now", [soldier.tag for soldier in armys], move_p)
+        return actions.RAW_FUNCTIONS.no_op()
+    
+    def attack_vector(self, obs, vector, step):
+        armys = self.get_my_army_by_pos(obs)
+        if len(armys) > 0:  
+            move_p = Point(armys[0].x + vector.x * step, armys[0].y + vector.y * step)
+            if move_p.x >= 0 and move_p.x < 64 and \
+               move_p.y >= 0 and move_p.y < 64:
+                return actions.RAW_FUNCTIONS.Attack_pt(
+                    "now", [soldier.tag for soldier in armys], move_p)
         return actions.RAW_FUNCTIONS.no_op()
 
     def attack_enemy(self, obs): 

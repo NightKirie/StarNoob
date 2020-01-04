@@ -318,12 +318,12 @@ class SubAgent_Economic(Agent):
             if self.previous_action is not None:
                 step_reward = self.get_reward(obs, action)
 
-                log.log(LOG_REWARD, "economic reward = " + str(obs.reward + step_reward))
+                log.log(LOG_REWARD, "economic reward = " + str(step_reward))
                 if not obs.last():
                     self.memory.push(torch.Tensor(self.previous_state).to(device),
                                     torch.LongTensor([self.previous_action_idx]).to(device),
                                     torch.Tensor(state).to(device),
-                                    torch.Tensor([obs.reward + step_reward]).to(device))
+                                    torch.Tensor([step_reward]).to(device))
                     self.optimize_model()
                 else: # last step in an episode
                     pass

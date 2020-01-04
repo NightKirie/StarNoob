@@ -78,12 +78,16 @@ class SmartAgent(Agent):
         self.new_game()
         self.set_DQN(SAVE_POLICY_NET, SAVE_TARGET_NET, SAVE_MEMORY)
         self.episode = 0
+        self.win_game_count = 0
+        self.even_game_count = 0
+        self.lose_game_count = 0
 
     def reset(self):
-        log.debug('in reset')
+        log.debug('in reset')  
         if self.episodes != 0:
             log.log(LOG_EPISODE,
-                    f"Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. Reward: {self.reward}")
+                    f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. 
+                        Win game count: {self.win_game_count}, Even game count: {self.even_game_count}, Lose game count: {self.lose_game_count}""")
         super(SmartAgent, self).reset()
         log.log(LOG_EPISODE, f"Starting episode {self.episodes}")
         self.new_game()
@@ -101,9 +105,9 @@ class SmartAgent(Agent):
         self.previous_killed_value_units_score = 0
         self.previous_killed_value_structures_score = 0
         self.previous_total_spent_minerals = 0
-        self.time_penalty = 0
         self.steps = 0
         self.score = 0
+
 
     def get_state(self, obs):
         """
@@ -170,12 +174,12 @@ class SmartAgent(Agent):
 
         if self.previous_action is not None:
             step_reward = self.get_reward(obs)
-            log.log(LOG_REWARD, "agent reward = " + str(obs.reward + step_reward))
+            log.log(LOG_REWARD, "agent reward = " + str(step_reward))
             if not obs.last():
                 self.memory.push(torch.Tensor(self.previous_state).to(device),
                                  torch.LongTensor([self.previous_action_idx]).to(device),
                                  torch.Tensor(state).to(device),
-                                 torch.Tensor([obs.reward + step_reward]).to(device))
+                                 torch.Tensor([step_reward]).to(device))
                 self.optimize_model()
             else:
                 # save models
@@ -184,9 +188,17 @@ class SmartAgent(Agent):
                     self.training_policy.save_module()
                     self.economic_policy.save_module()
                     self.battle_policy.save_module()
+                if obs.reward == 1:
+                    self.win_game_count += 1
+                elif obs.reward == 0:
+                    self.even_game_count += 1
+                elif obs.reward == -1:
+                    self.lose_game_count += 1
                 return
         else:
             pass
+        if self.episode % TARGET_UPDATE == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.previous_state = state
         self.previous_action = action
