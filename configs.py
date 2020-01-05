@@ -22,7 +22,7 @@ flags.DEFINE_float("discount", 1., "Returned as part of the observation")
 flags.DEFINE_bool("discount_zero_after_timeout", False,
                   "If True, the discount will be zero after the 'game_steps_per_episode' timeout")
 
-flags.DEFINE_bool("visualize", False,
+flags.DEFINE_bool("visualize", True,
                   "Whether to pop up a window showing the camera and feature layers.")
 
 flags.DEFINE_integer("step_mul", None, """How many game steps per agent step (action/observation). 

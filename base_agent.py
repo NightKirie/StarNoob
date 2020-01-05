@@ -167,6 +167,7 @@ class BaseAgent(base_agent.BaseAgent):
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]
         return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
+        
     def get_my_units_by_type(self, obs, unit_type):
         """ get all user's units of a type
         Args:

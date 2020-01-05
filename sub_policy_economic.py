@@ -115,24 +115,33 @@ class Agent(BaseAgent):
         Returns:
             (int, int): (x, y)
         """
-        buildable = False
-        # First try to build near the main command center
-        for i in range(times):
+        # buildable = False
+        # # First try to build near the main command center, if main command center exist
+        # #if units.Terran.CommandCenter in self.get_my_building_by_pos(obs, MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'], MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'], MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x']+1 ,MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y']+1):
+        # test = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
+        # print(test[0].x, test[0].y)
+        # for i in range(times):
+        #     build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+        #                 MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
+        #     if self.check_if_buildable(obs, *build_xy):
+        #         buildable = True
+        #         break
+        # # If location is not buildable, try to get location from all command center again
+        # if not buildable:
+        command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        if len(command_center_list) > 0:
+            for command_center in command_center_list:
+                for i in range(times):
+                    build_xy = (command_center.x + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
+                                command_center.y + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))               
+                    if self.check_if_buildable(obs, *build_xy):
+                        break
+        else:
+            for i in range(times):
                 build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
                             MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
                 if self.check_if_buildable(obs, *build_xy):
-                    buildable = True
                     break
-        # If location is not buildable, try to get location from all command center again
-        if not buildable:
-            command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
-            if len(command_center_list) > 0:
-                for command_center in command_center_list:
-                    for i in range(times):
-                        build_xy = (command_center.x + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                    command_center.y + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))               
-                        if self.check_if_buildable(obs, *build_xy):
-                            break
         return build_xy
                  
 #build something
@@ -353,7 +362,7 @@ class SubAgent_Economic(Agent):
         if total_value_structures_score > self.previous_total_value_structures_score:
             reward += BUILD_STRUCTURE_REWARD_RATE * \
                 (total_value_structures_score - self.previous_total_value_structures_score)
-                
+
         # If spent mineral from prev to now state, get positive reward
         if total_spent_minerals > self.previous_total_spent_minerals:
             reward += MORE_MINERALS_USED_REWARD_RATE * \
@@ -364,11 +373,11 @@ class SubAgent_Economic(Agent):
                 (total_spent_vespene - self.previous_total_spent_vespene)
         
         # If too much mineral in this state, get negative reward
-        if player_mineral > 1000:
-            reward -= TOO_MUCH_MINERAL_PENALTY * (player_mineral - 1000)
+        if player_mineral > 1500:
+            reward -= TOO_MUCH_MINERAL_PENALTY * (player_mineral - 1500)
         # If too much mineral in this state, get negative reward
-        if player_vespene > 500:
-            reward -= TOO_MUCH_VESPENE_PENALTY * (player_vespene - 500)
+        if player_vespene > 1000:
+            reward -= TOO_MUCH_VESPENE_PENALTY * (player_vespene - 1000)
         
         # If lose building in this step, get negative reward
         if building_num < self.previous_building_num:

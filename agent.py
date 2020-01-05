@@ -82,20 +82,43 @@ class SmartAgent(Agent):
         self.win_game_count = 0
         self.draw_game_count = 0
         self.lose_game_count = 0
+        self.max_army_count = 0
         self.win_count_list = []
         self.draw_count_list = []
         self.lose_count_list = []
+        self.score_list = []
+        self.step_list = []
+        self.max_army_count_list = []
         plt.ion()
 
     def reset(self):
         log.debug('in reset')  
         if self.episodes != 0:
             log.log(LOG_EPISODE,
-                    f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. 
-                        Win game count: {self.win_game_count}, Draw game count: {self.draw_game_count}, Lose game count: {self.lose_game_count}""")
-            plt.plot(self.win_count_list, 'g')
-            plt.plot(self.lose_count_list, 'r')
-            plt.plot(self.draw_count_list, 'b')
+                    f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. Max army number: {self.max_army_count}
+                        Win game count: {self.win_game_count}. Draw game count: {self.draw_game_count}. Lose game count: {self.lose_game_count}""")
+            plt.subplot(2, 2, 1)
+            plt.title("Win / Draw / Lose")
+            plt.xlabel("episodes")
+            plt.ylabel("percentage(%)")
+            plt.plot(self.win_count_list, 'g', label="win")
+            plt.plot(self.draw_count_list, 'b', label="draw")
+            plt.plot(self.lose_count_list, 'r', label="lose")
+            plt.subplot(2, 2, 2)
+            plt.title("Score")
+            plt.xlabel("episodes")
+            plt.ylabel("score")
+            plt.plot(self.score_list, 'r', label="score")
+            plt.subplot(2, 2, 3)
+            plt.title("Step")
+            plt.xlabel("episodes")
+            plt.ylabel("step")
+            plt.plot(self.step_list, 'b', label="steps")
+            plt.subplot(2, 2, 4)
+            plt.title("Max army in each episode")
+            plt.xlabel("episodes")
+            plt.ylabel("army number")
+            plt.plot(self.max_army_count_list, 'g', label="max army")
             plt.pause(1)
             
         super(SmartAgent, self).reset()
@@ -117,6 +140,7 @@ class SmartAgent(Agent):
         self.previous_total_spent_minerals = 0
         self.steps = 0
         self.score = 0
+        self.max_army_count = 0
 
 
     def get_state(self, obs):
@@ -182,6 +206,9 @@ class SmartAgent(Agent):
         action, action_idx = self.select_action(state)
         log.info(action)
 
+        if obs.observation.player.army_count > self.max_army_count:
+            self.max_army_count = obs.observation.player.army_count
+
         if self.previous_action is not None:
             step_reward = self.get_reward(obs)
             log.log(LOG_REWARD, "agent reward = " + str(step_reward))
@@ -204,10 +231,16 @@ class SmartAgent(Agent):
                     self.draw_game_count += 1
                 elif obs.reward == -1:
                     self.lose_game_count += 1
+                
+                # record score for episode ending use
+                self.score = obs.observation.score_cumulative.score
 
                 self.win_count_list.append(self.win_game_count/self.episodes*100)
                 self.lose_count_list.append(self.lose_game_count/self.episodes*100)
                 self.draw_count_list.append(self.draw_game_count/self.episodes*100)
+                self.score_list.append(obs.observation.score_cumulative.score)
+                self.step_list.append(self.steps)
+                self.max_army_count_list.append(self.max_army_count)
                 return
         else:
             pass
@@ -218,8 +251,7 @@ class SmartAgent(Agent):
         self.previous_action = action
         self.previous_action_idx = action_idx
 
-        # record score for episode ending use
-        self.score = obs.observation.score_cumulative.score
+        
         log.debug('get out step')
         return getattr(self, action)(obs)
 
