@@ -104,6 +104,7 @@ class SmartAgent(Agent):
             plt.plot(self.win_count_list, 'g', label="win")
             plt.plot(self.draw_count_list, 'b', label="draw")
             plt.plot(self.lose_count_list, 'r', label="lose")
+            plt.legend()
             plt.subplot(2, 2, 2)
             plt.title("Score")
             plt.xlabel("episodes")
