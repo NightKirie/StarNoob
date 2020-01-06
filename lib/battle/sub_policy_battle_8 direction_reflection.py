@@ -59,8 +59,8 @@ class Agent(BaseAgent):
     def attack_vector(self, obs, vector, step):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0:  
-            move_p = Point(self.clamp(armys[0].x + vector.x * step, 0, 64) * BASE_COEFFICIENT[self.base_top_left], 
-                           self.clamp(armys[0].y + vector.y * step, 0, 64) * BASE_COEFFICIENT[self.base_top_left])
+            move_p = Point(self.clamp(armys[0].x + vector.x * step * BASE_COEFFICIENT[self.base_top_left], 0, 64), 
+                           self.clamp(armys[0].y + vector.y * step * BASE_COEFFICIENT[self.base_top_left], 0, 64))
             return actions.RAW_FUNCTIONS.Attack_pt(
                 "now", [soldier.tag for soldier in armys], move_p)
         return actions.RAW_FUNCTIONS.no_op()

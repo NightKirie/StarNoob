@@ -27,27 +27,42 @@ SAVE_MEMORY = 'model/battle_memory'
 
 Point = namedtuple("Vector_tuple", ["x", "y"])
 
+VECTOR = [
+    Point(0, 1),
+    Point(1, 1),
+    Point(1, 0),
+    Point(1, -1),
+    Point(0, -1),
+    Point(-1, -1),
+    Point(-1, 0),
+    Point(-1, 1)
+]
+
+BASE_COEFFICIENT = [1, -1]
+
 
 class Agent(BaseAgent):
     actions = tuple(["do_nothing"]) + \
-              tuple([f"attack_point_{i}_{j}" for i in range(0, SUB_ATTACK_DIVISION) for j in range(0, SUB_ATTACK_DIVISION)]) + \
-              tuple(["attack_enemy"]) 
+              tuple([f"attack_vector_{vector.x}_{vector.y}" for vector in VECTOR]) + \
+              tuple(["attack_enemy"])
 
     def __init__(self):
         super().__init__()
 
-        for i in range(0, SUB_ATTACK_DIVISION):
-            for j in range(0, SUB_ATTACK_DIVISION):
-                self.__setattr__(
-                    f"attack_point_{i}_{j}", partial(
-                        self.attack_point, point=Point(i, j), size=SUB_ATTACK_SIZE))
+        for vector in VECTOR:
+            self.__setattr__(
+                f"attack_vector_{vector.x}_{vector.y}", partial(
+                    self.attack_vector, vector=vector, step=8))
+    def clamp(self, num, min_num, max_num):
+        return max(min_num, min(num, max_num))
 
-    def attack_point(self, obs, point, size):
+    def attack_vector(self, obs, vector, step):
         armys = self.get_my_army_by_pos(obs)
-        if len(armys) > 0:
-            attack = (point.x * SUB_ATTACK_SIZE + SUB_LOCATION_SIZE / 2, point.y * SUB_ATTACK_SIZE + SUB_LOCATION_SIZE / 2)
+        if len(armys) > 0:  
+            move_p = Point(self.clamp(armys[0].x + vector.x * step * BASE_COEFFICIENT[self.base_top_left], 0, 64), 
+                           self.clamp(armys[0].y + vector.y * step * BASE_COEFFICIENT[self.base_top_left], 0, 64))
             return actions.RAW_FUNCTIONS.Attack_pt(
-                "now", [soldier.tag for soldier in armys], attack)
+                "now", [soldier.tag for soldier in armys], move_p)
         return actions.RAW_FUNCTIONS.no_op()
 
     def attack_enemy(self, obs): 
@@ -64,12 +79,6 @@ class Agent(BaseAgent):
                 attack_enemy = enemy_building_list[np.argmin(distances)]
             return actions.RAW_FUNCTIONS.Attack_unit(
                 "now", [soldier.tag for soldier in armys], attack_enemy.tag)
-            # if enemy_army_list != []:
-            #     attack = Point(enemy_army_list[0].x, enemy_army_list[0].y)
-            # elif enemy_building_list != []:
-            #     attack = Point(enemy_building_list[0].x, enemy_building_list[0].y)
-            # return actions.RAW_FUNCTIONS.Attack_pt(
-            #     "now", [soldier.tag for soldier in armys], attack)
         return actions.RAW_FUNCTIONS.no_op()
 
 
@@ -149,7 +158,6 @@ class SubAgent_Battle(Agent):
         log.debug(f"state: {state}")
         action, action_idx = self.select_action(state)
         log.info(action)
-
         if self.episodes % 3 == 1:
             if self.previous_action is not None:
                 step_reward = self.get_reward(obs, action)
