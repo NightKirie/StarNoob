@@ -1,5 +1,5 @@
 from base_agent import *
-
+import itertools
 from unit.units import Upgrade
 import unit.terran_unit as terran
 import unit.terran_upgrade as terran_upgrade
@@ -18,7 +18,7 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 500
 
-BUILD_RANGE_MAX = 6
+BUILD_RANGE_MAX = 8
 BUILD_RANGE_MIN = 2
 
 SAVE_POLICY_NET = 'model/economic_dqn_policy'
@@ -103,9 +103,19 @@ class Agent(BaseAgent):
         return actions.RAW_FUNCTIONS.no_op()
 
     def check_if_buildable(self, obs, posx, posy):
-        if self.get_my_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
-           self.get_enemy_building_by_pos(obs, posx, posy, posx+1, posy+1) == []:
+        buildable_position = obs.observation.feature_minimap.buildable
+        player_relative_position = obs.observation.feature_minimap.player_relative
+        if all(position == 1 for position in [buildable_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
+           all(position == 0 for position in [player_relative_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
+           len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0:
+            a = self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)
+            for i in a:
+                print(f"{posx} {posy} {i.x} {i.y}")
             return True
+        # if self.get_my_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
+        #    self.get_enemy_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
+        #    buildable_position[posx][posy] == 1 and player_relative_position[posx][posy] == 0:
+        #     return True
         return False
     
     def get_proper_position_to_build(self, obs, times):
@@ -115,39 +125,52 @@ class Agent(BaseAgent):
         Returns:
             (int, int): (x, y)
         """
-        # buildable = False
-        # # First try to build near the main command center, if main command center exist
-        # #if units.Terran.CommandCenter in self.get_my_building_by_pos(obs, MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'], MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'], MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x']+1 ,MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y']+1):
-        # test = self.get_my_completed_units_by_type(obs, units.Terran.CommandCenter)
-        # print(test[0].x, test[0].y)
-        # for i in range(times):
-        #     build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-        #                 MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-        #     if self.check_if_buildable(obs, *build_xy):
-        #         buildable = True
-        #         break
-        # # If location is not buildable, try to get location from all command center again
-        # if not buildable:
         command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
+        # If main command center at (19, 23) exist, get a location to build from BUILDABLE_POSITION[1]
+        if self.base_top_left == 1 and (19, 23) in [(command_center.x, command_center.y) for command_center in command_center_list]:
+            for i in range(times):
+                build_xy = random.choice(BUILDABLE_POSITION[0])
+                if self.check_if_buildable(obs, *build_xy):
+                    return build_xy
+            # If no buildable position, remove command center (19, 23) from command center list
+            command_center_list = [command_center for command_center in command_center_list if (command_center.x, command_center.y) != (19, 23)]
+
+        # If main command center at (39, 45) exist, get a location to build from BUILDABLE_POSITION[0]
+        if self.base_top_left == 0 and (39, 45) in [(command_center.x, command_center.y) for command_center in command_center_list]:
+            for i in range(times):
+                build_xy = random.choice(BUILDABLE_POSITION[1])
+                if self.check_if_buildable(obs, *build_xy):
+                    return build_xy
+            # If no buildable position, remove command center (39, 45) from command center list
+            command_center_list = [command_center for command_center in command_center_list if (command_center.x, command_center.y) != (39, 45)]
+        # If there's any command center left in command center list, get a buildable poistion
         if len(command_center_list) > 0:
             for command_center in command_center_list:
-                for i in range(times):
-                    build_xy = (command_center.x + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                                command_center.y + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))               
+                if (command_center.x, command_center.y) == (19, 23):
+                    build_xy = random.choice(BUILDABLE_POSITION[0])
                     if self.check_if_buildable(obs, *build_xy):
-                        break
-        else:
-            for i in range(times):
-                build_xy = (MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['x'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]),
-                            MAIN_COMMAND_CENTER_POTISION[self.base_top_left]['y'] + random.randint(BUILD_RANGE_MIN, BUILD_RANGE_MAX) * random.choice([-1, 1]))                
-                if self.check_if_buildable(obs, *build_xy):
-                    break
-        return build_xy
+                        return build_xy
+                elif (command_center.x, command_center.y) == (39, 45):
+                    build_xy = random.choice(BUILDABLE_POSITION[1])
+                    if self.check_if_buildable(obs, *build_xy):
+                        return build_xy
+                elif (command_center.x, command_center.y) == (17, 48):
+                    build_xy = random.choice(BUILDABLE_POSITION[2])
+                    if self.check_if_buildable(obs, *build_xy):
+                        return build_xy
+                elif (command_center.x, command_center.y) == (41, 21):
+                    build_xy = random.choice(BUILDABLE_POSITION[3])
+                    if self.check_if_buildable(obs, *build_xy):
+                        return build_xy
+        return None
+        
                  
 #build something
     def build_unit(self, obs, building):
         if building.find("TechLab") == -1 and building.find("Reactor") == -1:
             scvs = self.get_my_units_by_type(obs, units.Terran.SCV)
+            # Remove constructing scv
+            scvs = [scv for scv in scvs if scv.order_id_0 not in BUILD_BUILDING_CMD_ID and scv.order_id_1 not in BUILD_BUILDING_CMD_ID]
             if len(scvs) <= 0:
                 return actions.RAW_FUNCTIONS.no_op()
             
@@ -168,6 +191,7 @@ class Agent(BaseAgent):
                 scv = random.choice(scvs)
                 distances = self.get_distances(obs, gas_patches, (scv.x, scv.y))
                 gas_patch = gas_patches[np.argmin(distances)]
+                
                 return actions.RAW_FUNCTIONS.Build_Refinery_pt("now", scv.tag, gas_patch.tag)
             else: 
                 ### buildings which only research
@@ -175,13 +199,14 @@ class Agent(BaseAgent):
                     research_building_list = self.get_my_units_by_type(obs, getattr(units.Terran, building))
                     if len(research_building_list) > 0:
                         return actions.RAW_FUNCTIONS.no_op()
-
                 build_xy = self.get_proper_position_to_build(obs, 50)
-
-            distances = self.get_distances(obs, scvs, build_xy)
-            scv = scvs[np.argmin(distances)]
-            return actions.RAW_FUNCTIONS.__getattr__(f"Build_{building}_pt")(
-                    "now", scv.tag, build_xy)
+            
+            if build_xy:
+                distances = self.get_distances(obs, scvs, build_xy)
+                scv = scvs[np.argmin(distances)]
+                print(f"{building}: {build_xy} {scv.tag}")
+                return actions.RAW_FUNCTIONS.__getattr__(f"Build_{building}_pt")(
+                        "now", scv.tag, build_xy)                
 
         else:
             # TechLab or Reactor
@@ -320,10 +345,7 @@ class SubAgent_Economic(Agent):
         log.debug(f"state: {state}")
         action, action_idx = self.select_action(state)
         log.info(action)
-
-        #a_com = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
-        #print([a_com[0].x, a_com[0].y])
-
+        
         if self.episodes % 3 == 2:
             if self.previous_action is not None:
                 step_reward = self.get_reward(obs, action)

@@ -53,14 +53,13 @@ class Agent(BaseAgent):
             self.__setattr__(
                 f"attack_vector_{vector.x}_{vector.y}", partial(
                     self.attack_vector, vector=vector, step=8))
-    def clamp(self, num, min_num, max_num):
-        return max(min_num, min(num, max_num))
+
 
     def attack_vector(self, obs, vector, step):
         armys = self.get_my_army_by_pos(obs)
         if len(armys) > 0:  
-            move_p = Point(self.clamp(armys[0].x + vector.x * step * BASE_COEFFICIENT[self.base_top_left], 0, 64), 
-                           self.clamp(armys[0].y + vector.y * step * BASE_COEFFICIENT[self.base_top_left], 0, 64))
+            move_p = Point(self.clamp(armys[0].x + vector.x * step * BASE_COEFFICIENT[self.base_top_left], 0, 63), 
+                           self.clamp(armys[0].y + vector.y * step * BASE_COEFFICIENT[self.base_top_left], 0, 63))
             return actions.RAW_FUNCTIONS.Attack_pt(
                 "now", [soldier.tag for soldier in armys], move_p)
         return actions.RAW_FUNCTIONS.no_op()

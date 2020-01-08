@@ -326,7 +326,7 @@ def main(unused_argv):
             ensure_available_actions=FLAGS.ensure_available_actions
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
-            run_loop.run_loop([agent1], env, max_episodes=25)
+            run_loop.run_loop([agent1], env, max_episodes=50)
     except KeyboardInterrupt:
         pass
 

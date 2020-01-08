@@ -167,6 +167,9 @@ class BaseAgent(base_agent.BaseAgent):
     def get_distances(self, obs, units, xy):
         units_xy = [(unit.x, unit.y) for unit in units]
         return np.linalg.norm(np.array(units_xy) - np.array(xy), axis=1)
+    
+    def clamp(self, num, min_num, max_num):
+        return max(min_num, min(num, max_num))
         
     def get_my_units_by_type(self, obs, unit_type):
         """ get all user's units of a type
@@ -351,14 +354,15 @@ class BaseAgent(base_agent.BaseAgent):
         self.memory = ReplayMemory(10000)
 
         # if saved models exist
-        if self.policy_net.load() and self.target_net.load():
-            with open(SAVE_MEMORY, 'rb') as f:
-                self.memory = pickle.load(f)
-                log.log(LOG_MODEL, f"Load memory \"{SAVE_MEMORY}\"")
-        else:
-            self.target_net.load_state_dict(self.policy_net.state_dict())
-            self.target_net.eval()
-            log.log(LOG_MODEL, f"Memory \"{SAVE_MEMORY}\" not found")
+        if LOAD_MODEL:
+            if self.policy_net.load() and self.target_net.load():
+                with open(SAVE_MEMORY, 'rb') as f:
+                    self.memory = pickle.load(f)
+                    log.log(LOG_MODEL, f"Load memory \"{SAVE_MEMORY}\"")
+            else:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
+                self.target_net.eval()
+                log.log(LOG_MODEL, f"Memory \"{SAVE_MEMORY}\" not found")
 
         self.optimizer = optim.RMSprop(self.policy_net.parameters())
 
