@@ -26,7 +26,7 @@ flags.DEFINE_bool("discount_zero_after_timeout", False,
 flags.DEFINE_bool("visualize", True,
                   "Whether to pop up a window showing the camera and feature layers.")
 
-flags.DEFINE_integer("step_mul", None, """How many game steps per agent step (action/observation). 
+flags.DEFINE_integer("step_mul", 1024, """How many game steps per agent step (action/observation). 
                                             None means use the map default.""")
 
 flags.DEFINE_bool("realtime", False, """Whether to use realtime mode. In this mode the game simulation

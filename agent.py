@@ -15,6 +15,7 @@ SAVE_POLICY_NET = 'model/agent_dqn_policy'
 SAVE_TARGET_NET = 'model/agent_dqn_target'
 SAVE_MEMORY = 'model/agent_memory'
 TIME_PENALTY_Q = 0
+MAX_EPISODE = 2
 
 class Agent(BaseAgent):
 
@@ -91,41 +92,44 @@ class SmartAgent(Agent):
         self.max_army_count_list = []
         plt.ion()
 
+    def plot(self):
+        log.log(LOG_EPISODE,
+        f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. Max army number: {self.max_army_count}
+            Win game count: {self.win_game_count}. Draw game count: {self.draw_game_count}. Lose game count: {self.lose_game_count}""")
+        plt.subplot(2, 2, 1)
+        plt.cla()
+        plt.title("Win / Draw / Lose")
+        plt.xlabel("episodes")
+        plt.ylabel("percentage(%)")
+        plt.plot(self.win_count_list, 'g', label="win")
+        plt.plot(self.draw_count_list, 'b', label="draw")
+        plt.plot(self.lose_count_list, 'r', label="lose")
+        plt.legend()
+        plt.subplot(2, 2, 2)
+        plt.cla()
+        plt.title("Score")
+        plt.xlabel("episodes")
+        plt.ylabel("score")
+        plt.plot(self.score_list, 'r', label="score")
+        plt.subplot(2, 2, 3)
+        plt.cla()
+        plt.title("Step")
+        plt.xlabel("episodes")
+        plt.ylabel("step")
+        plt.plot(self.step_list, 'b', label="steps")
+        plt.subplot(2, 2, 4)
+        plt.cla()
+        plt.title("Max army in each episode")
+        plt.xlabel("episodes")
+        plt.ylabel("army number")
+        plt.plot(self.max_army_count_list, 'g', label="max army")
+        plt.pause(1)
+        if self.episodes == MAX_EPISODE:
+            fig_filename = f'figs/{time.strftime("%Y_%m_%d_%H%M%S", time.localtime())}.png'
+            plt.savefig(fig_filename)
+
     def reset(self):
         log.debug('in reset')  
-        if self.episodes != 0:
-            log.log(LOG_EPISODE,
-                    f"""Episode {self.episodes} finished after {self.steps} game steps. Score: {self.score}. Max army number: {self.max_army_count}
-                        Win game count: {self.win_game_count}. Draw game count: {self.draw_game_count}. Lose game count: {self.lose_game_count}""")
-            plt.subplot(2, 2, 1)
-            plt.cla()
-            plt.title("Win / Draw / Lose")
-            plt.xlabel("episodes")
-            plt.ylabel("percentage(%)")
-            plt.plot(self.win_count_list, 'g', label="win")
-            plt.plot(self.draw_count_list, 'b', label="draw")
-            plt.plot(self.lose_count_list, 'r', label="lose")
-            plt.legend()
-            plt.subplot(2, 2, 2)
-            plt.cla()
-            plt.title("Score")
-            plt.xlabel("episodes")
-            plt.ylabel("score")
-            plt.plot(self.score_list, 'r', label="score")
-            plt.subplot(2, 2, 3)
-            plt.cla()
-            plt.title("Step")
-            plt.xlabel("episodes")
-            plt.ylabel("step")
-            plt.plot(self.step_list, 'b', label="steps")
-            plt.subplot(2, 2, 4)
-            plt.cla()
-            plt.title("Max army in each episode")
-            plt.xlabel("episodes")
-            plt.ylabel("army number")
-            plt.plot(self.max_army_count_list, 'g', label="max army")
-            plt.pause(1)
-            
         super(SmartAgent, self).reset()
         log.log(LOG_EPISODE, f"Starting episode {self.episodes}")
         self.new_game()
@@ -246,6 +250,7 @@ class SmartAgent(Agent):
                 self.score_list.append(obs.observation.score_cumulative.score)
                 self.step_list.append(self.steps)
                 self.max_army_count_list.append(self.max_army_count)
+                self.plot()
                 return
         else:
             pass
@@ -326,7 +331,7 @@ def main(unused_argv):
             ensure_available_actions=FLAGS.ensure_available_actions
         ) as env:
             #run_loop.run_loop([agent1, agent2], env, max_episodes=1000)
-            run_loop.run_loop([agent1], env, max_episodes=50)
+            run_loop.run_loop([agent1], env, max_episodes=MAX_EPISODE)
     except KeyboardInterrupt:
         pass
 

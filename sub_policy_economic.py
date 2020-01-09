@@ -107,7 +107,8 @@ class Agent(BaseAgent):
         player_relative_position = obs.observation.feature_minimap.player_relative
         if all(position == 1 for position in [buildable_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
            all(position == 0 for position in [player_relative_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
-           len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0:
+           len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
+           len(self.get_enemy_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0:
             a = self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)
             for i in a:
                 print(f"{posx} {posy} {i.x} {i.y}")
