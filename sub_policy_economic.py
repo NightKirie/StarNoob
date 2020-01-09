@@ -121,14 +121,10 @@ class Agent(BaseAgent):
                                    units.Neutral.MineralField750,
                                ]]
         """
-        if all(position == 1 for position in [buildable_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
-           all(position == 0 for position in [player_relative_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
-           len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
+        #if any(position != 3 for position in [player_relative_position[posx+x][posy+y] for x, y in itertools.product(range(0, 1), range(0, 1))]) and \
+        if len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
            len(self.get_mineral_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
            len(self.get_enemy_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0:
-            a = self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)
-            for i in a:
-                print(f"{posx} {posy} {i.x} {i.y}")
             print('check if buildable ' + str(posx) + ' ' +str(posy))
             return True
         # if self.get_my_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
@@ -144,9 +140,11 @@ class Agent(BaseAgent):
         Returns:
             (int, int): (x, y)
         """
+        #(31,47)
         command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
         # If main command center at (19, 23) exist, get a location to build from BUILDABLE_POSITION[1]
         if self.base_top_left == 1 and (19, 23) in [(command_center.x, command_center.y) for command_center in command_center_list]:
+            print("base_top_left")
             for build_xy in BUILDABLE_POSITION[0]:
                 if self.check_if_buildable(obs, *build_xy):
                     return build_xy
@@ -155,6 +153,7 @@ class Agent(BaseAgent):
 
         # If main command center at (39, 45) exist, get a location to build from BUILDABLE_POSITION[0]
         if self.base_top_left == 0 and (39, 45) in [(command_center.x, command_center.y) for command_center in command_center_list]:
+            print("base_bottom_right")
             for build_xy in BUILDABLE_POSITION[1]:
                 if self.check_if_buildable(obs, *build_xy):
                     return build_xy

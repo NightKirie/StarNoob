@@ -15,7 +15,7 @@ SAVE_POLICY_NET = 'model/agent_dqn_policy'
 SAVE_TARGET_NET = 'model/agent_dqn_target'
 SAVE_MEMORY = 'model/agent_memory'
 TIME_PENALTY_Q = 0
-MAX_EPISODE = 2
+MAX_EPISODE = 50
 
 class Agent(BaseAgent):
 
