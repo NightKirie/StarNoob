@@ -128,8 +128,7 @@ class Agent(BaseAgent):
         command_center_list = self.get_my_units_by_type(obs, units.Terran.CommandCenter)
         # If main command center at (19, 23) exist, get a location to build from BUILDABLE_POSITION[1]
         if self.base_top_left == 1 and (19, 23) in [(command_center.x, command_center.y) for command_center in command_center_list]:
-            for i in range(times):
-                build_xy = random.choice(BUILDABLE_POSITION[0])
+            for build_xy in BUILDABLE_POSITION[0]:
                 if self.check_if_buildable(obs, *build_xy):
                     return build_xy
             # If no buildable position, remove command center (19, 23) from command center list
@@ -137,8 +136,7 @@ class Agent(BaseAgent):
 
         # If main command center at (39, 45) exist, get a location to build from BUILDABLE_POSITION[0]
         if self.base_top_left == 0 and (39, 45) in [(command_center.x, command_center.y) for command_center in command_center_list]:
-            for i in range(times):
-                build_xy = random.choice(BUILDABLE_POSITION[1])
+            for build_xy in BUILDABLE_POSITION[1]:
                 if self.check_if_buildable(obs, *build_xy):
                     return build_xy
             # If no buildable position, remove command center (39, 45) from command center list
@@ -147,21 +145,21 @@ class Agent(BaseAgent):
         if len(command_center_list) > 0:
             for command_center in command_center_list:
                 if (command_center.x, command_center.y) == (19, 23):
-                    build_xy = random.choice(BUILDABLE_POSITION[0])
-                    if self.check_if_buildable(obs, *build_xy):
-                        return build_xy
+                    for build_xy in BUILDABLE_POSITION[0]:
+                        if self.check_if_buildable(obs, *build_xy):
+                            return build_xy
                 elif (command_center.x, command_center.y) == (39, 45):
-                    build_xy = random.choice(BUILDABLE_POSITION[1])
-                    if self.check_if_buildable(obs, *build_xy):
-                        return build_xy
+                    for build_xy in BUILDABLE_POSITION[1]:
+                        if self.check_if_buildable(obs, *build_xy):
+                            return build_xy
                 elif (command_center.x, command_center.y) == (17, 48):
-                    build_xy = random.choice(BUILDABLE_POSITION[2])
-                    if self.check_if_buildable(obs, *build_xy):
-                        return build_xy
+                    for build_xy in BUILDABLE_POSITION[2]:
+                        if self.check_if_buildable(obs, *build_xy):
+                            return build_xy
                 elif (command_center.x, command_center.y) == (41, 21):
-                    build_xy = random.choice(BUILDABLE_POSITION[3])
-                    if self.check_if_buildable(obs, *build_xy):
-                        return build_xy
+                    for build_xy in BUILDABLE_POSITION[3]:
+                        if self.check_if_buildable(obs, *build_xy):
+                            return build_xy
         return None
         
                  
@@ -199,7 +197,7 @@ class Agent(BaseAgent):
                     research_building_list = self.get_my_units_by_type(obs, getattr(units.Terran, building))
                     if len(research_building_list) > 0:
                         return actions.RAW_FUNCTIONS.no_op()
-                build_xy = self.get_proper_position_to_build(obs, 50)
+                build_xy = self.get_proper_position_to_build(obs, 200)
             
             if build_xy:
                 distances = self.get_distances(obs, scvs, build_xy)
