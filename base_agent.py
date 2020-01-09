@@ -310,6 +310,18 @@ class BaseAgent(base_agent.BaseAgent):
                     and unit.x >= pos1x and unit.x < pos2x
                     and unit.y >= pos1y and unit.y < pos2y]
 
+    def get_mineral_by_pos(self, obs, pos1x=0, pos1y=0, pos2x=64, pos2y=64):
+        mineral_patches = [unit for unit in obs.observation.raw_units
+                               if unit.unit_type in [
+                                   units.Neutral.MineralField,
+                                   units.Neutral.MineralField750,
+                               ]]
+        return [unit for unit in mineral_patches
+                if unit.x >= pos1x and unit.x < pos2x
+                    and unit.y >= pos1y and unit.y < pos2y
+                ]
+
+
     def do_nothing(self, obs):
         return actions.RAW_FUNCTIONS.no_op()
 

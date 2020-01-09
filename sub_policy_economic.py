@@ -105,13 +105,31 @@ class Agent(BaseAgent):
     def check_if_buildable(self, obs, posx, posy):
         buildable_position = obs.observation.feature_minimap.buildable
         player_relative_position = obs.observation.feature_minimap.player_relative
+        """
+        for some_p in player_relative_position:
+            s_str = ''
+            for soso_p in some_p:
+                s_str += (str(soso_p) + ',')
+            print(s_str)
+
+        print('')
+
+        #print(str(player_relative_position))
+        mineral_patches = [unit for unit in obs.observation.raw_units
+                               if unit.unit_type in [
+                                   units.Neutral.MineralField,
+                                   units.Neutral.MineralField750,
+                               ]]
+        """
         if all(position == 1 for position in [buildable_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
            all(position == 0 for position in [player_relative_position[posx+x][posy+y] for x, y in itertools.product(range(-1, 2), range(-1, 2))]) and \
            len(self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
+           len(self.get_mineral_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0 and \
            len(self.get_enemy_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)) == 0:
             a = self.get_my_building_by_pos(obs, posx-1, posy-1, posx+2, posy+2)
             for i in a:
                 print(f"{posx} {posy} {i.x} {i.y}")
+            print('check if buildable ' + str(posx) + ' ' +str(posy))
             return True
         # if self.get_my_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
         #    self.get_enemy_building_by_pos(obs, posx, posy, posx+1, posy+1) == [] and \
