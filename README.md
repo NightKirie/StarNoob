@@ -31,4 +31,4 @@ python3 agent.py
 ## Training Result
 #### Our Bot(Terran) V.S. Very Easy Bot(Terran)
 - Winrate
-![Winrate]('./img/WinRate_TvsT_veryeasy_100s.jpg')
+![Winrate](./img/WinRate_TvsT_veryeasy_100s.jpg)
