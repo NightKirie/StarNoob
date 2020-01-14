@@ -6,7 +6,9 @@ https://colab.research.google.com/drive/1bZsnxTpEr_1DZ3HI5nGExhxUVnXrrYzG
 
 ## Dependencies
 - Using Anaconda
-`conda env create -f anaconda_environment.yml`
+```
+conda env create -f anaconda_environment.yml
+```
 - Package list
   1. python=3.6
   2. matplotlib
